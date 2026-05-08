@@ -3,10 +3,10 @@ import helmet from "helmet";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { config } from "./config/env";
+import { errorHandler } from "./middleware/error.middleware";
 
 const app: Application = express();
 
-// Security middleware — order matters
 app.use(helmet());
 app.use(
   cors({
@@ -14,13 +14,10 @@ app.use(
     credentials: true,
   })
 );
-
-// Request parsing
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Health check route
 app.get("/api/health", (_req, res) => {
   res.json({
     success: true,
@@ -28,5 +25,8 @@ app.get("/api/health", (_req, res) => {
     environment: config.nodeEnv,
   });
 });
+
+// Must be last
+app.use(errorHandler);
 
 export default app;
