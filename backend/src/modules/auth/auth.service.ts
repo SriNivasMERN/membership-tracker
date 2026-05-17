@@ -117,4 +117,45 @@ export const authService = {
       sameSite: "strict",
     });
   },
+
+  async refreshAccessToken(
+  refreshTokenFromCookie: string | undefined,
+  res: Response
+): Promise<string> {
+  if (!refreshTokenFromCookie) {
+    throw new AppError("Refresh token not found", 401);
+  }
+
+  // Verify the refresh token signature
+  let payload: TokenPayload;
+  try {
+    payload = verifyRefreshToken(refreshTokenFromCookie);
+  } catch {
+    throw new AppError("Invalid or expired refresh token", 401);
+  }
+
+  // Find user and check stored hash
+  const user = await User.findById(payload.userId).select("+refreshTokenHash");
+  if (!user || !user.refreshTokenHash) {
+    throw new AppError("Invalid refresh token", 401);
+  }
+
+  // Compare token with stored hash
+  const isValid = await bcrypt.compare(
+    refreshTokenFromCookie,
+    user.refreshTokenHash
+  );
+  if (!isValid) {
+    throw new AppError("Invalid refresh token", 401);
+  }
+
+  // Generate new access token
+  const newAccessToken = generateAccessToken({
+    userId: user._id.toString(),
+    role: user.role,
+    businessId: user.businessId.toString(),
+  });
+
+  return newAccessToken;
+},
 };

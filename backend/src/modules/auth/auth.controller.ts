@@ -1,3 +1,4 @@
+import { User } from "./user.model";
 import { Request, Response, NextFunction } from "express";
 import { authService } from "./auth.service";
 
@@ -81,15 +82,46 @@ export const login = async (
 };
 
 export const logout = async (
-  _req: Request,
+  req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
+    // Clear refresh token from database
+    if (req.user) {
+      await User.findByIdAndUpdate(req.user.userId, {
+        refreshTokenHash: undefined,
+      });
+    }
+
     await authService.logout(res);
+
     res.json({
       success: true,
       message: "Logged out successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const refreshToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const tokenFromCookie = req.cookies.refreshToken;
+
+    const accessToken = await authService.refreshAccessToken(
+      tokenFromCookie,
+      res
+    );
+
+    res.json({
+      success: true,
+      message: "Token refreshed successfully",
+      data: { accessToken },
     });
   } catch (error) {
     next(error);
