@@ -1,4 +1,5 @@
 import mongoose, { Document, Schema } from "mongoose";
+import bcrypt from "bcryptjs";
 import { UserRole } from "../../types/shared.types";
 
 export interface IUser {
@@ -13,7 +14,9 @@ export interface IUser {
   updatedAt: Date;
 }
 
-export interface IUserDocument extends IUser, Document {}
+export interface IUserDocument extends IUser, Document {
+  comparePassword(candidatePassword: string): Promise<boolean>;
+}
 
 const userSchema = new Schema<IUserDocument>(
   {
@@ -64,5 +67,11 @@ userSchema.set("toJSON", {
     return obj;
   },
 });
+
+userSchema.methods.comparePassword = async function (
+  candidatePassword: string
+): Promise<boolean> {
+  return bcrypt.compare(candidatePassword, this.password);
+};
 
 export const User = mongoose.model<IUserDocument>("User", userSchema);
