@@ -4,6 +4,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import { config } from "./config/env";
 import { errorHandler } from "./middleware/error.middleware";
+import authRoutes from "./modules/auth/auth.routes";
 
 const app: Application = express();
 
@@ -18,6 +19,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+// Routes
+app.use("/api/auth", authRoutes);
+
+// Health check
 app.get("/api/health", (_req, res) => {
   res.json({
     success: true,
@@ -26,7 +31,7 @@ app.get("/api/health", (_req, res) => {
   });
 });
 
-// Must be last
+// Error handler - always last
 app.use(errorHandler);
 
 export default app;
