@@ -6,6 +6,7 @@ import { config } from "./config/env";
 import { errorHandler } from "./middleware/error.middleware";
 import authRoutes from "./modules/auth/auth.routes";
 import settingsRoutes from "./modules/settings/settings.routes";
+import planRoutes from "./modules/plans/plan.routes";
 
 const app: Application = express();
 
@@ -23,6 +24,7 @@ app.use(cookieParser());
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/settings", settingsRoutes);
+app.use("/api/plans", planRoutes);
 
 // Health check
 app.get("/api/health", (_req, res) => {
