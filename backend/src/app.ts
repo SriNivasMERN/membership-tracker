@@ -7,6 +7,7 @@ import { errorHandler } from "./middleware/error.middleware";
 import authRoutes from "./modules/auth/auth.routes";
 import settingsRoutes from "./modules/settings/settings.routes";
 import planRoutes from "./modules/plans/plan.routes";
+import slotRoutes from "./modules/slots/slot.routes";
 
 const app: Application = express();
 
@@ -25,6 +26,7 @@ app.use(cookieParser());
 app.use("/api/auth", authRoutes);
 app.use("/api/settings", settingsRoutes);
 app.use("/api/plans", planRoutes);
+app.use("/api/slots", slotRoutes);
 
 // Health check
 app.get("/api/health", (_req, res) => {
