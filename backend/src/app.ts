@@ -8,6 +8,7 @@ import authRoutes from "./modules/auth/auth.routes";
 import settingsRoutes from "./modules/settings/settings.routes";
 import planRoutes from "./modules/plans/plan.routes";
 import slotRoutes from "./modules/slots/slot.routes";
+import pricingRoutes from "./modules/pricing/pricing.routes";
 
 const app: Application = express();
 
@@ -27,6 +28,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/settings", settingsRoutes);
 app.use("/api/plans", planRoutes);
 app.use("/api/slots", slotRoutes);
+app.use("/api/pricing", pricingRoutes);
 
 // Health check
 app.get("/api/health", (_req, res) => {
