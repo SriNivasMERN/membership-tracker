@@ -23,27 +23,26 @@ export const settingsService = {
   },
 
   // Create initial settings - only runs once per business
-  async createSettings(
-    businessId: string,
-    input: CreateSettingsInput
-  ): Promise<IBusinessSettingsDocument> {
-    // Check if settings already exist
-    const existing = await this.getSettings(businessId);
-    if (existing) {
-      throw new AppError(
-        "Settings already exist. Use update instead.",
-        409
-      );
-    }
+ async createSettings(
+  businessId: string,
+  input: CreateSettingsInput
+): Promise<IBusinessSettingsDocument> {
+  const existing = await this.getSettings(businessId);
+  if (existing) {
+    throw new AppError(
+      "Settings already exist. Use update instead.",
+      409
+    );
+  }
 
-    const settings = await BusinessSettings.create({
-      businessId: new mongoose.Types.ObjectId(businessId),
-      ...input,
-      isConfigured: true,
-    });
+  const settings = await BusinessSettings.create({
+    businessId: new mongoose.Types.ObjectId(businessId),
+    ...input,
+    isConfigured: true,
+  });
 
-    return settings;
-  },
+  return settings;
+},
 
   // Update existing settings
   async updateSettings(
