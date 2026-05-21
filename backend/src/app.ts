@@ -10,6 +10,7 @@ import planRoutes from "./modules/plans/plan.routes";
 import slotRoutes from "./modules/slots/slot.routes";
 import pricingRoutes from "./modules/pricing/pricing.routes";
 import userRoutes from "./modules/users/user.routes";
+import memberRoutes from "./modules/members/member.routes";
 
 const app: Application = express();
 
@@ -31,6 +32,7 @@ app.use("/api/plans", planRoutes);
 app.use("/api/slots", slotRoutes);
 app.use("/api/pricing", pricingRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/members", memberRoutes);
 
 // Health check
 app.get("/api/health", (_req, res) => {
