@@ -219,4 +219,226 @@ export const memberService = {
       },
     };
   },
+
+  // Get single member by ID
+  async getMemberById(
+    memberId: string,
+    businessId: string
+  ) {
+    const member = await Member.findOne({
+      _id: new mongoose.Types.ObjectId(memberId),
+      businessId: new mongoose.Types.ObjectId(businessId),
+      isDeleted: false,
+    });
+
+    if (!member) {
+      throw new AppError("Member not found", 404);
+    }
+
+    const expiryAlertDays = await getExpiryAlertDays(businessId);
+    return attachComputedFields(member, expiryAlertDays);
+  },
+
+  // Update member personal details
+  // Plan and slot changes not allowed via update - use renew instead
+  async updateMember(
+    memberId: string,
+    businessId: string,
+    userId: string,
+    input: UpdateMemberInput
+  ) {
+    // If mobile is being changed, check for duplicates
+    if (input.mobile) {
+      const existing = await Member.findOne({
+        businessId: new mongoose.Types.ObjectId(businessId),
+        mobile: input.mobile,
+        isDeleted: false,
+        _id: { $ne: new mongoose.Types.ObjectId(memberId) },
+      });
+
+      if (existing) {
+        throw new AppError(
+          "A member with this mobile number already exists",
+          409
+        );
+      }
+    }
+
+    const member = await Member.findOneAndUpdate(
+      {
+        _id: new mongoose.Types.ObjectId(memberId),
+        businessId: new mongoose.Types.ObjectId(businessId),
+        isDeleted: false,
+      },
+      {
+        $set: {
+          ...input,
+          updatedBy: new mongoose.Types.ObjectId(userId),
+        },
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!member) {
+      throw new AppError("Member not found", 404);
+    }
+
+    const expiryAlertDays = await getExpiryAlertDays(businessId);
+    return attachComputedFields(member, expiryAlertDays);
+  },
+
+  // Soft delete member
+  async deleteMember(
+    memberId: string,
+    businessId: string,
+    userId: string
+  ): Promise<void> {
+    const member = await Member.findOneAndUpdate(
+      {
+        _id: new mongoose.Types.ObjectId(memberId),
+        businessId: new mongoose.Types.ObjectId(businessId),
+        isDeleted: false,
+      },
+      {
+        $set: {
+          isDeleted: true,
+          updatedBy: new mongoose.Types.ObjectId(userId),
+        },
+      }
+    );
+
+    if (!member) {
+      throw new AppError("Member not found", 404);
+    }
+  },
+
+  // Add a payment entry to existing member
+  async addPayment(
+    memberId: string,
+    businessId: string,
+    userId: string,
+    input: AddPaymentInput
+  ) {
+    const member = await Member.findOne({
+      _id: new mongoose.Types.ObjectId(memberId),
+      businessId: new mongoose.Types.ObjectId(businessId),
+      isDeleted: false,
+    });
+
+    if (!member) {
+      throw new AppError("Member not found", 404);
+    }
+
+    // Add payment entry to array
+    member.payments.push({
+      amount: input.amount,
+      paidOn: new Date(input.paidOn),
+      note: input.note,
+      recordedBy: new mongoose.Types.ObjectId(userId),
+    });
+
+    member.updatedBy = new mongoose.Types.ObjectId(userId);
+    await member.save();
+
+    const expiryAlertDays = await getExpiryAlertDays(businessId);
+    return attachComputedFields(member, expiryAlertDays);
+  },
+
+  // Renew membership - extends end date, optionally changes plan/slot
+  async renewMember(
+    memberId: string,
+    businessId: string,
+    userId: string,
+    input: RenewMemberInput
+  ) {
+    const member = await Member.findOne({
+      _id: new mongoose.Types.ObjectId(memberId),
+      businessId: new mongoose.Types.ObjectId(businessId),
+      isDeleted: false,
+    });
+
+    if (!member) {
+      throw new AppError("Member not found", 404);
+    }
+
+    // Use new plan if provided, otherwise keep existing
+    const planId = input.planId || member.planSnapshot.planId.toString();
+    const slotId = input.slotId || member.slotSnapshot.slotId.toString();
+
+    // Fetch plan
+    const plan = await Plan.findOne({
+      _id: new mongoose.Types.ObjectId(planId),
+      businessId: new mongoose.Types.ObjectId(businessId),
+      isActive: true,
+      isDeleted: false,
+    });
+
+    if (!plan) {
+      throw new AppError("Plan not found or is not active", 404);
+    }
+
+    // Fetch slot
+    const slot = await Slot.findOne({
+      _id: new mongoose.Types.ObjectId(slotId),
+      businessId: new mongoose.Types.ObjectId(businessId),
+      isActive: true,
+      isDeleted: false,
+    });
+
+    if (!slot) {
+      throw new AppError("Slot not found or is not active", 404);
+    }
+
+    // Calculate new final price
+    let finalPrice: number;
+    if (input.finalPrice !== undefined) {
+      finalPrice = input.finalPrice;
+    } else {
+      finalPrice = await pricingService.calculateFinalPrice(
+        businessId,
+        planId,
+        slotId,
+        plan.basePrice
+      );
+    }
+
+    // New start date and end date
+    const newStartDate = new Date(input.startDate);
+    const newEndDate = calculateEndDate(input.startDate, plan.durationDays);
+
+    // Update snapshots and dates
+    member.planSnapshot = {
+      planId: plan._id as mongoose.Types.ObjectId,
+      name: plan.name,
+      durationDays: plan.durationDays,
+      basePrice: plan.basePrice,
+    };
+
+    member.slotSnapshot = {
+      slotId: slot._id as mongoose.Types.ObjectId,
+      label: slot.label,
+      startTime: slot.startTime,
+      endTime: slot.endTime,
+    };
+
+    member.startDate = newStartDate;
+    member.endDate = newEndDate;
+    member.finalPrice = finalPrice;
+    member.updatedBy = new mongoose.Types.ObjectId(userId);
+
+    // Add renewal payment if provided
+    if (input.initialPayment && input.initialPayment > 0) {
+      member.payments.push({
+        amount: input.initialPayment,
+        paidOn: new Date(),
+        note: "Renewal payment",
+        recordedBy: new mongoose.Types.ObjectId(userId),
+      });
+    }
+
+    await member.save();
+
+    const expiryAlertDays = await getExpiryAlertDays(businessId);
+    return attachComputedFields(member, expiryAlertDays);
+  }
 };

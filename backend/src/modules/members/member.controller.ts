@@ -48,3 +48,110 @@ export const listMembers = async (
     next(error);
   }
 };
+
+export const getMemberById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const member = await memberService.getMemberById(
+      String(req.params.id),
+      req.user!.businessId
+    );
+    res.json({
+      success: true,
+      message: "Member retrieved",
+      data: member,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateMember = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const member = await memberService.updateMember(
+      String(req.params.id),
+      req.user!.businessId,
+      req.user!.userId,
+      req.body
+    );
+    res.json({
+      success: true,
+      message: "Member updated successfully",
+      data: member,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteMember = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    await memberService.deleteMember(
+      String(req.params.id),
+      req.user!.businessId,
+      req.user!.userId
+    );
+    res.json({
+      success: true,
+      message: "Member deleted successfully",
+      data: null,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const addPayment = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const member = await memberService.addPayment(
+      String(req.params.id),
+      req.user!.businessId,
+      req.user!.userId,
+      req.body
+    );
+    res.json({
+      success: true,
+      message: "Payment recorded successfully",
+      data: member,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const renewMember = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const member = await memberService.renewMember(
+      String(req.params.id),
+      req.user!.businessId,
+      req.user!.userId,
+      req.body
+    );
+    res.json({
+      success: true,
+      message: "Membership renewed successfully",
+      data: member,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
