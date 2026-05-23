@@ -1,20 +1,29 @@
 # Membership Management Tracker
 
-A configuration-driven management system for businesses and organizations that manage memberships, members, plans, payments, renewals, and internal operations. Built to replace spreadsheet tracking with a structured, role-scoped internal tool.
+Internal membership management system for gyms, studios,
+and coaching centers.
 
----
+## Status
+Backend complete. Frontend in development.
 
-## What it does
+## Tech Stack
+Node.js · Express · TypeScript · MongoDB · Mongoose · JWT · Zod
 
-- Manages members with plan-based pricing and slot assignments
-- Freezes plan and pricing details at the time of member creation — config changes never affect existing records
-- Tracks full payment history per member, not just a running balance
-- Surfaces active members, expiring memberships, revenue, and pending payments through a real-time dashboard
-- Enforces role-based access — owners configure the system, staff handle daily operations
+## Backend Modules
+- Authentication - JWT with refresh token rotation
+- Business Settings - single config per business
+- Plans - membership plan management
+- Slots - time slot management
+- Pricing Rules - plan/slot price multipliers
+- Members - full lifecycle with snapshot storage
+- Dashboard - real-time analytics
 
-## Tech stack
+## Local Setup
+### Backend
+1. cd backend
+2. npm install
+3. Create .env from .env.example
+4. npm run dev
 
-**Frontend** — Next.js 14, TypeScript, Material UI, React Hook Form, Zod, Recharts  
-**Backend** — Node.js, Express, TypeScript, MongoDB, Mongoose, JWT  
-**Database** — MongoDB Atlas  
-**Hosting** — Vercel (frontend), Render (backend)
+## Environment Variables
+See .env.example for required variables
