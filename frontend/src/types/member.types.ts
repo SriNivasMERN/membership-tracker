@@ -1,0 +1,45 @@
+export type MemberStatus = "active" | "expiring_soon" | "expired";
+
+export interface PlanSnapshot {
+  planId: string;
+  name: string;
+  durationDays: number;
+  basePrice: number;
+}
+
+export interface SlotSnapshot {
+  slotId: string;
+  label: string;
+  startTime: string;
+  endTime: string;
+}
+
+export interface PaymentEntry {
+  _id: string;
+  amount: number;
+  paidOn: string;
+  note?: string;
+  recordedBy: string;
+}
+
+export interface Member {
+  _id: string;
+  businessId: string;
+  name: string;
+  mobile: string;
+  email?: string;
+  photo?: string;
+  planSnapshot: PlanSnapshot;
+  slotSnapshot: SlotSnapshot;
+  startDate: string;
+  endDate: string;
+  finalPrice: number;
+  payments: PaymentEntry[];
+  notes?: string;
+  isDeleted: boolean;
+  status: MemberStatus;
+  paidAmount: number;
+  pendingAmount: number;
+  createdAt: string;
+  updatedAt: string;
+}
