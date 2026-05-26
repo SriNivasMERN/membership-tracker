@@ -42,4 +42,4 @@ coverage/
 
 # Misc
 .cache/
-*.tsbuildinfo
+*.tsbuildinfo*.zip

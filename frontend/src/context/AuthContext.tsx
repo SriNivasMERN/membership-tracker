@@ -5,6 +5,7 @@ import {
   useContext,
   useState,
   useEffect,
+  useRef,
   ReactNode,
 } from "react";
 import { AuthUser } from "@/types/auth.types";
@@ -26,18 +27,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const hasFetched = useRef(false);
 
-  // On mount - try to restore session via refresh token
   useEffect(() => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
+
     const restoreSession = async () => {
       try {
         const response = await api.post("/auth/refresh");
         const token = response.data.data.accessToken;
-
-        // Get user profile
-        if (typeof window !== "undefined") {
-          window.__accessToken = token;
-        }
+        window.__accessToken = token;
         setAccessToken(token);
 
         const profileResponse = await api.get("/users/me");
@@ -51,7 +51,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           businessId: userData.businessId,
         });
       } catch {
-        // No valid session - stay on login page
         setUser(null);
         setAccessToken(null);
       } finally {
@@ -65,15 +64,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const setAuthData = (userData: AuthUser, token: string) => {
     setUser(userData);
     setAccessToken(token);
-    if (typeof window !== "undefined") {
-      window.__accessToken = token;
-    }
+    window.__accessToken = token;
   };
 
   const login = async (email: string, password: string) => {
     const response = await api.post("/auth/login", { email, password });
     const { accessToken: token, user: userData } = response.data.data;
-
     setAuthData(
       {
         userId: userData._id,
@@ -92,9 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setUser(null);
       setAccessToken(null);
-      if (typeof window !== "undefined") {
-        window.__accessToken = undefined;
-      }
+      window.__accessToken = undefined;
     }
   };
 
