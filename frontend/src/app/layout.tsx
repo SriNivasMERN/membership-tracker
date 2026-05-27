@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import ThemeRegistry from "@/components/ui/ThemeRegistry";
 import { AuthProvider } from "@/context/AuthContext";
+import { ToastProvider } from "@/context/ToastContext";
 
 export const metadata: Metadata = {
   title: "Membership Management Tracker",
@@ -17,7 +18,9 @@ export default function RootLayout({
       <body suppressHydrationWarning>
         <ThemeRegistry>
           <AuthProvider>
-            {children}
+            <ToastProvider>
+              {children}
+            </ToastProvider>
           </AuthProvider>
         </ThemeRegistry>
       </body>

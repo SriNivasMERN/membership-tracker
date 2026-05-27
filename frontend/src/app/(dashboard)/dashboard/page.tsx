@@ -1,10 +1,13 @@
 "use client";
 
+import { Typography, Box } from "@mui/material";
+
 export default function DashboardPage() {
   return (
-    <div style={{ padding: 32 }}>
-      <h1>Dashboard</h1>
-      <p>Coming soon.</p>
-    </div>
+    <Box>
+      <Typography variant="h6" color="text.secondary">
+        Dashboard analytics coming soon.
+      </Typography>
+    </Box>
   );
 }
