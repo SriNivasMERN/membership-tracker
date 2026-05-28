@@ -1,19 +1,31 @@
 import api from "./axios.instance";
-import { BusinessSettings } from "@/types/settings.types";
-import { ApiResponse } from "@/types/api.types";
+
+export interface SettingsFormData {
+  businessName: string;
+  businessType: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  expiryAlertDays: number;
+  terminology: {
+    planLabel: string;
+    slotLabel: string;
+    memberLabel: string;
+  };
+}
 
 export const settingsApi = {
-  getSettings: async (): Promise<ApiResponse<BusinessSettings>> => {
+  get: async () => {
     const response = await api.get("/settings");
     return response.data;
   },
 
-  saveSettings: async (data: Partial<BusinessSettings>) => {
+  save: async (data: SettingsFormData) => {
     const response = await api.post("/settings", data);
     return response.data;
   },
 
-  updateSettings: async (data: Partial<BusinessSettings>) => {
+  update: async (data: Partial<SettingsFormData>) => {
     const response = await api.put("/settings", data);
     return response.data;
   },

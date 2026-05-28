@@ -117,3 +117,25 @@ export const toggleUserStatus = async (
     next(error);
   }
 };
+
+// NEW - update email and/or password for a staff user
+export const updateCredentials = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const user = await userService.updateCredentials(
+      String(req.params.id),
+      req.user!.businessId,
+      req.body
+    );
+    res.json({
+      success: true,
+      message: "Credentials updated successfully",
+      data: user,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

@@ -6,18 +6,17 @@ import {
   CreateUserInput,
   UpdateUserInput,
   ToggleUserInput,
+  UpdateCredentialsInput,
 } from "./user.schema";
 
 export const userService = {
 
-  // Get all users for this business
   async getAllUsers(businessId: string): Promise<IUserDocument[]> {
     return User.find({
       businessId: new mongoose.Types.ObjectId(businessId),
     }).sort({ createdAt: -1 });
   },
 
-  // Get single user by ID
   async getUserById(
     userId: string,
     businessId: string
@@ -34,7 +33,6 @@ export const userService = {
     return user;
   },
 
-  // Get currently logged in user profile
   async getCurrentUser(userId: string): Promise<IUserDocument> {
     const user = await User.findById(userId);
 
@@ -45,21 +43,16 @@ export const userService = {
     return user;
   },
 
-  // Create a new staff account
   async createUser(
     businessId: string,
     input: CreateUserInput
   ): Promise<IUserDocument> {
-    // Check email is not already taken
-    const existing = await User.findOne({
-      email: input.email,
-    });
+    const existing = await User.findOne({ email: input.email });
 
     if (existing) {
       throw new AppError("Email is already registered", 409);
     }
 
-    // Hash password before storing
     const hashedPassword = await bcrypt.hash(input.password, 10);
 
     const user = await User.create({
@@ -74,7 +67,6 @@ export const userService = {
     return user;
   },
 
-  // Update user name
   async updateUser(
     userId: string,
     businessId: string,
@@ -96,22 +88,16 @@ export const userService = {
     return user;
   },
 
-  // Activate or deactivate a user account
   async toggleUserStatus(
     userId: string,
     businessId: string,
     input: ToggleUserInput,
     requestingUserId: string
   ): Promise<IUserDocument> {
-    // Prevent owner from deactivating their own account
     if (userId === requestingUserId) {
-      throw new AppError(
-        "You cannot deactivate your own account",
-        400
-      );
+      throw new AppError("You cannot deactivate your own account", 400);
     }
 
-    // Prevent deactivating another owner account
     const targetUser = await User.findOne({
       _id: new mongoose.Types.ObjectId(userId),
       businessId: new mongoose.Types.ObjectId(businessId),
@@ -131,6 +117,60 @@ export const userService = {
         businessId: new mongoose.Types.ObjectId(businessId),
       },
       { $set: { isActive: input.isActive } },
+      { new: true }
+    );
+
+    if (!user) {
+      throw new AppError("User not found", 404);
+    }
+
+    return user;
+  },
+
+  // NEW - update email and/or password for a staff user
+  async updateCredentials(
+    userId: string,
+    businessId: string,
+    input: UpdateCredentialsInput
+  ): Promise<IUserDocument> {
+    const targetUser = await User.findOne({
+      _id: new mongoose.Types.ObjectId(userId),
+      businessId: new mongoose.Types.ObjectId(businessId),
+    });
+
+    if (!targetUser) {
+      throw new AppError("User not found", 404);
+    }
+
+    // Owner credentials cannot be changed by this endpoint
+    if (targetUser.role === "owner") {
+      throw new AppError("Owner credentials cannot be changed here", 400);
+    }
+
+    // If email is changing, check it is not already taken
+    if (input.email && input.email !== targetUser.email) {
+      const existing = await User.findOne({ email: input.email });
+      if (existing) {
+        throw new AppError("Email is already registered", 409);
+      }
+    }
+
+    const updates: Record<string, string> = {};
+
+    if (input.email) {
+      updates.email = input.email;
+    }
+
+    if (input.newPassword) {
+      updates.password = await bcrypt.hash(input.newPassword, 10);
+    }
+
+    const user = await User.findOneAndUpdate(
+      {
+        _id: new mongoose.Types.ObjectId(userId),
+        businessId: new mongoose.Types.ObjectId(businessId),
+      },
+      { $set: updates },
       { new: true }
     );
 

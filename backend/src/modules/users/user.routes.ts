@@ -6,6 +6,7 @@ import {
   createUser,
   updateUser,
   toggleUserStatus,
+  updateCredentials,
 } from "./user.controller";
 import { authenticate } from "../../middleware/auth.middleware";
 import { requireRole } from "../../middleware/role.middleware";
@@ -14,6 +15,7 @@ import {
   createUserSchema,
   updateUserSchema,
   toggleUserSchema,
+  updateCredentialsSchema,
 } from "./user.schema";
 
 const router = Router();
@@ -35,8 +37,15 @@ router.get("/:id", getUserById);
 // POST /api/users
 router.post("/", validate(createUserSchema), createUser);
 
-// PUT /api/users/:id
+// PUT /api/users/:id - update name only
 router.put("/:id", validate(updateUserSchema), updateUser);
+
+// PATCH /api/users/:id/credentials - update email or password
+router.patch(
+  "/:id/credentials",
+  validate(updateCredentialsSchema),
+  updateCredentials
+);
 
 // PATCH /api/users/:id/toggle
 router.patch(
