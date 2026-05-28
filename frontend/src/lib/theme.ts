@@ -11,24 +11,32 @@ export const theme = createTheme({
       main: "#2E75B6",
     },
     background: {
-      default: "#F5F7FA",
+      default: "#F1F5F9",
       paper: "#FFFFFF",
     },
+    text: {
+      primary: "#111827",
+      secondary: "#374151",
+    },
     success: {
-      main: "#2E7D32",
+      main: "#16A34A",
+      dark: "#15803D",
     },
     warning: {
-      main: "#ED6C02",
+      main: "#D97706",
     },
     error: {
-      main: "#D32F2F",
+      main: "#DC2626",
+      dark: "#B91C1C",
     },
   },
   typography: {
     fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
-    h4: { fontWeight: 600 },
-    h5: { fontWeight: 600 },
+    h4: { fontWeight: 700 },
+    h5: { fontWeight: 700 },
     h6: { fontWeight: 600 },
+    body2: { fontWeight: 400 },
+    caption: { fontWeight: 500 },
   },
   shape: {
     borderRadius: 8,
@@ -38,22 +46,28 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           textTransform: "none",
-          fontWeight: 500,
+          fontWeight: 600,
         },
       },
     },
-    MuiCard: {
+    MuiPaper: {
       styleOverrides: {
         root: {
-          boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-          border: "1px solid #E8EDF3",
+          backgroundImage: "none",
         },
       },
     },
     MuiTableHead: {
       styleOverrides: {
         root: {
-          backgroundColor: "#F5F7FA",
+          backgroundColor: "#F8FAFC",
+        },
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          fontWeight: 600,
         },
       },
     },
