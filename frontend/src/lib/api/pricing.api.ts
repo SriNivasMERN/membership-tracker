@@ -1,33 +1,35 @@
 import api from "./axios.instance";
-import { ApiResponse } from "@/types/api.types";
+
+export interface PricingRuleFormData {
+  planId: string;
+  slotId: string;
+  multiplier: number;
+  isActive?: boolean;
+}
 
 export const pricingApi = {
-  calculatePrice: async (data: {
-    planId: string;
-    slotId: string;
-    basePrice: number;
-  }): Promise<ApiResponse<{ finalPrice: number }>> => {
-    const response = await api.post("/pricing/calculate", data);
-    return response.data;
-  },
-
   getAll: async () => {
     const response = await api.get("/pricing");
     return response.data;
   },
 
-  create: async (data: unknown) => {
+  create: async (data: PricingRuleFormData) => {
     const response = await api.post("/pricing", data);
     return response.data;
   },
 
-  update: async (id: string, data: unknown) => {
+  update: async (id: string, data: { multiplier?: number; isActive?: boolean }) => {
     const response = await api.put(`/pricing/${id}`, data);
     return response.data;
   },
 
   delete: async (id: string) => {
     const response = await api.delete(`/pricing/${id}`);
+    return response.data;
+  },
+
+  calculate: async (planId: string, slotId: string) => {
+    const response = await api.post("/pricing/calculate", { planId, slotId });
     return response.data;
   },
 };

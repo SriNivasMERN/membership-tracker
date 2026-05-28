@@ -1,6 +1,5 @@
 export interface Slot {
   _id: string;
-  businessId: string;
   label: string;
   startTime: string;
   endTime: string;
@@ -8,4 +7,10 @@ export interface Slot {
   isDeleted: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface SlotFormData {
+  label: string;
+  startTime: string;
+  endTime: string;
 }
