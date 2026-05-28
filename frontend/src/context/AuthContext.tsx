@@ -26,12 +26,20 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  // Start false - login page must never block on auth loading
+  const [isLoading, setIsLoading] = useState(false);
   const hasFetched = useRef(false);
 
   useEffect(() => {
     if (hasFetched.current) return;
     hasFetched.current = true;
+
+    // Only attempt session restore if we are NOT on the login page
+    if (typeof window !== "undefined" && window.location.pathname === "/login") {
+      return;
+    }
+
+    setIsLoading(true);
 
     const restoreSession = async () => {
       try {
@@ -70,16 +78,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     const response = await api.post("/auth/login", { email, password });
     const { accessToken: token, user: userData } = response.data.data;
-    setAuthData(
-      {
-        userId: userData._id,
-        name: userData.name,
-        email: userData.email,
-        role: userData.role,
-        businessId: userData.businessId,
-      },
-      token
-    );
+    const authUser: AuthUser = {
+      userId: userData._id,
+      name: userData.name,
+      email: userData.email,
+      role: userData.role,
+      businessId: userData.businessId,
+    };
+    setUser(authUser);
+    setAccessToken(token);
+    window.__accessToken = token;
   };
 
   const logout = async () => {

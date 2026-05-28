@@ -15,11 +15,7 @@ import {
   IconButton,
   CircularProgress,
 } from "@mui/material";
-import {
-  Visibility,
-  VisibilityOff,
-  LockOutlined,
-} from "@mui/icons-material";
+import { Visibility, VisibilityOff, LockOutlined } from "@mui/icons-material";
 import { useAuth } from "@/context/AuthContext";
 
 const loginSchema = z.object({
@@ -49,11 +45,12 @@ export default function LoginPage() {
     setIsSubmitting(true);
     try {
       await login(data.email, data.password);
-      router.push("/dashboard");
+      // replace so Back button does not loop to login
+      router.replace("/dashboard");
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } };
       setApiError(
-        err.response?.data?.message || "Login failed. Please try again."
+        err.response?.data?.message || "Login failed. Please check your credentials."
       );
     } finally {
       setIsSubmitting(false);
@@ -72,8 +69,6 @@ export default function LoginPage() {
       }}
     >
       <Box sx={{ width: "100%", maxWidth: 420 }}>
-
-        {/* Header */}
         <Box sx={{ textAlign: "center", mb: 4 }}>
           <Box
             sx={{
@@ -93,16 +88,11 @@ export default function LoginPage() {
           <Typography variant="h5" color="primary.main">
             Membership Tracker
           </Typography>
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{ mt: 0.5 }}
-          >
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
             Sign in to your account
           </Typography>
         </Box>
 
-        {/* Form Container */}
         <Box
           sx={{
             backgroundColor: "background.paper",
@@ -118,11 +108,7 @@ export default function LoginPage() {
             </Alert>
           )}
 
-          <Box
-            component="form"
-            onSubmit={handleSubmit(onSubmit)}
-            noValidate
-          >
+          <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
             <TextField
               {...register("email")}
               label="Email address"
@@ -144,17 +130,17 @@ export default function LoginPage() {
               error={!!errors.password}
               helperText={errors.password?.message}
               InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    onClick={() => setShowPassword(!showPassword)}
-                    edge="end"
-                  >
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => setShowPassword(!showPassword)}
+                      edge="end"
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
               sx={{ mb: 3 }}
             />
 
@@ -175,7 +161,6 @@ export default function LoginPage() {
           </Box>
         </Box>
 
-        {/* Footer */}
         <Typography
           variant="caption"
           color="text.secondary"
@@ -183,8 +168,7 @@ export default function LoginPage() {
         >
           Internal system - authorised access only
         </Typography>
-
       </Box>
     </Box>
   );
-}
+} 

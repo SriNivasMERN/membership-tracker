@@ -10,7 +10,6 @@ import Topbar from "@/components/layout/Topbar";
 const SIDEBAR_WIDTH = 240;
 const TOPBAR_HEIGHT = 64;
 
-// Map pathnames to page titles
 const getPageTitle = (pathname: string): string => {
   if (pathname === "/dashboard") return "Dashboard";
   if (pathname.startsWith("/members/new")) return "Add Member";
@@ -32,19 +31,22 @@ export default function DashboardLayout({
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const [mounted, setMounted] = useState(false);
+  // Local ready flag - prevents flash before auth check completes
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    // Give AuthContext one tick to restore session before rendering
+    const timer = setTimeout(() => setReady(true), 50);
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push("/login");
+    if (ready && !isLoading && !isAuthenticated) {
+      router.replace("/login");
     }
-  }, [isLoading, isAuthenticated, router]);
+  }, [ready, isLoading, isAuthenticated, router]);
 
-  if (!mounted || isLoading) {
+  if (!ready || isLoading) {
     return (
       <Box
         sx={{
@@ -68,10 +70,7 @@ export default function DashboardLayout({
 
   return (
     <Box sx={{ display: "flex", minHeight: "100vh" }}>
-      {/* Sidebar */}
       <Sidebar />
-
-      {/* Main content area */}
       <Box
         sx={{
           flex: 1,
@@ -80,10 +79,7 @@ export default function DashboardLayout({
           minHeight: "100vh",
         }}
       >
-        {/* Topbar */}
         <Topbar title={pageTitle} />
-
-        {/* Page content */}
         <Box
           sx={{
             marginTop: `${TOPBAR_HEIGHT}px`,
