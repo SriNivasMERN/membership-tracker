@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import {
   Box,
+  Drawer,
   List,
   ListItem,
   ListItemButton,
@@ -10,6 +11,8 @@ import {
   ListItemText,
   Typography,
   Divider,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import {
   DashboardOutlined,
@@ -22,7 +25,7 @@ import {
 } from "@mui/icons-material";
 import { useAuth } from "@/context/AuthContext";
 
-const SIDEBAR_WIDTH = 240;
+export const SIDEBAR_WIDTH = 240;
 
 interface NavItem {
   label: string;
@@ -32,52 +35,26 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  {
-    label: "Dashboard",
-    path: "/dashboard",
-    icon: <DashboardOutlined />,
-  },
-  {
-    label: "Members",
-    path: "/members",
-    icon: <PeopleOutlined />,
-  },
-  {
-    label: "Plans",
-    path: "/plans",
-    icon: <FitnessCenterOutlined />,
-    ownerOnly: true,
-  },
-  {
-    label: "Slots",
-    path: "/slots",
-    icon: <AccessTimeOutlined />,
-    ownerOnly: true,
-  },
-  {
-    label: "Pricing Rules",
-    path: "/pricing",
-    icon: <AttachMoneyOutlined />,
-    ownerOnly: true,
-  },
-  {
-    label: "Settings",
-    path: "/settings",
-    icon: <SettingsOutlined />,
-    ownerOnly: true,
-  },
-  {
-    label: "Users",
-    path: "/users",
-    icon: <PeopleAltOutlined />,
-    ownerOnly: true,
-  },
+  { label: "Dashboard",     path: "/dashboard", icon: <DashboardOutlined /> },
+  { label: "Members",       path: "/members",   icon: <PeopleOutlined /> },
+  { label: "Plans",         path: "/plans",     icon: <FitnessCenterOutlined />, ownerOnly: true },
+  { label: "Slots",         path: "/slots",     icon: <AccessTimeOutlined />,    ownerOnly: true },
+  { label: "Pricing Rules", path: "/pricing",   icon: <AttachMoneyOutlined />,   ownerOnly: true },
+  { label: "Settings",      path: "/settings",  icon: <SettingsOutlined />,      ownerOnly: true },
+  { label: "Users",         path: "/users",     icon: <PeopleAltOutlined />,     ownerOnly: true },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  mobileOpen: boolean;
+  onMobileClose: () => void;
+}
+
+export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { user } = useAuth();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   const visibleItems = navItems.filter(
     (item) => !item.ownerOnly || user?.role === "owner"
@@ -88,42 +65,32 @@ export default function Sidebar() {
     return pathname.startsWith(path);
   };
 
-  return (
+  const handleNavigate = (path: string) => {
+    router.push(path);
+    if (isMobile) onMobileClose();
+  };
+
+  const drawerContent = (
     <Box
       sx={{
         width: SIDEBAR_WIDTH,
-        flexShrink: 0,
         backgroundColor: "primary.main",
         minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
-        position: "fixed",
-        left: 0,
-        top: 0,
-        bottom: 0,
-        zIndex: 100,
       }}
     >
-      {/* App Branding */}
+      {/* Branding */}
       <Box sx={{ px: 3, py: 3 }}>
         <Typography
           variant="h6"
-          sx={{
-            color: "white",
-            fontWeight: 700,
-            fontSize: "1rem",
-            lineHeight: 1.3,
-          }}
+          sx={{ color: "white", fontWeight: 700, fontSize: "1rem", lineHeight: 1.3 }}
         >
           Membership
         </Typography>
         <Typography
           variant="h6"
-          sx={{
-            color: "rgba(255,255,255,0.7)",
-            fontWeight: 400,
-            fontSize: "0.85rem",
-          }}
+          sx={{ color: "rgba(255,255,255,0.7)", fontWeight: 400, fontSize: "0.85rem" }}
         >
           Tracker
         </Typography>
@@ -136,7 +103,7 @@ export default function Sidebar() {
         {visibleItems.map((item) => (
           <ListItem key={item.path} disablePadding sx={{ mb: 0.5 }}>
             <ListItemButton
-              onClick={() => router.push(item.path)}
+              onClick={() => handleNavigate(item.path)}
               sx={{
                 borderRadius: 1.5,
                 py: 1,
@@ -152,9 +119,7 @@ export default function Sidebar() {
             >
               <ListItemIcon
                 sx={{
-                  color: isActive(item.path)
-                    ? "white"
-                    : "rgba(255,255,255,0.6)",
+                  color: isActive(item.path) ? "white" : "rgba(255,255,255,0.6)",
                   minWidth: 36,
                 }}
               >
@@ -165,9 +130,7 @@ export default function Sidebar() {
                 primaryTypographyProps={{
                   fontSize: "0.875rem",
                   fontWeight: isActive(item.path) ? 600 : 400,
-                  color: isActive(item.path)
-                    ? "white"
-                    : "rgba(255,255,255,0.7)",
+                  color: isActive(item.path) ? "white" : "rgba(255,255,255,0.7)",
                 }}
               />
             </ListItemButton>
@@ -175,7 +138,7 @@ export default function Sidebar() {
         ))}
       </List>
 
-      {/* User Info at bottom */}
+      {/* User info */}
       <Divider sx={{ borderColor: "rgba(255,255,255,0.1)" }} />
       <Box sx={{ px: 2.5, py: 2 }}>
         <Typography
@@ -196,5 +159,41 @@ export default function Sidebar() {
         </Typography>
       </Box>
     </Box>
+  );
+
+  return (
+    <>
+      {/* Mobile - temporary drawer */}
+      <Drawer
+        variant="temporary"
+        open={mobileOpen}
+        onClose={onMobileClose}
+        ModalProps={{ keepMounted: true }}
+        sx={{
+          display: { xs: "block", md: "none" },
+          "& .MuiDrawer-paper": {
+            width: SIDEBAR_WIDTH,
+            border: "none",
+          },
+        }}
+      >
+        {drawerContent}
+      </Drawer>
+
+      {/* Desktop - permanent drawer */}
+      <Drawer
+        variant="permanent"
+        sx={{
+          display: { xs: "none", md: "block" },
+          "& .MuiDrawer-paper": {
+            width: SIDEBAR_WIDTH,
+            border: "none",
+          },
+        }}
+        open
+      >
+        {drawerContent}
+      </Drawer>
+    </>
   );
 }

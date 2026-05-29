@@ -135,7 +135,7 @@ function StatCard({
       onMouseLeave={() => setHov(false)}
       elevation={0}
       sx={{
-        p: { xs: 2, sm: 2.5 },
+        p: { xs: 1.5, sm: 2.5 },
         borderRadius: "12px",
         border: "1px solid",
         borderColor: hov ? `${iconColor}40` : "#E2E8F0",
@@ -149,15 +149,15 @@ function StatCard({
         transform: hov ? "translateY(-2px)" : "none",
         display: "flex",
         alignItems: "center",
-        gap: 2,
+        gap: { xs: 1.5, sm: 2 },
         height: "100%",
         userSelect: "none",
       }}
     >
       <Box
         sx={{
-          width: 48,
-          height: 48,
+          width: { xs: 40, sm: 48 },
+          height: { xs: 40, sm: 48 },
           borderRadius: "12px",
           backgroundColor: iconBg,
           display: "flex",
@@ -171,16 +171,38 @@ function StatCard({
       </Box>
 
       <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography sx={{ fontSize: "0.82rem", fontWeight: 700, color: "#111827", lineHeight: 1.3 }}>
+        <Typography
+          sx={{
+            fontSize: { xs: "0.75rem", sm: "0.82rem" },
+            fontWeight: 700,
+            color: "#111827",
+            lineHeight: 1.3,
+          }}
+        >
           {label}
         </Typography>
-        <Typography sx={{ fontSize: "0.73rem", fontWeight: 600, color: "#374151", display: "block", mb: 0.75 }}>
+        <Typography
+          sx={{
+            fontSize: { xs: "0.68rem", sm: "0.73rem" },
+            fontWeight: 600,
+            color: "#374151",
+            display: "block",
+            mb: 0.75,
+          }}
+        >
           {sublabel}
         </Typography>
         {isLoading ? (
           <Skeleton width={40} height={30} />
         ) : (
-          <Typography sx={{ fontSize: "1.6rem", fontWeight: 800, color: iconColor, lineHeight: 1 }}>
+          <Typography
+            sx={{
+              fontSize: { xs: "1.4rem", sm: "1.6rem" },
+              fontWeight: 800,
+              color: iconColor,
+              lineHeight: 1,
+            }}
+          >
             {value}
           </Typography>
         )}
@@ -193,6 +215,7 @@ function StatCard({
           flexShrink: 0,
           opacity: hov ? 1 : 0,
           transition: "opacity 0.15s",
+          display: { xs: "none", sm: "block" },
         }}
       />
     </Paper>
@@ -251,10 +274,10 @@ function DetailModal({
   if (!type) return null;
 
   const configMap = {
-    total:    { title: "Member Breakdown",       color: "#1D4ED8", headerBg: "#EFF6FF" },
-    active:   { title: "Active Members",          color: "#15803D", headerBg: "#F0FDF4" },
-    expiring: { title: "Expiring Soon",           color: "#B45309", headerBg: "#FFFBEB" },
-    expired:  { title: "Expired Memberships",     color: "#B91C1C", headerBg: "#FEF2F2" },
+    total:    { title: "Member Breakdown",    color: "#1D4ED8", headerBg: "#EFF6FF" },
+    active:   { title: "Active Members",      color: "#15803D", headerBg: "#F0FDF4" },
+    expiring: { title: "Expiring Soon",       color: "#B45309", headerBg: "#FFFBEB" },
+    expired:  { title: "Expired Memberships", color: "#B91C1C", headerBg: "#FEF2F2" },
   };
 
   const { title, color, headerBg } = configMap[type];
@@ -302,9 +325,9 @@ function DetailModal({
               All {data?.memberCounts.total ?? 0} members broken down by current membership status.
             </Typography>
             {[
-              { label: "Active",        desc: "Membership currently valid",         value: data?.memberCounts.active ?? 0,       color: "#15803D", bg: "#F0FDF4", border: "#BBF7D0" },
-              { label: "Expiring Soon", desc: "Ends within the alert window",       value: data?.memberCounts.expiringSoon ?? 0, color: "#B45309", bg: "#FFFBEB", border: "#FDE68A" },
-              { label: "Expired",       desc: "Membership end date has passed",     value: data?.memberCounts.expired ?? 0,      color: "#B91C1C", bg: "#FEF2F2", border: "#FECACA" },
+              { label: "Active",        desc: "Membership currently valid",     value: data?.memberCounts.active ?? 0,       color: "#15803D", bg: "#F0FDF4", border: "#BBF7D0" },
+              { label: "Expiring Soon", desc: "Ends within the alert window",   value: data?.memberCounts.expiringSoon ?? 0, color: "#B45309", bg: "#FFFBEB", border: "#FDE68A" },
+              { label: "Expired",       desc: "Membership end date has passed", value: data?.memberCounts.expired ?? 0,      color: "#B91C1C", bg: "#FEF2F2", border: "#FECACA" },
             ].map((row) => (
               <Box
                 key={row.label}
@@ -334,7 +357,9 @@ function DetailModal({
             ))}
             <Divider sx={{ my: 2 }} />
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <Typography sx={{ fontWeight: 600, fontSize: "0.85rem", color: "#374151" }}>Total Members</Typography>
+              <Typography sx={{ fontWeight: 600, fontSize: "0.85rem", color: "#374151" }}>
+                Total Members
+              </Typography>
               <Typography sx={{ fontWeight: 800, fontSize: "1.4rem", color: "#1D4ED8" }}>
                 {data?.memberCounts.total ?? 0}
               </Typography>
@@ -344,7 +369,16 @@ function DetailModal({
 
         {type === "active" && (
           <Box sx={{ p: 3 }}>
-            <Box sx={{ borderRadius: "12px", backgroundColor: "#F0FDF4", border: "1px solid #BBF7D0", p: 3, textAlign: "center", mb: 2.5 }}>
+            <Box
+              sx={{
+                borderRadius: "12px",
+                backgroundColor: "#F0FDF4",
+                border: "1px solid #BBF7D0",
+                p: 3,
+                textAlign: "center",
+                mb: 2.5,
+              }}
+            >
               <Typography sx={{ fontWeight: 800, fontSize: "4rem", color: "#15803D", lineHeight: 1 }}>
                 {data?.memberCounts.active ?? 0}
               </Typography>
@@ -353,16 +387,27 @@ function DetailModal({
               </Typography>
             </Box>
             {[
-              { label: "Active out of total", value: `${data?.memberCounts.active ?? 0} / ${data?.memberCounts.total ?? 0}`, color: "#111827" },
+              {
+                label: "Active out of total",
+                value: `${data?.memberCounts.active ?? 0} / ${data?.memberCounts.total ?? 0}`,
+                color: "#111827",
+              },
               {
                 label: "Active rate",
                 value: `${data?.memberCounts.total ? Math.round((data.memberCounts.active / data.memberCounts.total) * 100) : 0}%`,
                 color: "#15803D",
               },
             ].map((row) => (
-              <Box key={row.label} sx={{ display: "flex", justifyContent: "space-between", py: 1.25, borderBottom: "1px solid #F1F5F9" }}>
-                <Typography sx={{ fontSize: "0.82rem", fontWeight: 500, color: "#4B5563" }}>{row.label}</Typography>
-                <Typography sx={{ fontSize: "0.82rem", fontWeight: 700, color: row.color }}>{row.value}</Typography>
+              <Box
+                key={row.label}
+                sx={{ display: "flex", justifyContent: "space-between", py: 1.25, borderBottom: "1px solid #F1F5F9" }}
+              >
+                <Typography sx={{ fontSize: "0.82rem", fontWeight: 500, color: "#4B5563" }}>
+                  {row.label}
+                </Typography>
+                <Typography sx={{ fontSize: "0.82rem", fontWeight: 700, color: row.color }}>
+                  {row.value}
+                </Typography>
               </Box>
             ))}
             <Typography sx={{ fontSize: "0.72rem", color: "#9CA3AF", mt: 2, fontWeight: 500 }}>
@@ -385,7 +430,14 @@ function DetailModal({
               </Box>
             ) : (
               <>
-                <Box sx={{ px: 3, py: 1.5, backgroundColor: "#FFFBEB", borderBottom: "1px solid #FDE68A" }}>
+                <Box
+                  sx={{
+                    px: 3,
+                    py: 1.5,
+                    backgroundColor: "#FFFBEB",
+                    borderBottom: "1px solid #FDE68A",
+                  }}
+                >
                   <Typography sx={{ fontSize: "0.78rem", fontWeight: 600, color: "#92400E" }}>
                     {data.expiryAlerts.length} member{data.expiryAlerts.length > 1 ? "s" : ""} need renewal attention
                   </Typography>
@@ -395,7 +447,17 @@ function DetailModal({
                     <TableHead>
                       <TableRow sx={{ backgroundColor: "#F8FAFC" }}>
                         {["Member", "Plan / Slot", "Expires On", "Pending"].map((h) => (
-                          <TableCell key={h} sx={{ fontSize: "0.72rem", fontWeight: 700, color: "#6B7280", py: 1.25, px: 2, borderBottom: "1px solid #E2E8F0" }}>
+                          <TableCell
+                            key={h}
+                            sx={{
+                              fontSize: "0.72rem",
+                              fontWeight: 700,
+                              color: "#6B7280",
+                              py: 1.25,
+                              px: 2,
+                              borderBottom: "1px solid #E2E8F0",
+                            }}
+                          >
                             {h}
                           </TableCell>
                         ))}
@@ -403,24 +465,48 @@ function DetailModal({
                     </TableHead>
                     <TableBody>
                       {data.expiryAlerts.map((a) => (
-                        <TableRow key={a.memberId} sx={{ "&:last-child td": { border: 0 }, "&:hover": { backgroundColor: "#FAFAFA" } }}>
+                        <TableRow
+                          key={a.memberId}
+                          sx={{ "&:last-child td": { border: 0 }, "&:hover": { backgroundColor: "#FAFAFA" } }}
+                        >
                           <TableCell sx={{ py: 1.5, px: 2 }}>
-                            <Typography sx={{ fontWeight: 600, fontSize: "0.82rem", color: "#111827" }}>{a.name}</Typography>
-                            <Typography sx={{ fontSize: "0.72rem", color: "#9CA3AF", fontWeight: 500 }}>{a.mobile}</Typography>
+                            <Typography sx={{ fontWeight: 600, fontSize: "0.82rem", color: "#111827" }}>
+                              {a.name}
+                            </Typography>
+                            <Typography sx={{ fontSize: "0.72rem", color: "#9CA3AF", fontWeight: 500 }}>
+                              {a.mobile}
+                            </Typography>
                           </TableCell>
                           <TableCell sx={{ py: 1.5, px: 2 }}>
-                            <Typography sx={{ fontSize: "0.8rem", color: "#374151", fontWeight: 600 }}>{a.planName}</Typography>
-                            <Typography sx={{ fontSize: "0.72rem", color: "#9CA3AF", fontWeight: 500 }}>{a.slotLabel}</Typography>
+                            <Typography sx={{ fontSize: "0.8rem", color: "#374151", fontWeight: 600 }}>
+                              {a.planName}
+                            </Typography>
+                            <Typography sx={{ fontSize: "0.72rem", color: "#9CA3AF", fontWeight: 500 }}>
+                              {a.slotLabel}
+                            </Typography>
                           </TableCell>
                           <TableCell sx={{ py: 1.5, px: 2 }}>
                             <Chip
                               label={fmtDate(a.endDate)}
                               size="small"
-                              sx={{ height: 22, fontSize: "0.7rem", fontWeight: 600, backgroundColor: "#FEF3C7", color: "#92400E", border: "1px solid #FDE68A" }}
+                              sx={{
+                                height: 22,
+                                fontSize: "0.7rem",
+                                fontWeight: 600,
+                                backgroundColor: "#FEF3C7",
+                                color: "#92400E",
+                                border: "1px solid #FDE68A",
+                              }}
                             />
                           </TableCell>
                           <TableCell sx={{ py: 1.5, px: 2 }}>
-                            <Typography sx={{ fontSize: "0.82rem", fontWeight: 700, color: a.pendingAmount > 0 ? "#DC2626" : "#16A34A" }}>
+                            <Typography
+                              sx={{
+                                fontSize: "0.82rem",
+                                fontWeight: 700,
+                                color: a.pendingAmount > 0 ? "#DC2626" : "#16A34A",
+                              }}
+                            >
                               {a.pendingAmount > 0 ? fmt(a.pendingAmount) : "Fully Paid"}
                             </Typography>
                           </TableCell>
@@ -436,7 +522,16 @@ function DetailModal({
 
         {type === "expired" && (
           <Box sx={{ p: 3 }}>
-            <Box sx={{ borderRadius: "12px", backgroundColor: "#FEF2F2", border: "1px solid #FECACA", p: 3, textAlign: "center", mb: 2.5 }}>
+            <Box
+              sx={{
+                borderRadius: "12px",
+                backgroundColor: "#FEF2F2",
+                border: "1px solid #FECACA",
+                p: 3,
+                textAlign: "center",
+                mb: 2.5,
+              }}
+            >
               <Typography sx={{ fontWeight: 800, fontSize: "4rem", color: "#B91C1C", lineHeight: 1 }}>
                 {data?.memberCounts.expired ?? 0}
               </Typography>
@@ -445,16 +540,27 @@ function DetailModal({
               </Typography>
             </Box>
             {[
-              { label: "Expired out of total", value: `${data?.memberCounts.expired ?? 0} / ${data?.memberCounts.total ?? 0}`, color: "#111827" },
+              {
+                label: "Expired out of total",
+                value: `${data?.memberCounts.expired ?? 0} / ${data?.memberCounts.total ?? 0}`,
+                color: "#111827",
+              },
               {
                 label: "Expiry rate",
                 value: `${data?.memberCounts.total ? Math.round((data.memberCounts.expired / data.memberCounts.total) * 100) : 0}%`,
                 color: "#B91C1C",
               },
             ].map((row) => (
-              <Box key={row.label} sx={{ display: "flex", justifyContent: "space-between", py: 1.25, borderBottom: "1px solid #F1F5F9" }}>
-                <Typography sx={{ fontSize: "0.82rem", fontWeight: 500, color: "#4B5563" }}>{row.label}</Typography>
-                <Typography sx={{ fontSize: "0.82rem", fontWeight: 700, color: row.color }}>{row.value}</Typography>
+              <Box
+                key={row.label}
+                sx={{ display: "flex", justifyContent: "space-between", py: 1.25, borderBottom: "1px solid #F1F5F9" }}
+              >
+                <Typography sx={{ fontSize: "0.82rem", fontWeight: 500, color: "#4B5563" }}>
+                  {row.label}
+                </Typography>
+                <Typography sx={{ fontSize: "0.82rem", fontWeight: 700, color: row.color }}>
+                  {row.value}
+                </Typography>
               </Box>
             ))}
             <Typography sx={{ fontSize: "0.72rem", color: "#9CA3AF", mt: 2, fontWeight: 500 }}>
@@ -517,10 +623,10 @@ export default function DashboardPage() {
       {/* ── Stat cards ───────────────────────────────────────────────────── */}
       <Grid container spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: 2.5 }}>
         {[
-          { label: "Total Members",  sublabel: "All registered members",    value: data?.memberCounts.total ?? 0,         icon: <PeopleAltOutlined sx={{ fontSize: 22 }} />,      iconBg: "#EFF6FF", iconColor: "#1D4ED8", modal: "total"    as ModalType },
-          { label: "Active",         sublabel: "Valid membership today",     value: data?.memberCounts.active ?? 0,        icon: <CheckCircleOutlined sx={{ fontSize: 22 }} />,    iconBg: "#F0FDF4", iconColor: "#15803D", modal: "active"   as ModalType },
-          { label: "Expiring Soon",  sublabel: "Needs renewal attention",   value: data?.memberCounts.expiringSoon ?? 0,  icon: <ScheduleOutlined sx={{ fontSize: 22 }} />,       iconBg: "#FFFBEB", iconColor: "#B45309", modal: "expiring" as ModalType },
-          { label: "Expired",        sublabel: "Membership lapsed",          value: data?.memberCounts.expired ?? 0,       icon: <RemoveCircleOutlined sx={{ fontSize: 22 }} />,   iconBg: "#FEF2F2", iconColor: "#B91C1C", modal: "expired"  as ModalType },
+          { label: "Total Members",  sublabel: "All registered members",  value: data?.memberCounts.total ?? 0,        icon: <PeopleAltOutlined sx={{ fontSize: 22 }} />,    iconBg: "#EFF6FF", iconColor: "#1D4ED8", modal: "total"    as ModalType },
+          { label: "Active",         sublabel: "Valid membership today",   value: data?.memberCounts.active ?? 0,       icon: <CheckCircleOutlined sx={{ fontSize: 22 }} />, iconBg: "#F0FDF4", iconColor: "#15803D", modal: "active"   as ModalType },
+          { label: "Expiring Soon",  sublabel: "Needs renewal attention",  value: data?.memberCounts.expiringSoon ?? 0, icon: <ScheduleOutlined sx={{ fontSize: 22 }} />,    iconBg: "#FFFBEB", iconColor: "#B45309", modal: "expiring" as ModalType },
+          { label: "Expired",        sublabel: "Membership lapsed",        value: data?.memberCounts.expired ?? 0,      icon: <RemoveCircleOutlined sx={{ fontSize: 22 }} />,iconBg: "#FEF2F2", iconColor: "#B91C1C", modal: "expired"  as ModalType },
         ].map((card) => (
           <Grid item xs={6} md={3} key={card.label}>
             <StatCard
@@ -550,28 +656,55 @@ export default function DashboardPage() {
         }}
       >
         <Grid container>
-          <Grid item xs={12} sm={6} sx={{ p: { xs: 2.5, sm: 3 }, borderRight: { sm: "1px solid #E2E8F0" }, borderBottom: { xs: "1px solid #E2E8F0", sm: "none" } }}>
+          <Grid
+            item xs={12} sm={6}
+            sx={{
+              p: { xs: 2, sm: 3 },
+              borderRight: { sm: "1px solid #E2E8F0" },
+              borderBottom: { xs: "1px solid #E2E8F0", sm: "none" },
+            }}
+          >
             <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1.5 }}>
-              <Box sx={{ width: 28, height: 28, borderRadius: "8px", backgroundColor: "#F0FDF4", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Box
+                sx={{
+                  width: 28, height: 28, borderRadius: "8px",
+                  backgroundColor: "#F0FDF4",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}
+              >
                 <TrendingUpOutlined sx={{ fontSize: 16, color: "#16A34A" }} />
               </Box>
-              <Typography sx={{ fontSize: "0.78rem", fontWeight: 600, color: "#374151" }}>Total Collected</Typography>
+              <Typography sx={{ fontSize: "0.78rem", fontWeight: 600, color: "#374151" }}>
+                Total Collected
+              </Typography>
             </Box>
-            {isLoading ? <Skeleton width={150} height={38} /> : (
-              <Typography sx={{ fontWeight: 800, fontSize: "1.75rem", color: "#15803D" }}>
+            {isLoading ? (
+              <Skeleton width={150} height={38} />
+            ) : (
+              <Typography sx={{ fontWeight: 800, fontSize: { xs: "1.4rem", sm: "1.75rem" }, color: "#15803D" }}>
                 {fmt(data?.revenue.totalRevenue ?? 0)}
               </Typography>
             )}
           </Grid>
-          <Grid item xs={12} sm={6} sx={{ p: { xs: 2.5, sm: 3 } }}>
+          <Grid item xs={12} sm={6} sx={{ p: { xs: 2, sm: 3 } }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1.5 }}>
-              <Box sx={{ width: 28, height: 28, borderRadius: "8px", backgroundColor: "#FEF2F2", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Box
+                sx={{
+                  width: 28, height: 28, borderRadius: "8px",
+                  backgroundColor: "#FEF2F2",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}
+              >
                 <ErrorOutlineOutlined sx={{ fontSize: 16, color: "#DC2626" }} />
               </Box>
-              <Typography sx={{ fontSize: "0.78rem", fontWeight: 600, color: "#374151" }}>Total Pending</Typography>
+              <Typography sx={{ fontSize: "0.78rem", fontWeight: 600, color: "#374151" }}>
+                Total Pending
+              </Typography>
             </Box>
-            {isLoading ? <Skeleton width={150} height={38} /> : (
-              <Typography sx={{ fontWeight: 800, fontSize: "1.75rem", color: "#B91C1C" }}>
+            {isLoading ? (
+              <Skeleton width={150} height={38} />
+            ) : (
+              <Typography sx={{ fontWeight: 800, fontSize: { xs: "1.4rem", sm: "1.75rem" }, color: "#B91C1C" }}>
                 {fmt(data?.revenue.totalPending ?? 0)}
               </Typography>
             )}
@@ -580,25 +713,54 @@ export default function DashboardPage() {
       </Paper>
 
       {/* ── Chart + Plan distribution ─────────────────────────────────────── */}
-      <Grid container spacing={2.5} sx={{ mb: 2.5 }}>
+      <Grid container spacing={{ xs: 2, sm: 2.5 }} sx={{ mb: 2.5 }}>
         <Grid item xs={12} md={7}>
-          <Paper elevation={0} sx={{ borderRadius: "12px", border: "1px solid #E2E8F0", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", backgroundColor: "#fff", p: { xs: 2, sm: 2.5 }, height: "100%" }}>
+          <Paper
+            elevation={0}
+            sx={{
+              borderRadius: "12px",
+              border: "1px solid #E2E8F0",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+              backgroundColor: "#fff",
+              p: { xs: 2, sm: 2.5 },
+              height: "100%",
+            }}
+          >
             <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2.5 }}>
               <BarChartOutlined sx={{ fontSize: 16, color: "#6B7280" }} />
-              <Typography sx={{ fontSize: "0.82rem", fontWeight: 700, color: "#374151" }}>Monthly Revenue</Typography>
+              <Typography sx={{ fontSize: "0.82rem", fontWeight: 700, color: "#374151" }}>
+                Monthly Revenue
+              </Typography>
             </Box>
             {isLoading ? (
               <Skeleton variant="rectangular" height={200} sx={{ borderRadius: "8px" }} />
             ) : chartData.length === 0 ? (
               <Box sx={{ height: 200, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Typography sx={{ fontSize: "0.82rem", color: "#9CA3AF", fontWeight: 500 }}>No payment data yet</Typography>
+                <Typography sx={{ fontSize: "0.82rem", color: "#9CA3AF", fontWeight: 500 }}>
+                  No payment data yet
+                </Typography>
               </Box>
             ) : (
               <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={chartData} margin={{ top: 4, right: 4, left: 0, bottom: 4 }} barCategoryGap="45%">
+                <BarChart
+                  data={chartData}
+                  margin={{ top: 4, right: 4, left: 0, bottom: 4 }}
+                  barCategoryGap="45%"
+                >
                   <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
-                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#9CA3AF", fontWeight: 500 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: "#9CA3AF", fontWeight: 500 }} axisLine={false} tickLine={false} width={44} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`} />
+                  <XAxis
+                    dataKey="name"
+                    tick={{ fontSize: 11, fill: "#9CA3AF", fontWeight: 500 }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 11, fill: "#9CA3AF", fontWeight: 500 }}
+                    axisLine={false}
+                    tickLine={false}
+                    width={44}
+                    tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`}
+                  />
                   <Tooltip content={<BarTooltip />} cursor={{ fill: "#F8FAFC", radius: 4 }} />
                   <Bar dataKey="amount" fill="#2E75B6" radius={[5, 5, 0, 0]} maxBarSize={48} />
                 </BarChart>
@@ -608,15 +770,29 @@ export default function DashboardPage() {
         </Grid>
 
         <Grid item xs={12} md={5}>
-          <Paper elevation={0} sx={{ borderRadius: "12px", border: "1px solid #E2E8F0", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", backgroundColor: "#fff", p: { xs: 2, sm: 2.5 }, height: "100%" }}>
-            <Typography sx={{ fontSize: "0.82rem", fontWeight: 700, color: "#374151", mb: 2.5 }}>Members by Plan</Typography>
+          <Paper
+            elevation={0}
+            sx={{
+              borderRadius: "12px",
+              border: "1px solid #E2E8F0",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+              backgroundColor: "#fff",
+              p: { xs: 2, sm: 2.5 },
+              height: "100%",
+            }}
+          >
+            <Typography sx={{ fontSize: "0.82rem", fontWeight: 700, color: "#374151", mb: 2.5 }}>
+              Members by Plan
+            </Typography>
             {isLoading ? (
               <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 {[1,2,3].map(i => <Skeleton key={i} height={36} sx={{ borderRadius: "6px" }} />)}
               </Box>
             ) : plans.length === 0 ? (
               <Box sx={{ height: 160, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Typography sx={{ fontSize: "0.82rem", color: "#9CA3AF", fontWeight: 500 }}>No data yet</Typography>
+                <Typography sx={{ fontSize: "0.82rem", color: "#9CA3AF", fontWeight: 500 }}>
+                  No data yet
+                </Typography>
               </Box>
             ) : (
               <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
@@ -625,11 +801,27 @@ export default function DashboardPage() {
                   return (
                     <Box key={p.planId}>
                       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 0.75 }}>
-                        <Typography sx={{ fontSize: "0.82rem", fontWeight: 600, color: "#374151" }} noWrap>{p.planName}</Typography>
-                        <Typography sx={{ fontSize: "0.82rem", fontWeight: 700, color: "#6B7280", ml: 1, flexShrink: 0 }}>{p.memberCount}</Typography>
+                        <Typography
+                          sx={{ fontSize: "0.82rem", fontWeight: 600, color: "#374151" }}
+                          noWrap
+                        >
+                          {p.planName}
+                        </Typography>
+                        <Typography
+                          sx={{ fontSize: "0.82rem", fontWeight: 700, color: "#6B7280", ml: 1, flexShrink: 0 }}
+                        >
+                          {p.memberCount}
+                        </Typography>
                       </Box>
                       <Box sx={{ height: 8, borderRadius: "99px", backgroundColor: "#F1F5F9", overflow: "hidden" }}>
-                        <Box sx={{ height: "100%", width: `${pct}%`, borderRadius: "99px", backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }} />
+                        <Box
+                          sx={{
+                            height: "100%",
+                            width: `${pct}%`,
+                            borderRadius: "99px",
+                            backgroundColor: CHART_COLORS[i % CHART_COLORS.length],
+                          }}
+                        />
                       </Box>
                     </Box>
                   );
@@ -641,13 +833,43 @@ export default function DashboardPage() {
       </Grid>
 
       {/* ── Expiry alerts + Slot activity ─────────────────────────────────── */}
-      <Grid container spacing={2.5}>
+      <Grid container spacing={{ xs: 2, sm: 2.5 }}>
         <Grid item xs={12} md={7}>
-          <Paper elevation={0} sx={{ borderRadius: "12px", border: "1px solid #E2E8F0", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", backgroundColor: "#fff", overflow: "hidden" }}>
-            <Box sx={{ px: 2.5, pt: 2.5, pb: 2, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <Typography sx={{ fontSize: "0.82rem", fontWeight: 700, color: "#374151" }}>Expiring Soon</Typography>
+          <Paper
+            elevation={0}
+            sx={{
+              borderRadius: "12px",
+              border: "1px solid #E2E8F0",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+              backgroundColor: "#fff",
+              overflow: "hidden",
+            }}
+          >
+            <Box
+              sx={{
+                px: 2.5,
+                pt: 2.5,
+                pb: 2,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <Typography sx={{ fontSize: "0.82rem", fontWeight: 700, color: "#374151" }}>
+                Expiring Soon
+              </Typography>
               {!isLoading && !!data?.expiryAlerts.length && (
-                <Chip label={`${data.expiryAlerts.length} member${data.expiryAlerts.length > 1 ? "s" : ""}`} size="small" sx={{ height: 22, fontSize: "0.7rem", fontWeight: 700, backgroundColor: "#FEF3C7", color: "#92400E" }} />
+                <Chip
+                  label={`${data.expiryAlerts.length} member${data.expiryAlerts.length > 1 ? "s" : ""}`}
+                  size="small"
+                  sx={{
+                    height: 22,
+                    fontSize: "0.7rem",
+                    fontWeight: 700,
+                    backgroundColor: "#FEF3C7",
+                    color: "#92400E",
+                  }}
+                />
               )}
             </Box>
             {isLoading ? (
@@ -657,7 +879,9 @@ export default function DashboardPage() {
             ) : !data?.expiryAlerts.length ? (
               <Box sx={{ py: 5, textAlign: "center" }}>
                 <CheckCircleOutlined sx={{ fontSize: 36, color: "#86EFAC", mb: 1 }} />
-                <Typography sx={{ fontSize: "0.82rem", color: "#6B7280", fontWeight: 600 }}>No members expiring soon</Typography>
+                <Typography sx={{ fontSize: "0.82rem", color: "#6B7280", fontWeight: 600 }}>
+                  No members expiring soon
+                </Typography>
               </Box>
             ) : (
               <TableContainer>
@@ -665,25 +889,63 @@ export default function DashboardPage() {
                   <TableHead>
                     <TableRow sx={{ backgroundColor: "#F8FAFC" }}>
                       {["Name", "Plan", "Expires", "Pending"].map(h => (
-                        <TableCell key={h} sx={{ fontSize: "0.72rem", fontWeight: 700, color: "#6B7280", py: 1.25, px: 2, borderBottom: "1px solid #F1F5F9" }}>{h}</TableCell>
+                        <TableCell
+                          key={h}
+                          sx={{
+                            fontSize: "0.72rem",
+                            fontWeight: 700,
+                            color: "#6B7280",
+                            py: 1.25,
+                            px: { xs: 1.5, sm: 2 },
+                            borderBottom: "1px solid #F1F5F9",
+                          }}
+                        >
+                          {h}
+                        </TableCell>
                       ))}
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {data.expiryAlerts.map(a => (
-                      <TableRow key={a.memberId} sx={{ "&:last-child td": { border: 0 }, "&:hover": { backgroundColor: "#FAFAFA" } }}>
-                        <TableCell sx={{ py: 1.5, px: 2 }}>
-                          <Typography sx={{ fontWeight: 600, fontSize: "0.82rem", color: "#111827" }}>{a.name}</Typography>
-                          <Typography sx={{ fontSize: "0.72rem", color: "#9CA3AF", fontWeight: 500 }}>{a.mobile}</Typography>
+                      <TableRow
+                        key={a.memberId}
+                        sx={{ "&:last-child td": { border: 0 }, "&:hover": { backgroundColor: "#FAFAFA" } }}
+                      >
+                        <TableCell sx={{ py: 1.5, px: { xs: 1.5, sm: 2 } }}>
+                          <Typography sx={{ fontWeight: 600, fontSize: "0.82rem", color: "#111827" }}>
+                            {a.name}
+                          </Typography>
+                          <Typography sx={{ fontSize: "0.72rem", color: "#9CA3AF", fontWeight: 500 }}>
+                            {a.mobile}
+                          </Typography>
                         </TableCell>
-                        <TableCell sx={{ px: 2 }}>
-                          <Typography sx={{ fontSize: "0.8rem", color: "#374151", fontWeight: 600 }}>{a.planName}</Typography>
+                        <TableCell sx={{ px: { xs: 1.5, sm: 2 } }}>
+                          <Typography sx={{ fontSize: "0.8rem", color: "#374151", fontWeight: 600 }}>
+                            {a.planName}
+                          </Typography>
                         </TableCell>
-                        <TableCell sx={{ px: 2 }}>
-                          <Chip label={fmtDate(a.endDate)} size="small" sx={{ height: 22, fontSize: "0.7rem", fontWeight: 600, backgroundColor: "#FEF3C7", color: "#92400E", border: "1px solid #FDE68A" }} />
+                        <TableCell sx={{ px: { xs: 1.5, sm: 2 } }}>
+                          <Chip
+                            label={fmtDate(a.endDate)}
+                            size="small"
+                            sx={{
+                              height: 22,
+                              fontSize: "0.7rem",
+                              fontWeight: 600,
+                              backgroundColor: "#FEF3C7",
+                              color: "#92400E",
+                              border: "1px solid #FDE68A",
+                            }}
+                          />
                         </TableCell>
-                        <TableCell sx={{ px: 2 }}>
-                          <Typography sx={{ fontSize: "0.82rem", fontWeight: 700, color: a.pendingAmount > 0 ? "#DC2626" : "#16A34A" }}>
+                        <TableCell sx={{ px: { xs: 1.5, sm: 2 } }}>
+                          <Typography
+                            sx={{
+                              fontSize: "0.82rem",
+                              fontWeight: 700,
+                              color: a.pendingAmount > 0 ? "#DC2626" : "#16A34A",
+                            }}
+                          >
                             {a.pendingAmount > 0 ? fmt(a.pendingAmount) : "Paid"}
                           </Typography>
                         </TableCell>
@@ -697,39 +959,99 @@ export default function DashboardPage() {
         </Grid>
 
         <Grid item xs={12} md={5}>
-          <Paper elevation={0} sx={{ borderRadius: "12px", border: "1px solid #E2E8F0", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", backgroundColor: "#fff", p: { xs: 2, sm: 2.5 }, height: "100%" }}>
-            <Typography sx={{ fontSize: "0.82rem", fontWeight: 700, color: "#374151", mb: 2.5 }}>Members by Slot</Typography>
+          <Paper
+            elevation={0}
+            sx={{
+              borderRadius: "12px",
+              border: "1px solid #E2E8F0",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+              backgroundColor: "#fff",
+              p: { xs: 2, sm: 2.5 },
+              height: "100%",
+            }}
+          >
+            <Typography sx={{ fontSize: "0.82rem", fontWeight: 700, color: "#374151", mb: 2.5 }}>
+              Members by Slot
+            </Typography>
             {isLoading ? (
               <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 {[1,2,3].map(i => <Skeleton key={i} height={32} sx={{ borderRadius: "6px" }} />)}
               </Box>
             ) : !data?.slotActivity.length ? (
               <Box sx={{ py: 4, textAlign: "center" }}>
-                <Typography sx={{ fontSize: "0.82rem", color: "#9CA3AF", fontWeight: 500 }}>No slot data yet</Typography>
+                <Typography sx={{ fontSize: "0.82rem", color: "#9CA3AF", fontWeight: 500 }}>
+                  No slot data yet
+                </Typography>
               </Box>
             ) : (
               <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
-                {[...data.slotActivity].sort((a, b) => b.count - a.count).map((slot, i) => {
-                  const pct = totalSlotMembers > 0 ? Math.round((slot.count / totalSlotMembers) * 100) : 0;
-                  return (
-                    <Box key={i}>
-                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 0.75 }}>
-                        <Typography sx={{ fontSize: "0.82rem", fontWeight: 600, color: "#374151" }} noWrap>{slot.label}</Typography>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, flexShrink: 0, ml: 1 }}>
-                          <Typography sx={{ fontSize: "0.82rem", fontWeight: 700, color: "#374151" }}>{slot.count}</Typography>
-                          <Typography sx={{ fontSize: "0.72rem", color: "#9CA3AF", fontWeight: 500 }}>{pct}%</Typography>
+                {[...data.slotActivity]
+                  .sort((a, b) => b.count - a.count)
+                  .map((slot, i) => {
+                    const pct = totalSlotMembers > 0
+                      ? Math.round((slot.count / totalSlotMembers) * 100)
+                      : 0;
+                    return (
+                      <Box key={i}>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            mb: 0.75,
+                          }}
+                        >
+                          <Typography
+                            sx={{ fontSize: "0.82rem", fontWeight: 600, color: "#374151" }}
+                            noWrap
+                          >
+                            {slot.label}
+                          </Typography>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 0.75,
+                              flexShrink: 0,
+                              ml: 1,
+                            }}
+                          >
+                            <Typography sx={{ fontSize: "0.82rem", fontWeight: 700, color: "#374151" }}>
+                              {slot.count}
+                            </Typography>
+                            <Typography sx={{ fontSize: "0.72rem", color: "#9CA3AF", fontWeight: 500 }}>
+                              {pct}%
+                            </Typography>
+                          </Box>
+                        </Box>
+                        <Box
+                          sx={{
+                            height: 8,
+                            borderRadius: "99px",
+                            backgroundColor: "#F1F5F9",
+                            overflow: "hidden",
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              height: "100%",
+                              width: `${pct}%`,
+                              borderRadius: "99px",
+                              backgroundColor: CHART_COLORS[i % CHART_COLORS.length],
+                            }}
+                          />
                         </Box>
                       </Box>
-                      <Box sx={{ height: 8, borderRadius: "99px", backgroundColor: "#F1F5F9", overflow: "hidden" }}>
-                        <Box sx={{ height: "100%", width: `${pct}%`, borderRadius: "99px", backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }} />
-                      </Box>
-                    </Box>
-                  );
-                })}
+                    );
+                  })}
                 <Divider sx={{ my: 0.5 }} />
                 <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                  <Typography sx={{ fontSize: "0.78rem", color: "#6B7280", fontWeight: 600 }}>Total across all slots</Typography>
-                  <Typography sx={{ fontSize: "0.78rem", fontWeight: 700, color: "#374151" }}>{totalSlotMembers}</Typography>
+                  <Typography sx={{ fontSize: "0.78rem", color: "#6B7280", fontWeight: 600 }}>
+                    Total across all slots
+                  </Typography>
+                  <Typography sx={{ fontSize: "0.78rem", fontWeight: 700, color: "#374151" }}>
+                    {totalSlotMembers}
+                  </Typography>
                 </Box>
               </Box>
             )}

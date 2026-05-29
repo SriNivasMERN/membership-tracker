@@ -4,10 +4,9 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Box, CircularProgress } from "@mui/material";
 import { useAuth } from "@/context/AuthContext";
-import Sidebar from "@/components/layout/Sidebar";
+import Sidebar, { SIDEBAR_WIDTH } from "@/components/layout/Sidebar";
 import Topbar from "@/components/layout/Topbar";
 
-const SIDEBAR_WIDTH = 240;
 const TOPBAR_HEIGHT = 64;
 
 const getPageTitle = (pathname: string): string => {
@@ -31,22 +30,20 @@ export default function DashboardLayout({
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  // Local ready flag - prevents flash before auth check completes
-  const [ready, setReady] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Close drawer on route change
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
-    // Give AuthContext one tick to restore session before rendering
-    const timer = setTimeout(() => setReady(true), 50);
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    if (ready && !isLoading && !isAuthenticated) {
+    if (!isLoading && !isAuthenticated) {
       router.replace("/login");
     }
-  }, [ready, isLoading, isAuthenticated, router]);
+  }, [isLoading, isAuthenticated, router]);
 
-  if (!ready || isLoading) {
+  if (isLoading) {
     return (
       <Box
         sx={{
@@ -70,20 +67,27 @@ export default function DashboardLayout({
 
   return (
     <Box sx={{ display: "flex", minHeight: "100vh" }}>
-      <Sidebar />
+      <Sidebar
+        mobileOpen={mobileOpen}
+        onMobileClose={() => setMobileOpen(false)}
+      />
+
       <Box
         sx={{
           flex: 1,
-          marginLeft: `${SIDEBAR_WIDTH}px`,
+          marginLeft: { xs: 0, md: `${SIDEBAR_WIDTH}px` },
           backgroundColor: "background.default",
           minHeight: "100vh",
         }}
       >
-        <Topbar title={pageTitle} />
+        <Topbar
+          title={pageTitle}
+          onMenuClick={() => setMobileOpen(true)}
+        />
         <Box
           sx={{
             marginTop: `${TOPBAR_HEIGHT}px`,
-            p: 3,
+            p: { xs: 2, sm: 3 },
             minHeight: `calc(100vh - ${TOPBAR_HEIGHT}px)`,
           }}
         >
