@@ -4,36 +4,33 @@ import {
   createContext,
   useContext,
   useState,
+  useCallback,
   ReactNode,
 } from "react";
-import { Snackbar, Alert } from "@mui/material";
-
-type ToastSeverity = "success" | "error" | "warning" | "info";
-
-interface Toast {
-  message: string;
-  severity: ToastSeverity;
-}
+import { Snackbar, Alert, AlertColor } from "@mui/material";
 
 interface ToastContextValue {
-  showToast: (message: string, severity?: ToastSeverity) => void;
+  showToast: (message: string, severity?: AlertColor) => void;
 }
 
 const ToastContext = createContext<ToastContextValue | null>(null);
 
 export function ToastProvider({ children }: { children: ReactNode }) {
-  const [toast, setToast] = useState<Toast | null>(null);
   const [open, setOpen] = useState(false);
+  const [message, setMessage] = useState("");
+  const [severity, setSeverity] = useState<AlertColor>("success");
 
-  const showToast = (
-    message: string,
-    severity: ToastSeverity = "success"
-  ) => {
-    setToast({ message, severity });
-    setOpen(true);
-  };
+  const showToast = useCallback(
+    (msg: string, sev: AlertColor = "success") => {
+      setMessage(msg);
+      setSeverity(sev);
+      setOpen(true);
+    },
+    []
+  );
 
-  const handleClose = () => {
+  const handleClose = (_: unknown, reason?: string) => {
+    if (reason === "clickaway") return;
     setOpen(false);
   };
 
@@ -42,17 +39,23 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       <Snackbar
         open={open}
-        autoHideDuration={4000}
+        autoHideDuration={severity === "error" ? 5000 : 3000}
         onClose={handleClose}
         anchorOrigin={{ vertical: "top", horizontal: "right" }}
       >
         <Alert
-          onClose={handleClose}
-          severity={toast?.severity || "success"}
+          onClose={() => setOpen(false)}
+          severity={severity}
           variant="filled"
-          sx={{ width: "100%" }}
+          sx={{
+            fontWeight: 600,
+            fontSize: "0.85rem",
+            borderRadius: "10px",
+            boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
+            minWidth: 280,
+          }}
         >
-          {toast?.message}
+          {message}
         </Alert>
       </Snackbar>
     </ToastContext.Provider>

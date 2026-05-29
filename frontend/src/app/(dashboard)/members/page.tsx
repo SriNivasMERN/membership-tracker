@@ -4,52 +4,51 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   Box,
+  Paper,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
+  Typography,
+  Button,
   TextField,
   InputAdornment,
   IconButton,
-  Typography,
-  Pagination,
   Skeleton,
   Tooltip,
-  Alert,
 } from "@mui/material";
 import {
   SearchOutlined,
+  AddOutlined,
   VisibilityOutlined,
   DeleteOutlined,
-  PersonOffOutlined,
+  ClearOutlined,
 } from "@mui/icons-material";
-import { Member } from "@/types/member.types";
 import { membersApi } from "@/lib/api/members.api";
-import { useAuth } from "@/context/AuthContext";
-import { useToast } from "@/context/ToastContext";
+import { Member } from "@/types/member.types";
 import StatusBadge from "@/components/ui/StatusBadge";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import EmptyState from "@/components/ui/EmptyState";
+import ErrorState from "@/components/ui/ErrorState";
 import PageHeader from "@/components/layout/PageHeader";
-
-const ROWS_PER_PAGE = 10;
+import { useToast } from "@/context/ToastContext";
 
 export default function MembersPage() {
   const router = useRouter();
-  const { user } = useAuth();
   const { showToast } = useToast();
 
   const [members, setMembers] = useState<Member[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [searchInput, setSearchInput] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
-  const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deletingMember, setDeletingMember] = useState<Member | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchMembers = useCallback(async () => {
@@ -58,62 +57,59 @@ export default function MembersPage() {
     try {
       const response = await membersApi.getAll({
         page,
-        limit: ROWS_PER_PAGE,
-        search: search || undefined,
+        search: search.trim() || undefined,
+        limit: 10,
       });
       setMembers(response.data || []);
       setTotalPages(response.pagination?.totalPages || 1);
       setTotal(response.pagination?.total || 0);
     } catch {
-      setError("Failed to load members. Please try again.");
+      setError("Failed to load members.");
     } finally {
       setIsLoading(false);
     }
   }, [page, search]);
 
   useEffect(() => {
-    fetchMembers();
+    const delay = setTimeout(() => {
+      fetchMembers();
+    }, 300);
+    return () => clearTimeout(delay);
   }, [fetchMembers]);
 
-  // Debounce search input
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setSearch(searchInput);
-      setPage(1);
-    }, 400);
-    return () => clearTimeout(timer);
-  }, [searchInput]);
-
   const handleDelete = async () => {
-    if (!deleteId) return;
+    if (!deletingMember) return;
     setIsDeleting(true);
     try {
-      await membersApi.delete(deleteId);
+      await membersApi.delete(deletingMember._id);
       showToast("Member deleted successfully");
-      setDeleteId(null);
+      setDeleteOpen(false);
       fetchMembers();
     } catch {
-      showToast("Failed to delete member", "error");
+      showToast("Failed to delete member.", "error");
     } finally {
       setIsDeleting(false);
     }
   };
 
-  const formatCurrency = (amount: number) =>
-    `₹${amount.toLocaleString("en-IN")}`;
-
-  const formatDate = (dateStr: string) =>
-    new Date(dateStr).toLocaleDateString("en-IN", {
+  const formatDate = (d: string) =>
+    new Date(d).toLocaleDateString("en-IN", {
       day: "2-digit",
       month: "short",
       year: "numeric",
     });
 
+  const formatCurrency = (n: number) => `Rs.${n.toLocaleString("en-IN")}`;
+
   return (
     <Box>
       <PageHeader
         title="Members"
-        subtitle={`${total} total members`}
+        subtitle={
+          isLoading
+            ? "Loading..."
+            : `${total} member${total !== 1 ? "s" : ""} total`
+        }
         action={{
           label: "Add Member",
           onClick: () => router.push("/members/new"),
@@ -124,192 +120,213 @@ export default function MembersPage() {
       <Box sx={{ mb: 2.5 }}>
         <TextField
           placeholder="Search by name or mobile..."
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
+          value={search}
+          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           size="small"
-          sx={{ width: 320 }}
+          sx={{ width: { xs: "100%", sm: 340 } }}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <SearchOutlined fontSize="small" color="action" />
+                <SearchOutlined sx={{ fontSize: 18, color: "#9CA3AF" }} />
               </InputAdornment>
             ),
+            endAdornment: search ? (
+              <InputAdornment position="end">
+                <IconButton size="small" onClick={() => { setSearch(""); setPage(1); }}>
+                  <ClearOutlined sx={{ fontSize: 16 }} />
+                </IconButton>
+              </InputAdornment>
+            ) : null,
           }}
         />
       </Box>
 
-      {/* Error */}
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      )}
-
-      {/* Table */}
-      <TableContainer
-        component={Paper}
-        sx={{ border: "1px solid #E8EDF3", boxShadow: "none" }}
+      <Paper
+        elevation={0}
+        sx={{
+          borderRadius: "12px",
+          border: "1px solid #E2E8F0",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+          overflow: "hidden",
+        }}
       >
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell sx={{ fontWeight: 600 }}>Name</TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>Mobile</TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>Plan</TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>Slot</TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>End Date</TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>Final Price</TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>Pending</TableCell>
-              <TableCell sx={{ fontWeight: 600 }} align="right">
-                Actions
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {isLoading ? (
-              // Loading skeleton rows
-              Array.from({ length: 5 }).map((_, i) => (
-                <TableRow key={i}>
-                  {Array.from({ length: 9 }).map((_, j) => (
-                    <TableCell key={j}>
-                      <Skeleton variant="text" width="80%" />
+        {error ? (
+          <ErrorState message={error} onRetry={fetchMembers} />
+        ) : (
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow sx={{ backgroundColor: "#F8FAFC" }}>
+                  {["Name", "Mobile", "Plan", "End Date", "Pending", "Status", "Actions"].map((h) => (
+                    <TableCell
+                      key={h}
+                      sx={{
+                        fontWeight: 700,
+                        fontSize: "0.75rem",
+                        color: "#6B7280",
+                        py: 1.5,
+                        borderBottom: "1px solid #E2E8F0",
+                      }}
+                    >
+                      {h}
                     </TableCell>
                   ))}
                 </TableRow>
-              ))
-            ) : members.length === 0 ? (
-              // Empty state
-              <TableRow>
-                <TableCell colSpan={9} align="center" sx={{ py: 8 }}>
-                  <PersonOffOutlined
-                    sx={{ fontSize: 48, color: "text.disabled", mb: 1 }}
-                  />
-                  <Typography color="text.secondary" variant="body2">
-                    {search
-                      ? "No members found matching your search"
-                      : "No members yet. Add your first member."}
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            ) : (
-              members.map((member) => (
-                <TableRow
-                  key={member._id}
-                  hover
-                  sx={{ cursor: "pointer" }}
-                  onClick={() => router.push(`/members/${member._id}`)}
-                >
-                  <TableCell>
-                    <Typography variant="body2" fontWeight={500}>
-                      {member.name}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2" color="text.secondary">
-                      {member.mobile}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2">
-                      {member.planSnapshot.name}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2">
-                      {member.slotSnapshot.label}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {member.slotSnapshot.startTime} -{" "}
-                      {member.slotSnapshot.endTime}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2">
-                      {formatDate(member.endDate)}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <StatusBadge status={member.status} />
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2">
-                      {formatCurrency(member.finalPrice)}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography
-                      variant="body2"
-                      color={
-                        member.pendingAmount > 0
-                          ? "error.main"
-                          : "success.main"
-                      }
-                      fontWeight={500}
+              </TableHead>
+              <TableBody>
+                {isLoading ? (
+                  [...Array(5)].map((_, i) => (
+                    <TableRow key={i}>
+                      {[1,2,3,4,5,6,7].map((j) => (
+                        <TableCell key={j} sx={{ py: 2 }}>
+                          <Skeleton height={20} />
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : members.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} sx={{ border: 0, p: 0 }}>
+                      <EmptyState
+                        title={search ? "No members found" : "No members yet"}
+                        subtitle={
+                          search
+                            ? `No results for "${search}". Try a different search.`
+                            : "Add your first member to get started."
+                        }
+                        actionLabel={search ? undefined : "Add Member"}
+                        onAction={search ? undefined : () => router.push("/members/new")}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  members.map((member) => (
+                    <TableRow
+                      key={member._id}
+                      sx={{
+                        "&:last-child td": { border: 0 },
+                        "&:hover": { backgroundColor: "#FAFAFA" },
+                        cursor: "pointer",
+                      }}
+                      onClick={() => router.push(`/members/${member._id}`)}
                     >
-                      {member.pendingAmount > 0
-                        ? formatCurrency(member.pendingAmount)
-                        : "Paid"}
-                    </Typography>
-                  </TableCell>
-                  <TableCell align="right">
-                    <Box
-                      sx={{ display: "flex", justifyContent: "flex-end" }}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Tooltip title="View details">
-                        <IconButton
-                          size="small"
-                          onClick={() =>
-                            router.push(`/members/${member._id}`)
-                          }
+                      <TableCell sx={{ py: 2 }}>
+                        <Typography sx={{ fontWeight: 600, fontSize: "0.88rem", color: "#111827" }}>
+                          {member.name}
+                        </Typography>
+                      </TableCell>
+                      <TableCell sx={{ py: 2 }}>
+                        <Typography sx={{ fontSize: "0.85rem", color: "#374151" }}>
+                          {member.mobile}
+                        </Typography>
+                      </TableCell>
+                      <TableCell sx={{ py: 2 }}>
+                        <Typography sx={{ fontSize: "0.85rem", color: "#374151" }}>
+                          {member.planSnapshot.name}
+                        </Typography>
+                      </TableCell>
+                      <TableCell sx={{ py: 2 }}>
+                        <Typography sx={{ fontSize: "0.85rem", color: "#374151" }}>
+                          {formatDate(member.endDate)}
+                        </Typography>
+                      </TableCell>
+                      <TableCell sx={{ py: 2 }}>
+                        <Typography
+                          sx={{
+                            fontSize: "0.85rem",
+                            fontWeight: 600,
+                            color: member.pendingAmount > 0 ? "#DC2626" : "#16A34A",
+                          }}
                         >
-                          <VisibilityOutlined fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                      {user?.role === "owner" && (
-                        <Tooltip title="Delete member">
-                          <IconButton
-                            size="small"
-                            color="error"
-                            onClick={() => setDeleteId(member._id)}
-                          >
-                            <DeleteOutlined fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      )}
-                    </Box>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+                          {member.pendingAmount > 0
+                            ? formatCurrency(member.pendingAmount)
+                            : "Paid"}
+                        </Typography>
+                      </TableCell>
+                      <TableCell sx={{ py: 2 }}>
+                        <StatusBadge status={member.status} />
+                      </TableCell>
+                      <TableCell sx={{ py: 2 }}>
+                        <Box
+                          sx={{ display: "flex", gap: 0.5 }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Tooltip title="View details">
+                            <IconButton
+                              size="small"
+                              onClick={() => router.push(`/members/${member._id}`)}
+                              sx={{ color: "#6B7280", "&:hover": { color: "#1D4ED8", backgroundColor: "#EFF6FF" } }}
+                            >
+                              <VisibilityOutlined sx={{ fontSize: 17 }} />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete member">
+                            <IconButton
+                              size="small"
+                              onClick={() => { setDeletingMember(member); setDeleteOpen(true); }}
+                              sx={{ color: "#6B7280", "&:hover": { color: "#DC2626", backgroundColor: "#FEF2F2" } }}
+                            >
+                              <DeleteOutlined sx={{ fontSize: 17 }} />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
-          <Pagination
-            count={totalPages}
-            page={page}
-            onChange={(_, value) => setPage(value)}
-            color="primary"
-            shape="rounded"
-          />
-        </Box>
-      )}
+        {/* Pagination */}
+        {!isLoading && !error && totalPages > 1 && (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              px: 2.5,
+              py: 1.5,
+              borderTop: "1px solid #F1F5F9",
+            }}
+          >
+            <Typography sx={{ fontSize: "0.78rem", color: "#6B7280", fontWeight: 500 }}>
+              Page {page} of {totalPages}
+            </Typography>
+            <Box sx={{ display: "flex", gap: 1 }}>
+              <Button
+                size="small"
+                variant="outlined"
+                disabled={page === 1}
+                onClick={() => setPage((p) => p - 1)}
+                sx={{ borderRadius: "8px", fontSize: "0.78rem" }}
+              >
+                Previous
+              </Button>
+              <Button
+                size="small"
+                variant="outlined"
+                disabled={page === totalPages}
+                onClick={() => setPage((p) => p + 1)}
+                sx={{ borderRadius: "8px", fontSize: "0.78rem" }}
+              >
+                Next
+              </Button>
+            </Box>
+          </Box>
+        )}
+      </Paper>
 
-      {/* Delete Confirm Dialog */}
       <ConfirmDialog
-        open={Boolean(deleteId)}
+        open={deleteOpen}
         title="Delete Member"
-        message="This member will be removed from the active list. The record will be retained for history. This action cannot be undone."
+        message={`Are you sure you want to delete "${deletingMember?.name}"? All their payment history will also be removed. This cannot be undone.`}
         confirmLabel="Delete"
         confirmColor="error"
-        isLoading={isDeleting}
         onConfirm={handleDelete}
-        onCancel={() => setDeleteId(null)}
+        onCancel={() => setDeleteOpen(false)}
+        isLoading={isDeleting}
       />
     </Box>
   );

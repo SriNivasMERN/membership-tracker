@@ -8,15 +8,21 @@ interface StatusBadgeProps {
 const statusConfig = {
   active: {
     label: "Active",
-    color: "success" as const,
+    backgroundColor: "#F0FDF4",
+    color: "#15803D",
+    border: "1px solid #BBF7D0",
   },
   expiring_soon: {
     label: "Expiring Soon",
-    color: "warning" as const,
+    backgroundColor: "#FFFBEB",
+    color: "#B45309",
+    border: "1px solid #FDE68A",
   },
   expired: {
     label: "Expired",
-    color: "error" as const,
+    backgroundColor: "#FEF2F2",
+    color: "#B91C1C",
+    border: "1px solid #FECACA",
   },
 };
 
@@ -25,10 +31,15 @@ export default function StatusBadge({ status }: StatusBadgeProps) {
   return (
     <Chip
       label={config.label}
-      color={config.color}
       size="small"
-      variant="outlined"
-      sx={{ fontWeight: 500, fontSize: "0.75rem" }}
+      sx={{
+        height: 24,
+        fontSize: "0.72rem",
+        fontWeight: 700,
+        backgroundColor: config.backgroundColor,
+        color: config.color,
+        border: config.border,
+      }}
     />
   );
 }
