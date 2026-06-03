@@ -26,20 +26,21 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
-  // Start false - login page must never block on auth loading
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const hasFetched = useRef(false);
 
   useEffect(() => {
     if (hasFetched.current) return;
     hasFetched.current = true;
 
-    // Only attempt session restore if we are NOT on the login page
-    if (typeof window !== "undefined" && window.location.pathname === "/login") {
+    // Skip session restore on login page
+    // Login page does not need to know about existing session
+    // Middleware handles redirect if already logged in
+    if (typeof window !== "undefined" &&
+      window.location.pathname === "/login") {
+      setIsLoading(false);
       return;
     }
-
-    setIsLoading(true);
 
     const restoreSession = async () => {
       try {

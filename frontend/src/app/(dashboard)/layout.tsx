@@ -32,7 +32,6 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Close drawer on route change
   useEffect(() => {
     setMobileOpen(false);
   }, [pathname]);
@@ -63,32 +62,31 @@ export default function DashboardLayout({
     return null;
   }
 
-  const pageTitle = getPageTitle(pathname);
-
   return (
     <Box sx={{ display: "flex", minHeight: "100vh" }}>
       <Sidebar
         mobileOpen={mobileOpen}
         onMobileClose={() => setMobileOpen(false)}
       />
-
       <Box
         sx={{
           flex: 1,
           marginLeft: { xs: 0, md: `${SIDEBAR_WIDTH}px` },
           backgroundColor: "background.default",
           minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
         }}
       >
         <Topbar
-          title={pageTitle}
+          title={getPageTitle(pathname)}
           onMenuClick={() => setMobileOpen(true)}
         />
         <Box
           sx={{
-            marginTop: `${TOPBAR_HEIGHT}px`,
+            flex: 1,
+            mt: `${TOPBAR_HEIGHT}px`,
             p: { xs: 2, sm: 3 },
-            minHeight: `calc(100vh - ${TOPBAR_HEIGHT}px)`,
           }}
         >
           {children}

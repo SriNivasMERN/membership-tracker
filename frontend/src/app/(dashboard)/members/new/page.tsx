@@ -28,6 +28,11 @@ import { membersApi } from "@/lib/api/members.api";
 import { useToast } from "@/context/ToastContext";
 import PageHeader from "@/components/layout/PageHeader";
 
+// Helper - client side only
+function getTodayString() {
+  return new Date().toISOString().split("T")[0];
+}
+
 const createMemberSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").trim(),
   mobile: z
@@ -40,10 +45,7 @@ const createMemberSchema = z.object({
   slotId: z.string().min(1, "Please select a slot"),
   startDate: z.string().min(1, "Start date is required"),
   finalPrice: z.number().min(0, "Price cannot be negative"),
-  initialPayment: z
-    .number()
-    .min(0, "Payment cannot be negative")
-    .optional(),
+  initialPayment: z.number().min(0, "Payment cannot be negative").optional(),
   notes: z.string().max(500).optional().or(z.literal("")),
 });
 
@@ -73,6 +75,7 @@ export default function AddMemberPage() {
     defaultValues: {
       finalPrice: 0,
       initialPayment: 0,
+      startDate: getTodayString(), // Default to today
     },
   });
 
@@ -108,15 +111,13 @@ export default function AddMemberPage() {
     const calculatePrice = async () => {
       setIsCalculating(true);
       try {
-        const response = await pricingApi.calculatePrice({
-          planId: selectedPlanId,
-          slotId: selectedSlotId,
-          basePrice: selectedPlan.basePrice,
-        });
+        // Fixed: use calculate(planId, slotId) not calculatePrice
+        const response = await pricingApi.calculate(selectedPlanId, selectedSlotId);
         const price = response.data?.finalPrice || selectedPlan.basePrice;
         setCalculatedPrice(price);
         setValue("finalPrice", price);
       } catch {
+        // Fallback to base price if no pricing rule exists
         setValue("finalPrice", selectedPlan.basePrice);
         setCalculatedPrice(selectedPlan.basePrice);
       } finally {
@@ -151,14 +152,7 @@ export default function AddMemberPage() {
 
   if (isLoadingOptions) {
     return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          minHeight: 300,
-        }}
-      >
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 300 }}>
         <CircularProgress />
       </Box>
     );
@@ -177,37 +171,26 @@ export default function AddMemberPage() {
         </Button>
       </Box>
 
-      <PageHeader
-        title="Add Member"
-        subtitle="Create a new membership record"
-      />
+      <PageHeader title="Add Member" subtitle="Create a new membership record" />
 
       {apiError && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {apiError}
-        </Alert>
+        <Alert severity="error" sx={{ mb: 3 }}>{apiError}</Alert>
       )}
 
       <Paper
+        elevation={0}
         sx={{
-          p: 4,
-          border: "1px solid #E8EDF3",
+          p: { xs: 2.5, sm: 4 },
+          border: "1px solid #E2E8F0",
           boxShadow: "none",
+          borderRadius: "12px",
           maxWidth: 800,
         }}
       >
-        <Box
-          component="form"
-          onSubmit={handleSubmit(onSubmit)}
-          noValidate
-        >
+        <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
+
           {/* Personal Details */}
-          <Typography
-            variant="subtitle2"
-            fontWeight={600}
-            color="text.secondary"
-            sx={{ mb: 2, textTransform: "uppercase", letterSpacing: 0.5 }}
-          >
+          <Typography sx={{ fontSize: "0.72rem", fontWeight: 700, color: "#64748B", textTransform: "uppercase", letterSpacing: 0.5, mb: 2 }}>
             Personal Details
           </Typography>
 
@@ -245,12 +228,7 @@ export default function AddMemberPage() {
           <Divider sx={{ mb: 3 }} />
 
           {/* Membership Details */}
-          <Typography
-            variant="subtitle2"
-            fontWeight={600}
-            color="text.secondary"
-            sx={{ mb: 2, textTransform: "uppercase", letterSpacing: 0.5 }}
-          >
+          <Typography sx={{ fontSize: "0.72rem", fontWeight: 700, color: "#64748B", textTransform: "uppercase", letterSpacing: 0.5, mb: 2 }}>
             Membership Details
           </Typography>
 
@@ -275,15 +253,9 @@ export default function AddMemberPage() {
                       plans.map((plan) => (
                         <MenuItem key={plan._id} value={plan._id}>
                           <Box>
-                            <Typography variant="body2">
-                              {plan.name}
-                            </Typography>
-                            <Typography
-                              variant="caption"
-                              color="text.secondary"
-                            >
-                              {plan.durationDays} days - ₹
-                              {plan.basePrice.toLocaleString("en-IN")}
+                            <Typography variant="body2">{plan.name}</Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {plan.durationDays} days - Rs.{plan.basePrice.toLocaleString("en-IN")}
                             </Typography>
                           </Box>
                         </MenuItem>
@@ -314,13 +286,8 @@ export default function AddMemberPage() {
                       slots.map((slot) => (
                         <MenuItem key={slot._id} value={slot._id}>
                           <Box>
-                            <Typography variant="body2">
-                              {slot.label}
-                            </Typography>
-                            <Typography
-                              variant="caption"
-                              color="text.secondary"
-                            >
+                            <Typography variant="body2">{slot.label}</Typography>
+                            <Typography variant="caption" color="text.secondary">
                               {slot.startTime} - {slot.endTime}
                             </Typography>
                           </Box>
@@ -332,6 +299,7 @@ export default function AddMemberPage() {
               />
             </Grid>
 
+            {/* Start date - defaults to today */}
             <Grid item xs={12} sm={6}>
               <TextField
                 {...register("startDate")}
@@ -340,33 +308,27 @@ export default function AddMemberPage() {
                 fullWidth
                 InputLabelProps={{ shrink: true }}
                 error={!!errors.startDate}
-                helperText={errors.startDate?.message}
+                helperText={errors.startDate?.message || "Defaults to today"}
               />
             </Grid>
 
-            {/* Auto calculated price */}
+            {/* Price info banner */}
             {selectedPlan && (
               <Grid item xs={12}>
                 <Box
                   sx={{
                     p: 2,
-                    backgroundColor: "rgba(46, 117, 182, 0.05)",
-                    borderRadius: 1,
-                    border: "1px solid rgba(46, 117, 182, 0.2)",
+                    backgroundColor: "#EFF6FF",
+                    borderRadius: "8px",
+                    border: "1px solid #BFDBFE",
                   }}
                 >
-                  <Typography variant="body2" color="text.secondary">
-                    Base price: ₹
-                    {selectedPlan.basePrice.toLocaleString("en-IN")} |
+                  <Typography sx={{ fontSize: "0.78rem", color: "#1D4ED8", fontWeight: 600 }}>
+                    Base price: Rs.{selectedPlan.basePrice.toLocaleString("en-IN")} &nbsp;|&nbsp;
                     Duration: {selectedPlan.durationDays} days
-                    {calculatedPrice &&
-                      calculatedPrice !== selectedPlan.basePrice && (
-                        <span>
-                          {" "}
-                          | Pricing rule applied: ₹
-                          {calculatedPrice.toLocaleString("en-IN")}
-                        </span>
-                      )}
+                    {calculatedPrice && calculatedPrice !== selectedPlan.basePrice && (
+                      <span> &nbsp;|&nbsp; Pricing rule applied: Rs.{calculatedPrice.toLocaleString("en-IN")}</span>
+                    )}
                   </Typography>
                 </Box>
               </Grid>
@@ -383,15 +345,10 @@ export default function AddMemberPage() {
                     type="number"
                     fullWidth
                     error={!!errors.finalPrice}
-                    helperText={
-                      errors.finalPrice?.message ||
-                      "Auto-calculated. You can override."
-                    }
+                    helperText={errors.finalPrice?.message || "Auto-calculated. Override if needed."}
                     InputProps={{
                       startAdornment: (
-                        <InputAdornment position="start">
-                          ₹
-                        </InputAdornment>
+                        <InputAdornment position="start">Rs.</InputAdornment>
                       ),
                       endAdornment: isCalculating ? (
                         <InputAdornment position="end">
@@ -399,9 +356,7 @@ export default function AddMemberPage() {
                         </InputAdornment>
                       ) : null,
                     }}
-                    onChange={(e) =>
-                      field.onChange(parseFloat(e.target.value) || 0)
-                    }
+                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                   />
                 )}
               />
@@ -420,14 +375,10 @@ export default function AddMemberPage() {
                     helperText="Amount paid at registration"
                     InputProps={{
                       startAdornment: (
-                        <InputAdornment position="start">
-                          ₹
-                        </InputAdornment>
+                        <InputAdornment position="start">Rs.</InputAdornment>
                       ),
                     }}
-                    onChange={(e) =>
-                      field.onChange(parseFloat(e.target.value) || 0)
-                    }
+                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                   />
                 )}
               />
@@ -437,12 +388,7 @@ export default function AddMemberPage() {
           <Divider sx={{ mb: 3 }} />
 
           {/* Notes */}
-          <Typography
-            variant="subtitle2"
-            fontWeight={600}
-            color="text.secondary"
-            sx={{ mb: 2, textTransform: "uppercase", letterSpacing: 0.5 }}
-          >
+          <Typography sx={{ fontSize: "0.72rem", fontWeight: 700, color: "#64748B", textTransform: "uppercase", letterSpacing: 0.5, mb: 2 }}>
             Additional Notes
           </Typography>
 
@@ -463,6 +409,7 @@ export default function AddMemberPage() {
               variant="outlined"
               onClick={() => router.push("/members")}
               disabled={isSubmitting}
+              sx={{ borderRadius: "8px" }}
             >
               Cancel
             </Button>
@@ -470,7 +417,7 @@ export default function AddMemberPage() {
               type="submit"
               variant="contained"
               disabled={isSubmitting}
-              sx={{ minWidth: 140 }}
+              sx={{ minWidth: 140, borderRadius: "8px" }}
             >
               {isSubmitting ? (
                 <CircularProgress size={22} color="inherit" />

@@ -12,7 +12,6 @@ export const createMember = async (
       req.user!.userId,
       req.body
     );
-
     res.status(201).json({
       success: true,
       message: "Member created successfully",
@@ -32,10 +31,14 @@ export const listMembers = async (
     const page = parseInt(String(req.query.page || "1"));
     const limit = parseInt(String(req.query.limit || "10"));
     const search = String(req.query.search || "");
+    const planId = req.query.planId ? String(req.query.planId) : undefined;
+    const status = req.query.status ? String(req.query.status) : undefined;
+    const hasPending = req.query.hasPending === "true" ? true : undefined;
+    const fullyPaid = req.query.fullyPaid === "true" ? true : undefined;
 
     const result = await memberService.listMembers(
       req.user!.businessId,
-      { page, limit, search }
+      { page, limit, search, planId, status, hasPending, fullyPaid }
     );
 
     res.json({

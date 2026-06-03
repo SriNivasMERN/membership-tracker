@@ -45,8 +45,7 @@ export default function LoginPage() {
     setIsSubmitting(true);
     try {
       await login(data.email, data.password);
-      // replace so Back button does not loop to login
-      router.replace("/dashboard");
+       router.replace("/dashboard");
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } };
       setApiError(
