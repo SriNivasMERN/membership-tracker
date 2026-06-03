@@ -5,12 +5,6 @@ import { useRouter } from "next/navigation";
 import {
   Box,
   Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Typography,
   Button,
   TextField,
@@ -21,6 +15,12 @@ import {
   MenuItem,
   Grid,
   Chip,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
 } from "@mui/material";
 import {
   SearchOutlined,
@@ -29,6 +29,7 @@ import {
   ClearOutlined,
   EditOutlined,
   FilterListOutlined,
+  AddOutlined,
 } from "@mui/icons-material";
 import { membersApi } from "@/lib/api/members.api";
 import { plansApi } from "@/lib/api/plans.api";
@@ -41,9 +42,10 @@ import ErrorState from "@/components/ui/ErrorState";
 import PageHeader from "@/components/layout/PageHeader";
 import { useToast } from "@/context/ToastContext";
 
-function getTodayString() {
-  return new Date().toISOString().split("T")[0];
-}
+const C = {
+  navy: "#1E3A5F", slate: "#334155", muted: "#64748B",
+  border: "#E2E8F0", surface: "#F8FAFC", green: "#15803D", red: "#B91C1C",
+};
 
 export default function MembersPage() {
   const router = useRouter();
@@ -54,11 +56,10 @@ export default function MembersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Filters
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [planFilter, setPlanFilter] = useState("");
-  const [pendingFilter, setPendingFilter] = useState("");
+  const [paymentFilter, setPaymentFilter] = useState("");
 
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -68,17 +69,8 @@ export default function MembersPage() {
   const [deletingMember, setDeletingMember] = useState<Member | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Load plans for filter dropdown
   useEffect(() => {
-    const loadPlans = async () => {
-      try {
-        const response = await plansApi.getAll();
-        setPlans(response.data || []);
-      } catch {
-        // silent
-      }
-    };
-    loadPlans();
+    plansApi.getAll().then(r => setPlans(r.data || [])).catch(() => {});
   }, []);
 
   const fetchMembers = useCallback(async () => {
@@ -86,12 +78,12 @@ export default function MembersPage() {
     setError(null);
     try {
       const response = await membersApi.getAll({
-        page,
-        limit: 10,
+        page, limit: 10,
         search: search.trim() || undefined,
         planId: planFilter || undefined,
         status: statusFilter || undefined,
-        hasPending: pendingFilter === "pending" ? true : undefined,
+        hasPending: paymentFilter === "pending" ? true : undefined,
+        fullyPaid: paymentFilter === "paid" ? true : undefined,
       });
       setMembers(response.data || []);
       setTotalPages(response.pagination?.totalPages || 1);
@@ -101,64 +93,32 @@ export default function MembersPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [page, search, statusFilter, planFilter, pendingFilter]);
+  }, [page, search, statusFilter, planFilter, paymentFilter]);
 
   useEffect(() => {
-    const delay = setTimeout(() => {
-      fetchMembers();
-    }, 300);
+    const delay = setTimeout(fetchMembers, 300);
     return () => clearTimeout(delay);
   }, [fetchMembers]);
 
-  const handleDelete = async () => {
-    if (!deletingMember) return;
-    setIsDeleting(true);
-    try {
-      await membersApi.delete(deletingMember._id);
-      showToast("Member deleted successfully");
-      setDeleteOpen(false);
-      fetchMembers();
-    } catch {
-      showToast("Failed to delete member.", "error");
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
   const clearFilters = () => {
-    setSearch("");
-    setStatusFilter("");
-    setPlanFilter("");
-    setPendingFilter("");
-    setPage(1);
+    setSearch(""); setStatusFilter(""); setPlanFilter(""); setPaymentFilter(""); setPage(1);
   };
 
-  const hasActiveFilters = search || statusFilter || planFilter || pendingFilter;
+  const hasActiveFilters = search || statusFilter || planFilter || paymentFilter;
 
-  const formatDate = (d: string) =>
-    new Date(d).toLocaleDateString("en-IN", {
-      day: "2-digit", month: "short", year: "numeric",
-    });
-
+  const formatDate = (d: string) => new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
   const formatCurrency = (n: number) => `Rs.${n.toLocaleString("en-IN")}`;
 
   return (
     <Box>
       <PageHeader
         title="Members"
-        subtitle={
-          isLoading
-            ? "Loading..."
-            : `${total} member${total !== 1 ? "s" : ""} total`
-        }
-        action={{
-          label: "Add Member",
-          onClick: () => router.push("/members/new"),
-        }}
+        subtitle={isLoading ? "Loading..." : `${total} member${total !== 1 ? "s" : ""} total`}
+        action={{ label: "Add Member", onClick: () => router.push("/members/new") }}
       />
 
-      {/* Filters row */}
-      <Grid container spacing={1.5} sx={{ mb: 2.5 }}>
+      {/* Filters */}
+      <Grid container spacing={1.5} sx={{ mb: 2 }}>
         <Grid item xs={12} sm={4}>
           <TextField
             placeholder="Search name or mobile..."
@@ -167,11 +127,7 @@ export default function MembersPage() {
             size="small"
             fullWidth
             InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchOutlined sx={{ fontSize: 18, color: "#9CA3AF" }} />
-                </InputAdornment>
-              ),
+              startAdornment: <InputAdornment position="start"><SearchOutlined sx={{ fontSize: 18, color: C.muted }} /></InputAdornment>,
               endAdornment: search ? (
                 <InputAdornment position="end">
                   <IconButton size="small" onClick={() => { setSearch(""); setPage(1); }}>
@@ -182,128 +138,57 @@ export default function MembersPage() {
             }}
           />
         </Grid>
-
         <Grid item xs={6} sm={2.5}>
-          <TextField
-            select
-            label="Status"
-            value={statusFilter}
-            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-            size="small"
-            fullWidth
-          >
+          <TextField select label="Status" value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }} size="small" fullWidth>
             <MenuItem value="">All Status</MenuItem>
             <MenuItem value="active">Active</MenuItem>
             <MenuItem value="expiring_soon">Expiring Soon</MenuItem>
             <MenuItem value="expired">Expired</MenuItem>
           </TextField>
         </Grid>
-
         <Grid item xs={6} sm={2.5}>
-          <TextField
-            select
-            label="Plan"
-            value={planFilter}
-            onChange={(e) => { setPlanFilter(e.target.value); setPage(1); }}
-            size="small"
-            fullWidth
-          >
+          <TextField select label="Plan" value={planFilter} onChange={(e) => { setPlanFilter(e.target.value); setPage(1); }} size="small" fullWidth>
             <MenuItem value="">All Plans</MenuItem>
-            {plans.map((p) => (
-              <MenuItem key={p._id} value={p._id}>{p.name}</MenuItem>
-            ))}
+            {plans.map((p) => <MenuItem key={p._id} value={p._id}>{p.name}</MenuItem>)}
           </TextField>
         </Grid>
-
         <Grid item xs={6} sm={2}>
-          <TextField
-            select
-            label="Payment"
-            value={pendingFilter}
-            onChange={(e) => { setPendingFilter(e.target.value); setPage(1); }}
-            size="small"
-            fullWidth
-          >
+          <TextField select label="Payment" value={paymentFilter} onChange={(e) => { setPaymentFilter(e.target.value); setPage(1); }} size="small" fullWidth>
             <MenuItem value="">All</MenuItem>
             <MenuItem value="pending">Has Pending</MenuItem>
+            <MenuItem value="paid">Fully Paid</MenuItem>
           </TextField>
         </Grid>
-
         {hasActiveFilters && (
           <Grid item xs={6} sm={1}>
-            <Tooltip title="Clear all filters">
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={clearFilters}
-                startIcon={<FilterListOutlined />}
-                sx={{ height: 40, borderRadius: "8px" }}
-                fullWidth
-              >
-                Clear
+            <Tooltip title="Clear filters">
+              <Button variant="outlined" size="small" onClick={clearFilters} sx={{ height: 40, borderRadius: "8px", minWidth: 0 }} fullWidth>
+                <FilterListOutlined sx={{ fontSize: 18 }} />
               </Button>
             </Tooltip>
           </Grid>
         )}
       </Grid>
 
-      {/* Active filter chips */}
+      {/* Active chips */}
       {hasActiveFilters && (
         <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 2 }}>
-          {statusFilter && (
-            <Chip
-              label={`Status: ${statusFilter.replace("_", " ")}`}
-              size="small"
-              onDelete={() => setStatusFilter("")}
-              sx={{ fontSize: "0.75rem", fontWeight: 600 }}
-            />
-          )}
-          {planFilter && (
-            <Chip
-              label={`Plan: ${plans.find(p => p._id === planFilter)?.name || planFilter}`}
-              size="small"
-              onDelete={() => setPlanFilter("")}
-              sx={{ fontSize: "0.75rem", fontWeight: 600 }}
-            />
-          )}
-          {pendingFilter && (
-            <Chip
-              label="Has Pending Dues"
-              size="small"
-              onDelete={() => setPendingFilter("")}
-              sx={{ fontSize: "0.75rem", fontWeight: 600 }}
-            />
-          )}
+          {statusFilter && <Chip label={`Status: ${statusFilter.replace("_", " ")}`} size="small" onDelete={() => setStatusFilter("")} sx={{ fontSize: "0.75rem", fontWeight: 700 }} />}
+          {planFilter && <Chip label={`Plan: ${plans.find(p => p._id === planFilter)?.name || planFilter}`} size="small" onDelete={() => setPlanFilter("")} sx={{ fontSize: "0.75rem", fontWeight: 700 }} />}
+          {paymentFilter && <Chip label={paymentFilter === "pending" ? "Has Pending Dues" : "Fully Paid"} size="small" onDelete={() => setPaymentFilter("")} sx={{ fontSize: "0.75rem", fontWeight: 700 }} />}
         </Box>
       )}
 
-      <Paper
-        elevation={0}
-        sx={{
-          borderRadius: "12px",
-          border: "1px solid #E2E8F0",
-          boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-          overflow: "hidden",
-        }}
-      >
+      <Paper elevation={0} sx={{ borderRadius: "12px", border: `1px solid ${C.border}`, boxShadow: "0 1px 3px rgba(0,0,0,0.05)", overflow: "hidden" }}>
         {error ? (
           <ErrorState message={error} onRetry={fetchMembers} />
         ) : (
           <TableContainer>
             <Table>
               <TableHead>
-                <TableRow sx={{ backgroundColor: "#F8FAFC" }}>
-                  {["Name", "Mobile", "Plan", "End Date", "Pending", "Status", "Actions"].map((h) => (
-                    <TableCell
-                      key={h}
-                      sx={{
-                        fontWeight: 700,
-                        fontSize: "0.75rem",
-                        color: "#6B7280",
-                        py: 1.5,
-                        borderBottom: "1px solid #E2E8F0",
-                      }}
-                    >
+                <TableRow sx={{ backgroundColor: C.surface }}>
+                  {["Name", "Mobile", "Plan", "Slot", "End Date", "Pending", "Status", "Actions"].map((h) => (
+                    <TableCell key={h} sx={{ fontWeight: 800, fontSize: "0.72rem", color: C.slate, py: 1.5, borderBottom: `1px solid ${C.border}`, letterSpacing: 0.5, textTransform: "uppercase" }}>
                       {h}
                     </TableCell>
                   ))}
@@ -311,108 +196,91 @@ export default function MembersPage() {
               </TableHead>
               <TableBody>
                 {isLoading ? (
-                  [...Array(5)].map((_, i) => (
+                  [...Array(6)].map((_, i) => (
                     <TableRow key={i}>
-                      {[1,2,3,4,5,6,7].map((j) => (
-                        <TableCell key={j} sx={{ py: 2 }}>
-                          <Skeleton height={20} />
-                        </TableCell>
+                      {[1,2,3,4,5,6,7,8].map((j) => (
+                        <TableCell key={j} sx={{ py: 2 }}><Skeleton height={20} /></TableCell>
                       ))}
                     </TableRow>
                   ))
                 ) : members.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} sx={{ border: 0, p: 0 }}>
+                    <TableCell colSpan={8} sx={{ border: 0, p: 0 }}>
                       <EmptyState
                         title={hasActiveFilters ? "No members match your filters" : "No members yet"}
-                        subtitle={
-                          hasActiveFilters
-                            ? "Try adjusting or clearing the filters"
-                            : "Add your first member to get started"
-                        }
+                        subtitle={hasActiveFilters ? "Try adjusting or clearing the filters" : "Add your first member to get started"}
                         actionLabel={hasActiveFilters ? "Clear Filters" : "Add Member"}
-                        onAction={
-                          hasActiveFilters
-                            ? clearFilters
-                            : () => router.push("/members/new")
-                        }
+                        onAction={hasActiveFilters ? clearFilters : () => router.push("/members/new")}
                       />
                     </TableCell>
                   </TableRow>
                 ) : (
                   members.map((member) => (
-                  <TableRow
-                    key={member._id}
-                    onClick={() => router.push(`/members/${member._id}`)}
-                    sx={{
-                      "&:last-child td": { border: 0 },
-                      "&:hover": { backgroundColor: "#FAFAFA" },
-                      cursor: "pointer",
-                    }}
-                  >
-                      <TableCell sx={{ py: 2 }}>
-                        <Typography sx={{ fontWeight: 600, fontSize: "0.88rem", color: "#111827" }}>
+                    <TableRow
+                      key={member._id}
+                      onClick={() => router.push(`/members/${member._id}`)}
+                      sx={{
+                        "&:last-child td": { border: 0 },
+                        "&:hover": { backgroundColor: "#F8FAFF" },
+                        cursor: "pointer",
+                        borderLeft: "3px solid transparent",
+                        "&:hover td:first-of-type": { borderLeft: `3px solid ${C.navy}` },
+                      }}
+                    >
+                      <TableCell sx={{ py: 1.75 }}>
+                        <Typography sx={{ fontWeight: 800, fontSize: "0.88rem", color: "#0F172A" }}>
                           {member.name}
                         </Typography>
                       </TableCell>
-                      <TableCell sx={{ py: 2 }}>
-                        <Typography sx={{ fontSize: "0.85rem", color: "#374151" }}>
+                      <TableCell sx={{ py: 1.75 }}>
+                        <Typography sx={{ fontSize: "0.85rem", color: C.slate, fontWeight: 600 }}>
                           {member.mobile}
                         </Typography>
                       </TableCell>
-                      <TableCell sx={{ py: 2 }}>
-                        <Typography sx={{ fontSize: "0.85rem", color: "#374151" }}>
+                      <TableCell sx={{ py: 1.75 }}>
+                        <Typography sx={{ fontSize: "0.85rem", color: C.slate, fontWeight: 700 }}>
                           {member.planSnapshot.name}
                         </Typography>
                       </TableCell>
-                      <TableCell sx={{ py: 2 }}>
-                        <Typography sx={{ fontSize: "0.85rem", color: "#374151" }}>
+                      <TableCell sx={{ py: 1.75 }}>
+                        <Typography sx={{ fontSize: "0.82rem", color: C.muted, fontWeight: 600 }}>
+                          {member.slotSnapshot.label}
+                        </Typography>
+                        <Typography sx={{ fontSize: "0.72rem", color: C.muted, fontWeight: 600 }}>
+                          {member.slotSnapshot.startTime} - {member.slotSnapshot.endTime}
+                        </Typography>
+                      </TableCell>
+                      <TableCell sx={{ py: 1.75 }}>
+                        <Typography sx={{ fontSize: "0.85rem", color: C.slate, fontWeight: 600 }}>
                           {formatDate(member.endDate)}
                         </Typography>
                       </TableCell>
-                      <TableCell sx={{ py: 2 }}>
-                        <Typography
-                          sx={{
-                            fontSize: "0.85rem",
-                            fontWeight: 600,
-                            color: member.pendingAmount > 0 ? "#DC2626" : "#16A34A",
-                          }}
-                        >
-                          {member.pendingAmount > 0
-                            ? formatCurrency(member.pendingAmount)
-                            : "Paid"}
+                      <TableCell sx={{ py: 1.75 }}>
+                        <Typography sx={{ fontSize: "0.88rem", fontWeight: 800, color: member.pendingAmount > 0 ? C.red : C.green }}>
+                          {member.pendingAmount > 0 ? formatCurrency(member.pendingAmount) : "Paid"}
                         </Typography>
                       </TableCell>
-                      <TableCell sx={{ py: 2 }}>
+                      <TableCell sx={{ py: 1.75 }}>
                         <StatusBadge status={member.status} />
                       </TableCell>
-                    <TableCell sx={{ py: 2 }} onClick={(e) => e.stopPropagation()}>
-                      <Box sx={{ display: "flex", gap: 0.5 }}>
-                        <Tooltip title="View details">
-                            <IconButton
-                              size="small"
-                              onClick={() => router.push(`/members/${member._id}`)}
-                              sx={{ color: "#6B7280", "&:hover": { color: "#1D4ED8", backgroundColor: "#EFF6FF" } }}
-                            >
-                              <VisibilityOutlined sx={{ fontSize: 17 }} />
+                      <TableCell sx={{ py: 1.75 }} onClick={(e) => e.stopPropagation()}>
+                        <Box sx={{ display: "flex", gap: 0.5 }}>
+                          <Tooltip title="View">
+                            <IconButton size="small" onClick={() => router.push(`/members/${member._id}`)}
+                              sx={{ color: C.muted, "&:hover": { color: "#1D4ED8", backgroundColor: "#EFF6FF" } }}>
+                              <VisibilityOutlined sx={{ fontSize: 16 }} />
                             </IconButton>
                           </Tooltip>
-                          <Tooltip title="Edit member">
-                            <IconButton
-                              size="small"
-                              onClick={() => router.push(`/members/${member._id}?action=edit`)}
-                              sx={{ color: "#6B7280", "&:hover": { color: "#15803D", backgroundColor: "#F0FDF4" } }}
-                            >
-                              <EditOutlined sx={{ fontSize: 17 }} />
+                          <Tooltip title="Edit">
+                            <IconButton size="small" onClick={() => router.push(`/members/${member._id}?action=edit`)}
+                              sx={{ color: C.muted, "&:hover": { color: C.green, backgroundColor: "#F0FDF4" } }}>
+                              <EditOutlined sx={{ fontSize: 16 }} />
                             </IconButton>
                           </Tooltip>
-                          <Tooltip title="Delete member">
-                            <IconButton
-                              size="small"
-                              onClick={() => { setDeletingMember(member); setDeleteOpen(true); }}
-                              sx={{ color: "#6B7280", "&:hover": { color: "#DC2626", backgroundColor: "#FEF2F2" } }}
-                            >
-                              <DeleteOutlined sx={{ fontSize: 17 }} />
+                          <Tooltip title="Delete">
+                            <IconButton size="small" onClick={() => { setDeletingMember(member); setDeleteOpen(true); }}
+                              sx={{ color: C.muted, "&:hover": { color: C.red, backgroundColor: "#FEF2F2" } }}>
+                              <DeleteOutlined sx={{ fontSize: 16 }} />
                             </IconButton>
                           </Tooltip>
                         </Box>
@@ -425,40 +293,14 @@ export default function MembersPage() {
           </TableContainer>
         )}
 
-        {/* Pagination */}
         {!isLoading && !error && totalPages > 1 && (
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              px: 2.5,
-              py: 1.5,
-              borderTop: "1px solid #F1F5F9",
-            }}
-          >
-            <Typography sx={{ fontSize: "0.78rem", color: "#6B7280", fontWeight: 500 }}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", px: 2.5, py: 1.5, borderTop: `1px solid ${C.border}` }}>
+            <Typography sx={{ fontSize: "0.78rem", color: C.muted, fontWeight: 700 }}>
               Page {page} of {totalPages}
             </Typography>
             <Box sx={{ display: "flex", gap: 1 }}>
-              <Button
-                size="small"
-                variant="outlined"
-                disabled={page === 1}
-                onClick={() => setPage((p) => p - 1)}
-                sx={{ borderRadius: "8px", fontSize: "0.78rem" }}
-              >
-                Previous
-              </Button>
-              <Button
-                size="small"
-                variant="outlined"
-                disabled={page === totalPages}
-                onClick={() => setPage((p) => p + 1)}
-                sx={{ borderRadius: "8px", fontSize: "0.78rem" }}
-              >
-                Next
-              </Button>
+              <Button size="small" variant="outlined" disabled={page === 1} onClick={() => setPage(p => p - 1)} sx={{ borderRadius: "8px", fontWeight: 700 }}>Previous</Button>
+              <Button size="small" variant="outlined" disabled={page === totalPages} onClick={() => setPage(p => p + 1)} sx={{ borderRadius: "8px", fontWeight: 700 }}>Next</Button>
             </Box>
           </Box>
         )}
@@ -467,10 +309,20 @@ export default function MembersPage() {
       <ConfirmDialog
         open={deleteOpen}
         title="Delete Member"
-        message={`Are you sure you want to delete "${deletingMember?.name}"? All payment history will also be removed. This cannot be undone.`}
+        message={`Delete "${deletingMember?.name}"? All payment history will also be removed. This cannot be undone.`}
         confirmLabel="Delete"
         confirmColor="error"
-        onConfirm={handleDelete}
+        onConfirm={async () => {
+          if (!deletingMember) return;
+          setIsDeleting(true);
+          try {
+            await membersApi.delete(deletingMember._id);
+            showToast("Member deleted");
+            setDeleteOpen(false);
+            fetchMembers();
+          } catch { showToast("Failed to delete.", "error"); }
+          finally { setIsDeleting(false); }
+        }}
         onCancel={() => setDeleteOpen(false)}
         isLoading={isDeleting}
       />
