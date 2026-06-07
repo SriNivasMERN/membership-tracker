@@ -40,8 +40,8 @@ const navItems: NavItem[] = [
   { label: "Plans",         path: "/plans",     icon: <FitnessCenterOutlined />, ownerOnly: true },
   { label: "Slots",         path: "/slots",     icon: <AccessTimeOutlined />,    ownerOnly: true },
   { label: "Pricing Rules", path: "/pricing",   icon: <AttachMoneyOutlined />,   ownerOnly: true },
-  { label: "Settings",      path: "/settings",  icon: <SettingsOutlined />,      ownerOnly: true },
   { label: "Users",         path: "/users",     icon: <PeopleAltOutlined />,     ownerOnly: true },
+  { label: "Settings",      path: "/settings",  icon: <SettingsOutlined />,      ownerOnly: true },
 ];
 
 interface SidebarProps {

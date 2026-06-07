@@ -9,11 +9,11 @@ import {
   TextField,
   MenuItem,
   Button,
-  Alert,
   Skeleton,
   InputAdornment,
 } from "@mui/material";
 import {
+  CheckCircleOutlined,
   SaveOutlined,
   BusinessOutlined,
   AccessTimeOutlined,
@@ -21,7 +21,7 @@ import {
 } from "@mui/icons-material";
 import { settingsApi, SettingsFormData } from "@/lib/api/settings.api";
 import { useToast } from "@/context/ToastContext";
-import PageHeader from "@/components/layout/PageHeader";
+import ErrorState from "@/components/ui/ErrorState";
 
 const BUSINESS_TYPES = [
   { value: "gym",             label: "Gym" },
@@ -47,6 +47,55 @@ const DEFAULT_FORM: SettingsFormData = {
   },
 };
 
+const C = {
+  navy: "#1E3A5F",
+  slate: "#334155",
+  muted: "#64748B",
+  border: "#E2E8F0",
+  surface: "#F8FAFC",
+  green: "#15803D",
+  amber: "#92400E",
+  sky: "#1D4ED8",
+};
+
+function SummaryStat({
+  label,
+  value,
+  tone = "default",
+}: {
+  label: string;
+  value: string;
+  tone?: "default" | "success" | "warning";
+}) {
+  const styles =
+    tone === "success"
+      ? { backgroundColor: "#F0FDF4", borderColor: "#BBF7D0", valueColor: C.green }
+      : tone === "warning"
+        ? { backgroundColor: "#FFFBEB", borderColor: "#FDE68A", valueColor: C.amber }
+        : { backgroundColor: "#EFF6FF", borderColor: "#BFDBFE", valueColor: C.navy };
+
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        p: 1.4,
+        borderRadius: "14px",
+        border: `1px solid ${styles.borderColor}`,
+        background: `linear-gradient(180deg, rgba(255,255,255,0.96) 0%, ${styles.backgroundColor} 100%)`,
+        minWidth: 132,
+        boxShadow: "0 10px 22px rgba(30,58,95,0.08)",
+      }}
+    >
+      <Typography sx={{ fontSize: "0.72rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>
+        {label}
+      </Typography>
+      <Typography sx={{ mt: 0.45, fontSize: "1.02rem", fontWeight: 900, color: styles.valueColor }}>
+        {value}
+      </Typography>
+    </Paper>
+  );
+}
+
 // ─── Section wrapper ──────────────────────────────────────────────────────────
 
 function Section({
@@ -64,35 +113,50 @@ function Section({
     <Paper
       elevation={0}
       sx={{
-        borderRadius: "12px",
-        border: "1px solid #E2E8F0",
-        boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+        borderRadius: "16px",
+        border: "1px solid rgba(191,219,254,0.65)",
+        boxShadow: "0 16px 32px rgba(30,58,95,0.08)",
+        background: "linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(248,251,255,0.96) 100%)",
         overflow: "hidden",
-        mb: 3,
       }}
     >
       <Box
         sx={{
-          px: 3,
-          py: 2,
-          backgroundColor: "#F8FAFC",
-          borderBottom: "1px solid #E2E8F0",
+          px: 2.5,
+          py: 1.7,
+          background: "linear-gradient(90deg, rgba(239,246,255,0.92) 0%, rgba(248,250,252,0.82) 100%)",
+          borderBottom: "1px solid rgba(191,219,254,0.55)",
           display: "flex",
           alignItems: "center",
           gap: 1.5,
         }}
       >
-        <Box sx={{ color: "#6B7280" }}>{icon}</Box>
+        <Box
+          sx={{
+            width: 36,
+            height: 36,
+            borderRadius: "12px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: C.sky,
+            background: "linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(219,234,254,0.9) 100%)",
+            border: "1px solid rgba(147,197,253,0.6)",
+            boxShadow: "0 8px 18px rgba(59,130,246,0.12)",
+          }}
+        >
+          {icon}
+        </Box>
         <Box>
-          <Typography sx={{ fontWeight: 700, fontSize: "0.88rem", color: "#111827" }}>
+          <Typography sx={{ fontWeight: 800, fontSize: "0.86rem", color: "#111827" }}>
             {title}
           </Typography>
-          <Typography sx={{ fontSize: "0.75rem", color: "#6B7280", fontWeight: 500 }}>
+          <Typography sx={{ fontSize: "0.75rem", color: C.muted, fontWeight: 600 }}>
             {subtitle}
           </Typography>
         </Box>
       </Box>
-      <Box sx={{ p: 3 }}>{children}</Box>
+      <Box sx={{ p: 2.5 }}>{children}</Box>
     </Paper>
   );
 }
@@ -198,29 +262,69 @@ export default function SettingsPage() {
 
   if (isLoading) {
     return (
-      <Box>
-        <Skeleton variant="text" width={200} height={36} sx={{ mb: 3 }} />
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 2.25 }}>
+        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+          {[1, 2, 3, 4].map((item) => (
+            <Skeleton key={item} variant="rounded" width={132} height={74} sx={{ borderRadius: "14px" }} />
+          ))}
+        </Box>
         {[1, 2, 3].map((i) => (
-          <Skeleton key={i} variant="rectangular" height={180} sx={{ mb: 3, borderRadius: "12px" }} />
+          <Skeleton key={i} variant="rectangular" height={176} sx={{ borderRadius: "16px" }} />
         ))}
       </Box>
     );
   }
 
-  return (
-    <Box>
-      <PageHeader
-        title="Settings"
-        subtitle="Configure your business profile and system preferences"
-      />
+  const customLabelsCount = [
+    form.terminology.planLabel !== "Plan",
+    form.terminology.slotLabel !== "Slot",
+    form.terminology.memberLabel !== "Member",
+  ].filter(Boolean).length;
 
-      {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 2.25,
+        p: { xs: 0, md: 0.5 },
+        borderRadius: "24px",
+        background:
+          "radial-gradient(circle at top left, rgba(191,219,254,0.35) 0%, rgba(255,255,255,0) 32%), linear-gradient(180deg, rgba(248,251,255,0.96) 0%, rgba(238,244,251,0.72) 100%)",
+      }}
+    >
+      <Box sx={{ display: "flex", alignItems: { xs: "flex-start", lg: "center" }, justifyContent: "space-between", flexDirection: { xs: "column", lg: "row" }, gap: 1.5 }}>
+        <Box sx={{ flex: 1, display: "flex", justifyContent: { xs: "flex-start", lg: "center" } }}>
+          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+            <SummaryStat label="Business Type" value={BUSINESS_TYPES.find((type) => type.value === form.businessType)?.label || "Not set"} />
+            <SummaryStat label="Expiry Alert" value={`${form.expiryAlertDays} days`} />
+            <SummaryStat label="Custom Labels" value={String(customLabelsCount)} tone="warning" />
+            <SummaryStat label="Configured" value={isConfigured ? "Yes" : "No"} tone="success" />
+          </Box>
+        </Box>
+        <Button
+          variant="contained"
+          startIcon={<SaveOutlined />}
+          onClick={handleSave}
+          disabled={isSaving}
+          sx={{
+            px: 2,
+            borderRadius: "12px",
+            alignSelf: { xs: "flex-start", lg: "center" },
+            boxShadow: "0 14px 28px rgba(30,58,95,0.18)",
+          }}
+        >
+          {isSaving ? "Saving..." : "Save Settings"}
+        </Button>
+      </Box>
+
+      {error ? <ErrorState message={error} /> : null}
 
       {/* Business Info */}
       <Section
         icon={<BusinessOutlined sx={{ fontSize: 20 }} />}
-        title="Business Information"
-        subtitle="Basic details about your business"
+        title="Business Profile"
+        subtitle="Basic business details used across the app"
       >
         <Grid container spacing={2.5}>
           <Grid item xs={12} sm={6}>
@@ -281,11 +385,11 @@ export default function SettingsPage() {
       {/* Expiry Alert */}
       <Section
         icon={<AccessTimeOutlined sx={{ fontSize: 20 }} />}
-        title="Expiry Alert Settings"
-        subtitle="Control when members appear in the expiring soon list on the dashboard"
+        title="Expiry Alerts"
+        subtitle="Choose when members start appearing in the renewal alert list"
       >
-        <Grid container spacing={2.5}>
-          <Grid item xs={12} sm={4}>
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={5} md={4}>
             <TextField
               label="Alert Days Before Expiry"
               type="number"
@@ -294,7 +398,7 @@ export default function SettingsPage() {
               error={!!fieldErrors.expiryAlertDays}
               helperText={
                 fieldErrors.expiryAlertDays ||
-                "Members expiring within this many days appear in the dashboard alert"
+                "Members within this window appear in the dashboard renewal alert"
               }
               fullWidth
               InputProps={{
@@ -307,6 +411,27 @@ export default function SettingsPage() {
               inputProps={{ min: 1, max: 90 }}
             />
           </Grid>
+          <Grid item xs={12} sm={7} md={8}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 1.6,
+                borderRadius: "12px",
+                border: "1px solid rgba(191,219,254,0.55)",
+                background: "linear-gradient(135deg, rgba(248,250,252,0.96) 0%, rgba(239,246,255,0.9) 100%)",
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                gap: 1.1,
+                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.9)",
+              }}
+            >
+              <CheckCircleOutlined sx={{ fontSize: 18, color: "#1D4ED8" }} />
+              <Typography sx={{ fontSize: "0.8rem", color: C.slate, fontWeight: 600, lineHeight: 1.5 }}>
+                Members expiring in the next {form.expiryAlertDays} day{form.expiryAlertDays === 1 ? "" : "s"} will appear in the dashboard follow-up list.
+              </Typography>
+            </Paper>
+          </Grid>
         </Grid>
       </Section>
 
@@ -318,14 +443,16 @@ export default function SettingsPage() {
       >
         <Box
           sx={{
-            p: 2,
-            mb: 2.5,
-            backgroundColor: "#FFFBEB",
-            borderRadius: "10px",
+            px: 1.5,
+            py: 1.2,
+            mb: 2,
+            background: "linear-gradient(135deg, rgba(255,251,235,0.96) 0%, rgba(254,243,199,0.88) 100%)",
+            borderRadius: "12px",
             border: "1px solid #FDE68A",
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.82)",
           }}
         >
-          <Typography sx={{ fontSize: "0.78rem", color: "#92400E", fontWeight: 600 }}>
+          <Typography sx={{ fontSize: "0.77rem", color: "#92400E", fontWeight: 700, lineHeight: 1.5 }}>
             Example - if you run a library, you might use "Membership" instead of "Plan" and "Timing" instead of "Slot".
           </Typography>
         </Box>
@@ -363,19 +490,39 @@ export default function SettingsPage() {
         </Grid>
       </Section>
 
-      {/* Save */}
-      <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+      <Paper
+        elevation={0}
+        sx={{
+          p: 1.5,
+          borderRadius: "14px",
+          border: "1px solid rgba(191,219,254,0.7)",
+          background: "linear-gradient(135deg, rgba(255,255,255,0.96) 0%, rgba(239,246,255,0.88) 100%)",
+          display: "flex",
+          alignItems: { xs: "flex-start", sm: "center" },
+          justifyContent: "space-between",
+          flexDirection: { xs: "column", sm: "row" },
+          gap: 1.25,
+          boxShadow: "0 10px 22px rgba(30,58,95,0.08)",
+        }}
+      >
+        <Typography sx={{ fontSize: "0.82rem", color: C.slate, fontWeight: 600 }}>
+          Review the business profile, alerts, and terminology above before saving changes.
+        </Typography>
         <Button
           variant="contained"
-          size="large"
           startIcon={<SaveOutlined />}
           onClick={handleSave}
           disabled={isSaving}
-          sx={{ borderRadius: "10px", px: 4 }}
+          sx={{
+            px: 2.1,
+            borderRadius: "12px",
+            alignSelf: { xs: "flex-start", sm: "center" },
+            boxShadow: "0 14px 28px rgba(30,58,95,0.18)",
+          }}
         >
           {isSaving ? "Saving..." : "Save Settings"}
         </Button>
-      </Box>
+      </Paper>
     </Box>
   );
 }

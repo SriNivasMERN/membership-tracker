@@ -25,6 +25,7 @@ import {
   Avatar,
 } from "@mui/material";
 import {
+  AddOutlined,
   EditOutlined,
   PowerSettingsNewOutlined,
 } from "@mui/icons-material";
@@ -32,7 +33,8 @@ import { useToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
 import api from "@/lib/api/axios.instance";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
-import PageHeader from "@/components/layout/PageHeader";
+import EmptyState from "@/components/ui/EmptyState";
+import ErrorState from "@/components/ui/ErrorState";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -43,6 +45,53 @@ interface StaffUser {
   role: "owner" | "staff";
   isActive: boolean;
   createdAt: string;
+}
+
+const C = {
+  navy: "#1E3A5F",
+  slate: "#334155",
+  muted: "#64748B",
+  border: "#E2E8F0",
+  surface: "#F8FAFC",
+  green: "#15803D",
+  amber: "#92400E",
+};
+
+function SummaryStat({
+  label,
+  value,
+  tone = "default",
+}: {
+  label: string;
+  value: string;
+  tone?: "default" | "success" | "warning";
+}) {
+  const styles =
+    tone === "success"
+      ? { backgroundColor: "#F0FDF4", borderColor: "#BBF7D0", valueColor: C.green }
+      : tone === "warning"
+        ? { backgroundColor: "#FFFBEB", borderColor: "#FDE68A", valueColor: C.amber }
+        : { backgroundColor: "#EFF6FF", borderColor: "#BFDBFE", valueColor: C.navy };
+
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        p: 1.4,
+        borderRadius: "14px",
+        border: `1px solid ${styles.borderColor}`,
+        backgroundColor: styles.backgroundColor,
+        minWidth: 132,
+      }}
+    >
+      <Typography sx={{ fontSize: "0.72rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>
+        {label}
+      </Typography>
+      <Typography sx={{ mt: 0.45, fontSize: "1.08rem", fontWeight: 900, color: styles.valueColor }}>
+        {value}
+      </Typography>
+    </Paper>
+  );
 }
 
 // ─── API ──────────────────────────────────────────────────────────────────────
@@ -503,30 +552,64 @@ export default function UsersPage() {
   const activeStaff = users.filter(
     (u) => u.role === "staff" && u.isActive
   ).length;
+  const totalActiveUsers = users.filter((u) => u.isActive).length;
+  const ownerCount = users.filter((u) => u.role === "owner").length;
 
   return (
-    <Box>
-      <PageHeader
-        title="Users"
-        subtitle={
-          isLoading
-            ? "Loading..."
-            : `${staffCount} staff account${staffCount !== 1 ? "s" : ""} - ${activeStaff} active`
-        }
-        action={{ label: "Add Staff", onClick: () => setAddOpen(true) }}
-      />
-
-      {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
-        </Alert>
-      )}
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 2.25 }}>
+      <Box sx={{ display: "flex", alignItems: { xs: "flex-start", lg: "center" }, justifyContent: "space-between", flexDirection: { xs: "column", lg: "row" }, gap: 1.5 }}>
+        <Box sx={{ flex: 1, display: "flex", justifyContent: { xs: "flex-start", lg: "center" } }}>
+          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+            {!isLoading ? (
+              <>
+                <SummaryStat label="Overall Users" value={String(users.length)} />
+                <SummaryStat label="Active" value={String(totalActiveUsers)} tone="success" />
+                <SummaryStat label="Staff" value={String(staffCount)} />
+                <SummaryStat label="Owners" value={String(ownerCount)} tone="warning" />
+              </>
+            ) : (
+              <>
+                {[1, 2, 3, 4].map((item) => (
+                  <Skeleton key={item} variant="rounded" width={132} height={74} sx={{ borderRadius: "14px" }} />
+                ))}
+              </>
+            )}
+          </Box>
+        </Box>
+        <Button
+          variant="contained"
+          startIcon={<AddOutlined />}
+          onClick={() => setAddOpen(true)}
+          sx={{ px: 1.75, alignSelf: { xs: "flex-start", lg: "center" } }}
+        >
+          Add Staff
+        </Button>
+      </Box>
 
       <Paper
         elevation={0}
         sx={{
-          borderRadius: "12px",
-          border: "1px solid #E2E8F0",
+          p: 1.5,
+          borderRadius: "14px",
+          border: "1px solid #BFDBFE",
+          backgroundColor: "#F8FBFF",
+        }}
+      >
+        <Typography sx={{ fontSize: "0.76rem", color: "#1D4ED8", fontWeight: 800, letterSpacing: 0.45, textTransform: "uppercase", mb: 0.4 }}>
+          Access Note
+        </Typography>
+        <Typography sx={{ fontSize: "0.82rem", color: "#33527A", fontWeight: 600, lineHeight: 1.55 }}>
+          Staff accounts can manage members and daily operations, while owner accounts retain access to settings and user management.
+        </Typography>
+      </Paper>
+
+      {error ? <ErrorState message={error} onRetry={fetchUsers} /> : null}
+
+      <Paper
+        elevation={0}
+        sx={{
+          borderRadius: "16px",
+          border: `1px solid ${C.border}`,
           boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
           overflow: "hidden",
         }}
@@ -534,17 +617,19 @@ export default function UsersPage() {
         <TableContainer>
           <Table>
             <TableHead>
-              <TableRow sx={{ backgroundColor: "#F8FAFC" }}>
+              <TableRow sx={{ backgroundColor: C.surface }}>
                 {["User", "Email", "Role", "Status", "Joined", "Actions"].map(
                   (h) => (
                     <TableCell
                       key={h}
                       sx={{
-                        fontWeight: 700,
-                        fontSize: "0.75rem",
-                        color: "#6B7280",
-                        py: 1.5,
-                        borderBottom: "1px solid #E2E8F0",
+                        fontWeight: 800,
+                        fontSize: "0.72rem",
+                        color: C.slate,
+                        py: 1.45,
+                        borderBottom: `1px solid ${C.border}`,
+                        letterSpacing: 0.5,
+                        textTransform: "uppercase",
                       }}
                     >
                       {h}
@@ -566,16 +651,13 @@ export default function UsersPage() {
                 ))
               ) : users.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} sx={{ py: 8, textAlign: "center" }}>
-                    <Typography
-                      sx={{
-                        fontSize: "0.9rem",
-                        color: "#6B7280",
-                        fontWeight: 500,
-                      }}
-                    >
-                      No users found
-                    </Typography>
+                  <TableCell colSpan={6} sx={{ border: 0, p: 0 }}>
+                    <EmptyState
+                      title="No users found"
+                      subtitle="Add a staff account to let your team manage day-to-day operations."
+                      actionLabel="Add Staff"
+                      onAction={() => setAddOpen(true)}
+                    />
                   </TableCell>
                 </TableRow>
               ) : (
@@ -587,11 +669,11 @@ export default function UsersPage() {
                       key={u._id}
                       sx={{
                         "&:last-child td": { border: 0 },
-                        "&:hover": { backgroundColor: "#FAFAFA" },
+                        "&:hover": { backgroundColor: "#F8FAFF" },
                         opacity: u.isActive ? 1 : 0.6,
                       }}
                     >
-                      <TableCell sx={{ py: 2 }}>
+                      <TableCell sx={{ py: 1.6 }}>
                         <Box
                           sx={{
                             display: "flex",
@@ -613,7 +695,7 @@ export default function UsersPage() {
                           <Box>
                             <Typography
                               sx={{
-                                fontWeight: 600,
+                                fontWeight: 800,
                                 fontSize: "0.88rem",
                                 color: "#111827",
                               }}
@@ -624,9 +706,9 @@ export default function UsersPage() {
                                   component="span"
                                   sx={{
                                     fontSize: "0.72rem",
-                                    color: "#6B7280",
+                                    color: C.muted,
                                     ml: 1,
-                                    fontWeight: 500,
+                                    fontWeight: 600,
                                   }}
                                 >
                                   (you)
@@ -637,22 +719,22 @@ export default function UsersPage() {
                         </Box>
                       </TableCell>
 
-                      <TableCell sx={{ py: 2 }}>
+                      <TableCell sx={{ py: 1.6 }}>
                         <Typography
-                          sx={{ fontSize: "0.85rem", color: "#374151" }}
+                          sx={{ fontSize: "0.85rem", color: C.slate, fontWeight: 700 }}
                         >
                           {u.email}
                         </Typography>
                       </TableCell>
 
-                      <TableCell sx={{ py: 2 }}>
+                      <TableCell sx={{ py: 1.6 }}>
                         <Chip
                           label={isOwner ? "Owner" : "Staff"}
                           size="small"
                           sx={{
-                            height: 22,
+                            height: 26,
                             fontSize: "0.72rem",
-                            fontWeight: 700,
+                            fontWeight: 800,
                             backgroundColor: isOwner ? "#EFF6FF" : "#F5F3FF",
                             color: isOwner ? "#1D4ED8" : "#6D28D9",
                             border: `1px solid ${isOwner ? "#BFDBFE" : "#DDD6FE"}`,
@@ -660,34 +742,34 @@ export default function UsersPage() {
                         />
                       </TableCell>
 
-                      <TableCell sx={{ py: 2 }}>
+                      <TableCell sx={{ py: 1.6 }}>
                         <Chip
                           label={u.isActive ? "Active" : "Inactive"}
                           size="small"
                           sx={{
-                            height: 22,
+                            height: 26,
                             fontSize: "0.72rem",
-                            fontWeight: 700,
+                            fontWeight: 800,
                             backgroundColor: u.isActive ? "#F0FDF4" : "#F9FAFB",
-                            color: u.isActive ? "#15803D" : "#6B7280",
+                            color: u.isActive ? C.green : "#6B7280",
                             border: `1px solid ${u.isActive ? "#BBF7D0" : "#E5E7EB"}`,
                           }}
                         />
                       </TableCell>
 
-                      <TableCell sx={{ py: 2 }}>
+                      <TableCell sx={{ py: 1.6 }}>
                         <Typography
                           sx={{
                             fontSize: "0.82rem",
-                            color: "#6B7280",
-                            fontWeight: 500,
+                            color: C.muted,
+                            fontWeight: 600,
                           }}
                         >
                           {formatDate(u.createdAt)}
                         </Typography>
                       </TableCell>
 
-                      <TableCell sx={{ py: 2 }}>
+                      <TableCell sx={{ py: 1.6 }}>
                         <Box sx={{ display: "flex", gap: 0.5 }}>
                           <Tooltip title="Edit user">
                             <IconButton
