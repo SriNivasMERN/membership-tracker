@@ -24,6 +24,7 @@ import {
   Tooltip,
 } from "@mui/material";
 import {
+  AddOutlined,
   EditOutlined,
   DeleteOutlined,
   PowerSettingsNewOutlined,
@@ -32,7 +33,8 @@ import { useToast } from "@/context/ToastContext";
 import { slotsApi } from "@/lib/api/slots.api";
 import { Slot, SlotFormData } from "@/types/slot.types";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
-import PageHeader from "@/components/layout/PageHeader";
+import EmptyState from "@/components/ui/EmptyState";
+import ErrorState from "@/components/ui/ErrorState";
 
 const EMPTY_FORM: SlotFormData = {
   label: "",
@@ -40,7 +42,52 @@ const EMPTY_FORM: SlotFormData = {
   endTime: "08:00",
 };
 
-// ─── Slot Form Dialog ─────────────────────────────────────────────────────────
+const C = {
+  navy: "#1E3A5F",
+  slate: "#334155",
+  muted: "#64748B",
+  border: "#E2E8F0",
+  surface: "#F8FAFC",
+  green: "#15803D",
+  amber: "#92400E",
+};
+
+function SummaryStat({
+  label,
+  value,
+  tone = "default",
+}: {
+  label: string;
+  value: string;
+  tone?: "default" | "success" | "warning";
+}) {
+  const styles =
+    tone === "success"
+      ? { backgroundColor: "#F0FDF4", borderColor: "#BBF7D0", valueColor: C.green }
+      : tone === "warning"
+        ? { backgroundColor: "#FFFBEB", borderColor: "#FDE68A", valueColor: C.amber }
+        : { backgroundColor: "#EFF6FF", borderColor: "#BFDBFE", valueColor: C.navy };
+
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        p: 1.4,
+        borderRadius: "14px",
+        border: `1px solid ${styles.borderColor}`,
+        backgroundColor: styles.backgroundColor,
+        minWidth: 132,
+      }}
+    >
+      <Typography sx={{ fontSize: "0.72rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>
+        {label}
+      </Typography>
+      <Typography sx={{ mt: 0.45, fontSize: "1.08rem", fontWeight: 900, color: styles.valueColor }}>
+        {value}
+      </Typography>
+    </Paper>
+  );
+}
 
 function SlotFormDialog({
   open,
@@ -76,13 +123,13 @@ function SlotFormDialog({
   const validate = (): boolean => {
     const e: Partial<Record<keyof SlotFormData, string>> = {};
     const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+
     if (!form.label.trim() || form.label.trim().length < 2) e.label = "Label must be at least 2 characters";
     if (form.label.trim().length > 50) e.label = "Label cannot exceed 50 characters";
     if (!timeRegex.test(form.startTime)) e.startTime = "Must be HH:MM format (e.g. 06:00)";
     if (!timeRegex.test(form.endTime)) e.endTime = "Must be HH:MM format (e.g. 08:00)";
-    if (!e.startTime && !e.endTime && form.startTime >= form.endTime) {
-      e.endTime = "End time must be after start time";
-    }
+    if (!e.startTime && !e.endTime && form.startTime >= form.endTime) e.endTime = "End time must be after start time";
+
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -128,7 +175,7 @@ function SlotFormDialog({
       </DialogTitle>
 
       <DialogContent sx={{ px: 3, pb: 1 }}>
-        {apiError && <Alert severity="error" sx={{ mb: 2, mt: 1 }}>{apiError}</Alert>}
+        {apiError ? <Alert severity="error" sx={{ mb: 2, mt: 1 }}>{apiError}</Alert> : null}
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5, mt: 1 }}>
           <TextField
             label="Slot Label"
@@ -161,7 +208,9 @@ function SlotFormDialog({
       </DialogContent>
 
       <DialogActions sx={{ px: 3, pb: 3, pt: 2, gap: 1 }}>
-        <Button onClick={onClose} disabled={isSubmitting} color="inherit">Cancel</Button>
+        <Button onClick={onClose} disabled={isSubmitting} color="inherit">
+          Cancel
+        </Button>
         <Button variant="contained" onClick={handleSubmit} disabled={isSubmitting}>
           {isSubmitting ? "Saving..." : isEdit ? "Save Changes" : "Create Slot"}
         </Button>
@@ -169,8 +218,6 @@ function SlotFormDialog({
     </Dialog>
   );
 }
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function SlotsPage() {
   const { showToast } = useToast();
@@ -197,7 +244,9 @@ export default function SlotsPage() {
     }
   }, []);
 
-  useEffect(() => { fetchSlots(); }, [fetchSlots]);
+  useEffect(() => {
+    fetchSlots();
+  }, [fetchSlots]);
 
   const handleConfirm = async () => {
     if (!selectedSlot || !confirmAction) return;
@@ -219,107 +268,207 @@ export default function SlotsPage() {
     }
   };
 
-  const activeSlots = slots.filter((s) => s.isActive).length;
+  const activeSlots = slots.filter((slot) => slot.isActive).length;
+  const inactiveSlots = slots.filter((slot) => !slot.isActive).length;
+  const earlySlots = slots.filter((slot) => slot.startTime < "12:00").length;
 
   return (
-    <Box>
-      <PageHeader
-        title="Slots"
-        subtitle={isLoading ? "Loading..." : `${slots.length} slot${slots.length !== 1 ? "s" : ""} - ${activeSlots} active`}
-        action={{ label: "Add Slot", onClick: () => { setEditingSlot(null); setFormOpen(true); } }}
-      />
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 2.25 }}>
+      <Box sx={{ display: "flex", alignItems: { xs: "flex-start", lg: "center" }, justifyContent: "space-between", flexDirection: { xs: "column", lg: "row" }, gap: 1.5 }}>
+        <Box sx={{ flex: 1, display: "flex", justifyContent: { xs: "flex-start", lg: "center" } }}>
+          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+            {!isLoading ? (
+              <>
+                <SummaryStat label="Overall Slots" value={String(slots.length)} />
+                <SummaryStat label="Active" value={String(activeSlots)} tone="success" />
+                <SummaryStat label="Inactive" value={String(inactiveSlots)} tone="warning" />
+                <SummaryStat label="Morning Slots" value={String(earlySlots)} />
+              </>
+            ) : (
+              <>
+                {[1, 2, 3, 4].map((item) => (
+                  <Skeleton key={item} variant="rounded" width={132} height={74} sx={{ borderRadius: "14px" }} />
+                ))}
+              </>
+            )}
+          </Box>
+        </Box>
+        <Button
+          variant="contained"
+          startIcon={<AddOutlined />}
+          onClick={() => {
+            setEditingSlot(null);
+            setFormOpen(true);
+          }}
+          sx={{ px: 1.75, alignSelf: { xs: "flex-start", lg: "center" } }}
+        >
+          Add Slot
+        </Button>
+      </Box>
 
-      {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
+      {error ? <ErrorState message={error} onRetry={fetchSlots} /> : null}
 
-      <Paper elevation={0} sx={{ borderRadius: "12px", border: "1px solid #E2E8F0", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", overflow: "hidden" }}>
+      <Paper
+        elevation={0}
+        sx={{
+          borderRadius: "16px",
+          border: `1px solid ${C.border}`,
+          boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+          overflow: "hidden",
+        }}
+      >
         <TableContainer>
           <Table>
             <TableHead>
-              <TableRow sx={{ backgroundColor: "#F8FAFC" }}>
-                {["Slot Label", "Start Time", "End Time", "Status", "Actions"].map((h) => (
-                  <TableCell key={h} sx={{ fontWeight: 700, fontSize: "0.75rem", color: "#6B7280", py: 1.5, borderBottom: "1px solid #E2E8F0" }}>
-                    {h}
+              <TableRow sx={{ backgroundColor: C.surface }}>
+                {["Slot", "Start Time", "End Time", "Session", "Status", "Actions"].map((heading) => (
+                  <TableCell
+                    key={heading}
+                    sx={{
+                      fontWeight: 800,
+                      fontSize: "0.72rem",
+                      color: C.slate,
+                      py: 1.45,
+                      borderBottom: `1px solid ${C.border}`,
+                      letterSpacing: 0.5,
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {heading}
                   </TableCell>
                 ))}
               </TableRow>
             </TableHead>
+
             <TableBody>
               {isLoading ? (
-                [...Array(3)].map((_, i) => (
+                [...Array(4)].map((_, i) => (
                   <TableRow key={i}>
-                    {[1,2,3,4,5].map((j) => (
-                      <TableCell key={j} sx={{ py: 2 }}><Skeleton height={20} /></TableCell>
+                    {[1, 2, 3, 4, 5, 6].map((j) => (
+                      <TableCell key={j} sx={{ py: 2 }}>
+                        <Skeleton height={20} />
+                      </TableCell>
                     ))}
                   </TableRow>
                 ))
               ) : slots.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} sx={{ py: 8, textAlign: "center" }}>
-                    <Typography sx={{ fontSize: "0.9rem", color: "#6B7280", fontWeight: 500, mb: 1 }}>
-                      No slots created yet
-                    </Typography>
-                    <Typography sx={{ fontSize: "0.8rem", color: "#9CA3AF" }}>
-                      Click Add Slot to create your first time slot
-                    </Typography>
+                  <TableCell colSpan={6} sx={{ border: 0, p: 0 }}>
+                    <EmptyState
+                      title="No slots created yet"
+                      subtitle="Add your first time slot to start assigning members by batch or session."
+                      actionLabel="Add Slot"
+                      onAction={() => {
+                        setEditingSlot(null);
+                        setFormOpen(true);
+                      }}
+                    />
                   </TableCell>
                 </TableRow>
               ) : (
-                slots.map((slot) => (
-                  <TableRow
-                    key={slot._id}
-                    sx={{ "&:last-child td": { border: 0 }, "&:hover": { backgroundColor: "#FAFAFA" }, opacity: slot.isActive ? 1 : 0.6 }}
-                  >
-                    <TableCell sx={{ py: 2 }}>
-                      <Typography sx={{ fontWeight: 600, fontSize: "0.88rem", color: "#111827" }}>
-                        {slot.label}
-                      </Typography>
-                    </TableCell>
-                    <TableCell sx={{ py: 2 }}>
-                      <Typography sx={{ fontSize: "0.85rem", color: "#374151", fontWeight: 500 }}>
-                        {slot.startTime}
-                      </Typography>
-                    </TableCell>
-                    <TableCell sx={{ py: 2 }}>
-                      <Typography sx={{ fontSize: "0.85rem", color: "#374151", fontWeight: 500 }}>
-                        {slot.endTime}
-                      </Typography>
-                    </TableCell>
-                    <TableCell sx={{ py: 2 }}>
-                      <Chip
-                        label={slot.isActive ? "Active" : "Inactive"}
-                        size="small"
-                        sx={{
-                          height: 24, fontSize: "0.72rem", fontWeight: 700,
-                          backgroundColor: slot.isActive ? "#F0FDF4" : "#F9FAFB",
-                          color: slot.isActive ? "#15803D" : "#6B7280",
-                          border: `1px solid ${slot.isActive ? "#BBF7D0" : "#E5E7EB"}`,
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell sx={{ py: 2 }}>
-                      <Box sx={{ display: "flex", gap: 0.5 }}>
-                        <Tooltip title="Edit slot">
-                          <IconButton size="small" onClick={() => { setEditingSlot(slot); setFormOpen(true); }}
-                            sx={{ color: "#6B7280", "&:hover": { color: "#1D4ED8", backgroundColor: "#EFF6FF" } }}>
-                            <EditOutlined sx={{ fontSize: 17 }} />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title={slot.isActive ? "Deactivate" : "Activate"}>
-                          <IconButton size="small" onClick={() => { setSelectedSlot(slot); setConfirmAction("toggle"); setConfirmOpen(true); }}
-                            sx={{ color: "#6B7280", "&:hover": { color: slot.isActive ? "#B45309" : "#15803D", backgroundColor: slot.isActive ? "#FFFBEB" : "#F0FDF4" } }}>
-                            <PowerSettingsNewOutlined sx={{ fontSize: 17 }} />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Delete slot">
-                          <IconButton size="small" onClick={() => { setSelectedSlot(slot); setConfirmAction("delete"); setConfirmOpen(true); }}
-                            sx={{ color: "#6B7280", "&:hover": { color: "#DC2626", backgroundColor: "#FEF2F2" } }}>
-                            <DeleteOutlined sx={{ fontSize: 17 }} />
-                          </IconButton>
-                        </Tooltip>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ))
+                slots.map((slot) => {
+                  const session = slot.startTime < "12:00" ? "Morning" : slot.startTime < "17:00" ? "Afternoon" : "Evening";
+                  return (
+                    <TableRow
+                      key={slot._id}
+                      sx={{
+                        "&:last-child td": { border: 0 },
+                        "&:hover": { backgroundColor: "#F8FAFF" },
+                        opacity: slot.isActive ? 1 : 0.6,
+                      }}
+                    >
+                      <TableCell sx={{ py: 1.6 }}>
+                        <Typography sx={{ fontWeight: 800, fontSize: "0.88rem", color: "#111827" }}>
+                          {slot.label}
+                        </Typography>
+                      </TableCell>
+
+                      <TableCell sx={{ py: 1.6 }}>
+                        <Typography sx={{ fontSize: "0.85rem", color: C.slate, fontWeight: 600 }}>
+                          {slot.startTime}
+                        </Typography>
+                      </TableCell>
+
+                      <TableCell sx={{ py: 1.6 }}>
+                        <Typography sx={{ fontSize: "0.85rem", color: C.slate, fontWeight: 600 }}>
+                          {slot.endTime}
+                        </Typography>
+                      </TableCell>
+
+                      <TableCell sx={{ py: 1.6 }}>
+                        <Typography sx={{ fontSize: "0.82rem", color: C.slate, fontWeight: 700 }}>
+                          {session}
+                        </Typography>
+                      </TableCell>
+
+                      <TableCell sx={{ py: 1.6 }}>
+                        <Chip
+                          label={slot.isActive ? "Active" : "Inactive"}
+                          size="small"
+                          sx={{
+                            height: 26,
+                            fontSize: "0.72rem",
+                            fontWeight: 800,
+                            backgroundColor: slot.isActive ? "#F0FDF4" : "#F9FAFB",
+                            color: slot.isActive ? C.green : "#6B7280",
+                            border: `1px solid ${slot.isActive ? "#BBF7D0" : "#E5E7EB"}`,
+                          }}
+                        />
+                      </TableCell>
+
+                      <TableCell sx={{ py: 1.6 }}>
+                        <Box sx={{ display: "flex", gap: 0.5 }}>
+                          <Tooltip title="Edit slot">
+                            <IconButton
+                              size="small"
+                              onClick={() => {
+                                setEditingSlot(slot);
+                                setFormOpen(true);
+                              }}
+                              sx={{ color: "#6B7280", "&:hover": { color: "#1D4ED8", backgroundColor: "#EFF6FF" } }}
+                            >
+                              <EditOutlined sx={{ fontSize: 17 }} />
+                            </IconButton>
+                          </Tooltip>
+
+                          <Tooltip title={slot.isActive ? "Deactivate" : "Activate"}>
+                            <IconButton
+                              size="small"
+                              onClick={() => {
+                                setSelectedSlot(slot);
+                                setConfirmAction("toggle");
+                                setConfirmOpen(true);
+                              }}
+                              sx={{
+                                color: "#6B7280",
+                                "&:hover": {
+                                  color: slot.isActive ? "#B45309" : "#15803D",
+                                  backgroundColor: slot.isActive ? "#FFFBEB" : "#F0FDF4",
+                                },
+                              }}
+                            >
+                              <PowerSettingsNewOutlined sx={{ fontSize: 17 }} />
+                            </IconButton>
+                          </Tooltip>
+
+                          <Tooltip title="Delete slot">
+                            <IconButton
+                              size="small"
+                              onClick={() => {
+                                setSelectedSlot(slot);
+                                setConfirmAction("delete");
+                                setConfirmOpen(true);
+                              }}
+                              sx={{ color: "#6B7280", "&:hover": { color: "#DC2626", backgroundColor: "#FEF2F2" } }}
+                            >
+                              <DeleteOutlined sx={{ fontSize: 17 }} />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               )}
             </TableBody>
           </Table>
@@ -335,8 +484,8 @@ export default function SlotsPage() {
           confirmAction === "delete"
             ? `Are you sure you want to delete "${selectedSlot?.label}"? This cannot be undone.`
             : selectedSlot?.isActive
-            ? `Deactivating "${selectedSlot?.label}" will hide it from new member registration. Existing members are not affected.`
-            : `Activating "${selectedSlot?.label}" will make it available for new member registration.`
+              ? `Deactivating "${selectedSlot?.label}" will hide it from new member registration. Existing members are not affected.`
+              : `Activating "${selectedSlot?.label}" will make it available for new member registration.`
         }
         confirmLabel={confirmAction === "delete" ? "Delete" : selectedSlot?.isActive ? "Deactivate" : "Activate"}
         confirmColor={confirmAction === "delete" ? "error" : "primary"}

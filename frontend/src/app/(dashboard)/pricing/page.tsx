@@ -28,6 +28,7 @@ import {
   InputAdornment,
 } from "@mui/material";
 import {
+  AddOutlined,
   EditOutlined,
   DeleteOutlined,
 } from "@mui/icons-material";
@@ -38,7 +39,8 @@ import { slotsApi } from "@/lib/api/slots.api";
 import { Plan } from "@/types/plan.types";
 import { Slot } from "@/types/slot.types";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
-import PageHeader from "@/components/layout/PageHeader";
+import EmptyState from "@/components/ui/EmptyState";
+import ErrorState from "@/components/ui/ErrorState";
 
 // ─── Types for populated pricing rule from backend ────────────────────────────
 
@@ -64,6 +66,53 @@ interface PricingRule {
   multiplier: number;
   isActive: boolean;
   createdAt: string;
+}
+
+const C = {
+  navy: "#1E3A5F",
+  slate: "#334155",
+  muted: "#64748B",
+  border: "#E2E8F0",
+  surface: "#F8FAFC",
+  green: "#15803D",
+  amber: "#92400E",
+};
+
+function SummaryStat({
+  label,
+  value,
+  tone = "default",
+}: {
+  label: string;
+  value: string;
+  tone?: "default" | "success" | "warning";
+}) {
+  const styles =
+    tone === "success"
+      ? { backgroundColor: "#F0FDF4", borderColor: "#BBF7D0", valueColor: C.green }
+      : tone === "warning"
+        ? { backgroundColor: "#FFFBEB", borderColor: "#FDE68A", valueColor: C.amber }
+        : { backgroundColor: "#EFF6FF", borderColor: "#BFDBFE", valueColor: C.navy };
+
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        p: 1.4,
+        borderRadius: "14px",
+        border: `1px solid ${styles.borderColor}`,
+        backgroundColor: styles.backgroundColor,
+        minWidth: 132,
+      }}
+    >
+      <Typography sx={{ fontSize: "0.72rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>
+        {label}
+      </Typography>
+      <Typography sx={{ mt: 0.45, fontSize: "1.08rem", fontWeight: 900, color: styles.valueColor }}>
+        {value}
+      </Typography>
+    </Paper>
+  );
 }
 
 // ─── Pricing Rule Form Dialog ─────────────────────────────────────────────────
@@ -328,48 +377,89 @@ export default function PricingPage() {
   };
 
   const formatCurrency = (n: number) => `Rs.${n.toLocaleString("en-IN")}`;
+  const activeRules = rules.filter((rule) => rule.isActive).length;
+  const inactiveRules = rules.filter((rule) => !rule.isActive).length;
+  const boostedRules = rules.filter((rule) => rule.multiplier > 1).length;
 
   return (
-    <Box>
-      <PageHeader
-        title="Pricing Rules"
-        subtitle={
-          isLoading
-            ? "Loading..."
-            : `${rules.length} rule${rules.length !== 1 ? "s" : ""} - multipliers applied on top of base plan price`
-        }
-        action={{ label: "Add Rule", onClick: () => { setEditingRule(null); setFormOpen(true); } }}
-      />
-
-      {/* Explainer */}
-      <Box
-        sx={{
-          p: 2,
-          mb: 3,
-          backgroundColor: "#EFF6FF",
-          borderRadius: "10px",
-          border: "1px solid #BFDBFE",
-        }}
-      >
-        <Typography sx={{ fontSize: "0.82rem", color: "#1D4ED8", fontWeight: 600, mb: 0.5 }}>
-          How pricing rules work
-        </Typography>
-        <Typography sx={{ fontSize: "0.78rem", color: "#1E40AF", fontWeight: 500 }}>
-          Each rule links a plan and a slot with a multiplier. Final price = Base price x Multiplier.
-          For example, a Morning Batch with multiplier 1.2 on a Rs.1000 plan gives Rs.1200.
-          If no rule exists for a combination, the base price is used as-is.
-        </Typography>
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 2.25 }}>
+      <Box sx={{ display: "flex", alignItems: { xs: "flex-start", lg: "center" }, justifyContent: "space-between", flexDirection: { xs: "column", lg: "row" }, gap: 1.5 }}>
+        <Box sx={{ flex: 1, display: "flex", justifyContent: { xs: "flex-start", lg: "center" } }}>
+          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+            {!isLoading ? (
+              <>
+                <SummaryStat label="Overall Rules" value={String(rules.length)} />
+                <SummaryStat label="Active" value={String(activeRules)} tone="success" />
+                <SummaryStat label="Inactive" value={String(inactiveRules)} tone="warning" />
+                <SummaryStat label="Boosted Prices" value={String(boostedRules)} />
+              </>
+            ) : (
+              <>
+                {[1, 2, 3, 4].map((item) => (
+                  <Skeleton key={item} variant="rounded" width={132} height={74} sx={{ borderRadius: "14px" }} />
+                ))}
+              </>
+            )}
+          </Box>
+        </Box>
+        <Button
+          variant="contained"
+          startIcon={<AddOutlined />}
+          onClick={() => {
+            setEditingRule(null);
+            setFormOpen(true);
+          }}
+          sx={{ px: 1.75, alignSelf: { xs: "flex-start", lg: "center" } }}
+        >
+          Add Rule
+        </Button>
       </Box>
 
-      {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
+      <Paper
+        elevation={0}
+        sx={{
+          p: 1.5,
+          borderRadius: "14px",
+          border: "1px solid #BFDBFE",
+          backgroundColor: "#F8FBFF",
+        }}
+      >
+        <Typography sx={{ fontSize: "0.76rem", color: "#1D4ED8", fontWeight: 800, letterSpacing: 0.45, textTransform: "uppercase", mb: 0.4 }}>
+          Pricing Logic
+        </Typography>
+        <Typography sx={{ fontSize: "0.82rem", color: "#33527A", fontWeight: 600, lineHeight: 1.55 }}>
+          Final price = base plan price x multiplier. If no rule exists for a plan and slot combination, the base price is used as-is.
+        </Typography>
+      </Paper>
 
-      <Paper elevation={0} sx={{ borderRadius: "12px", border: "1px solid #E2E8F0", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", overflow: "hidden" }}>
+      {error ? <ErrorState message={error} onRetry={fetchAll} /> : null}
+
+      <Paper
+        elevation={0}
+        sx={{
+          borderRadius: "16px",
+          border: `1px solid ${C.border}`,
+          boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+          overflow: "hidden",
+        }}
+      >
         <TableContainer>
           <Table>
             <TableHead>
-              <TableRow sx={{ backgroundColor: "#F8FAFC" }}>
+              <TableRow sx={{ backgroundColor: C.surface }}>
                 {["Plan", "Slot", "Base Price", "Multiplier", "Final Price", "Status", "Actions"].map((h) => (
-                  <TableCell key={h} sx={{ fontWeight: 700, fontSize: "0.75rem", color: "#6B7280", py: 1.5, borderBottom: "1px solid #E2E8F0" }}>
+                  <TableCell
+                    key={h}
+                    sx={{
+                      fontWeight: 800,
+                      fontSize: "0.72rem",
+                      color: C.slate,
+                      py: 1.45,
+                      borderBottom: `1px solid ${C.border}`,
+                      letterSpacing: 0.5,
+                      textTransform: "uppercase",
+                    }}
+                  >
                     {h}
                   </TableCell>
                 ))}
@@ -379,20 +469,23 @@ export default function PricingPage() {
               {isLoading ? (
                 [...Array(3)].map((_, i) => (
                   <TableRow key={i}>
-                    {[1,2,3,4,5,6,7].map((j) => (
+                    {[1, 2, 3, 4, 5, 6, 7].map((j) => (
                       <TableCell key={j} sx={{ py: 2 }}><Skeleton height={20} /></TableCell>
                     ))}
                   </TableRow>
                 ))
               ) : rules.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} sx={{ py: 8, textAlign: "center" }}>
-                    <Typography sx={{ fontSize: "0.9rem", color: "#6B7280", fontWeight: 500, mb: 1 }}>
-                      No pricing rules yet
-                    </Typography>
-                    <Typography sx={{ fontSize: "0.8rem", color: "#9CA3AF" }}>
-                      Add a rule to apply custom pricing for plan and slot combinations
-                    </Typography>
+                  <TableCell colSpan={7} sx={{ border: 0, p: 0 }}>
+                    <EmptyState
+                      title="No pricing rules created yet"
+                      subtitle="Add a rule to apply custom pricing for plan and slot combinations."
+                      actionLabel="Add Rule"
+                      onAction={() => {
+                        setEditingRule(null);
+                        setFormOpen(true);
+                      }}
+                    />
                   </TableCell>
                 </TableRow>
               ) : (
@@ -401,61 +494,71 @@ export default function PricingPage() {
                   return (
                     <TableRow
                       key={rule._id}
-                      sx={{ "&:last-child td": { border: 0 }, "&:hover": { backgroundColor: "#FAFAFA" }, opacity: rule.isActive ? 1 : 0.6 }}
+                      sx={{
+                        "&:last-child td": { border: 0 },
+                        "&:hover": { backgroundColor: "#F8FAFF" },
+                        opacity: rule.isActive ? 1 : 0.6,
+                      }}
                     >
-                      <TableCell sx={{ py: 2 }}>
-                        <Typography sx={{ fontWeight: 600, fontSize: "0.88rem", color: "#111827" }}>
+                      <TableCell sx={{ py: 1.6 }}>
+                        <Typography sx={{ fontWeight: 800, fontSize: "0.88rem", color: "#111827" }}>
                           {rule.planId.name}
                         </Typography>
                       </TableCell>
-                      <TableCell sx={{ py: 2 }}>
-                        <Typography sx={{ fontSize: "0.85rem", color: "#374151", fontWeight: 500 }}>
+                      <TableCell sx={{ py: 1.6 }}>
+                        <Typography sx={{ fontSize: "0.85rem", color: C.slate, fontWeight: 700 }}>
                           {rule.slotId.label}
                         </Typography>
-                        <Typography sx={{ fontSize: "0.72rem", color: "#9CA3AF" }}>
+                        <Typography sx={{ fontSize: "0.72rem", color: C.muted, fontWeight: 600, mt: 0.25 }}>
                           {rule.slotId.startTime} - {rule.slotId.endTime}
                         </Typography>
                       </TableCell>
-                      <TableCell sx={{ py: 2 }}>
-                        <Typography sx={{ fontSize: "0.85rem", color: "#374151", fontWeight: 500 }}>
+                      <TableCell sx={{ py: 1.6 }}>
+                        <Typography sx={{ fontSize: "0.85rem", color: C.slate, fontWeight: 700 }}>
                           {formatCurrency(rule.planId.basePrice)}
                         </Typography>
                       </TableCell>
-                      <TableCell sx={{ py: 2 }}>
+                      <TableCell sx={{ py: 1.6 }}>
                         <Chip
                           label={`${rule.multiplier}x`}
                           size="small"
-                          sx={{ height: 24, fontSize: "0.78rem", fontWeight: 700, backgroundColor: "#EFF6FF", color: "#1D4ED8", border: "1px solid #BFDBFE" }}
+                          sx={{ height: 26, fontSize: "0.74rem", fontWeight: 800, backgroundColor: "#EFF6FF", color: "#1D4ED8", border: "1px solid #BFDBFE" }}
                         />
                       </TableCell>
-                      <TableCell sx={{ py: 2 }}>
-                        <Typography sx={{ fontSize: "0.88rem", fontWeight: 700, color: "#15803D" }}>
+                      <TableCell sx={{ py: 1.6 }}>
+                        <Typography sx={{ fontSize: "0.88rem", fontWeight: 800, color: C.green }}>
                           {formatCurrency(finalPrice)}
                         </Typography>
                       </TableCell>
-                      <TableCell sx={{ py: 2 }}>
+                      <TableCell sx={{ py: 1.6 }}>
                         <Chip
                           label={rule.isActive ? "Active" : "Inactive"}
                           size="small"
                           sx={{
-                            height: 24, fontSize: "0.72rem", fontWeight: 700,
+                            height: 26, fontSize: "0.72rem", fontWeight: 800,
                             backgroundColor: rule.isActive ? "#F0FDF4" : "#F9FAFB",
-                            color: rule.isActive ? "#15803D" : "#6B7280",
+                            color: rule.isActive ? C.green : "#6B7280",
                             border: `1px solid ${rule.isActive ? "#BBF7D0" : "#E5E7EB"}`,
                           }}
                         />
                       </TableCell>
-                      <TableCell sx={{ py: 2 }}>
+                      <TableCell sx={{ py: 1.6 }}>
                         <Box sx={{ display: "flex", gap: 0.5 }}>
                           <Tooltip title="Edit rule">
-                            <IconButton size="small" onClick={() => { setEditingRule(rule); setFormOpen(true); }}
-                              sx={{ color: "#6B7280", "&:hover": { color: "#1D4ED8", backgroundColor: "#EFF6FF" } }}>
+                            <IconButton
+                              size="small"
+                              onClick={() => { setEditingRule(rule); setFormOpen(true); }}
+                              sx={{ color: "#6B7280", "&:hover": { color: "#1D4ED8", backgroundColor: "#EFF6FF" } }}
+                            >
                               <EditOutlined sx={{ fontSize: 17 }} />
                             </IconButton>
                           </Tooltip>
                           <Tooltip title="Delete rule">
-                            <IconButton size="small" onClick={() => { setSelectedRule(rule); setConfirmOpen(true); }}
-                              sx={{ color: "#6B7280", "&:hover": { color: "#DC2626", backgroundColor: "#FEF2F2" } }}>
+                            <IconButton
+                              size="small"
+                              onClick={() => { setSelectedRule(rule); setConfirmOpen(true); }}
+                              sx={{ color: "#6B7280", "&:hover": { color: "#DC2626", backgroundColor: "#FEF2F2" } }}
+                            >
                               <DeleteOutlined sx={{ fontSize: 17 }} />
                             </IconButton>
                           </Tooltip>
