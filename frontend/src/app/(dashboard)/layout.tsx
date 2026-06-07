@@ -7,8 +7,6 @@ import { useAuth } from "@/context/AuthContext";
 import Sidebar, { SIDEBAR_WIDTH } from "@/components/layout/Sidebar";
 import Topbar from "@/components/layout/Topbar";
 
-const TOPBAR_HEIGHT = 64;
-
 const getPageTitle = (pathname: string): string => {
   if (pathname === "/dashboard") return "Dashboard";
   if (pathname.startsWith("/members/new")) return "Add Member";
@@ -85,7 +83,7 @@ export default function DashboardLayout({
         <Box
           sx={{
             flex: 1,
-            mt: `${TOPBAR_HEIGHT}px`,
+            mt: "64px",
             p: { xs: 2, sm: 3 },
           }}
         >

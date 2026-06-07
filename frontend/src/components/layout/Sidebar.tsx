@@ -80,83 +80,82 @@ export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
         flexDirection: "column",
       }}
     >
-      {/* Branding */}
-      <Box sx={{ px: 3, py: 3 }}>
-        <Typography
-          variant="h6"
-          sx={{ color: "white", fontWeight: 700, fontSize: "1rem", lineHeight: 1.3 }}
-        >
-          Membership
-        </Typography>
-        <Typography
-          variant="h6"
-          sx={{ color: "rgba(255,255,255,0.7)", fontWeight: 400, fontSize: "0.85rem" }}
-        >
-          Tracker
-        </Typography>
+      <Box>
+        {/* Branding */}
+        <Box sx={{ px: 3, pt: 3 }}>
+          <Typography
+            variant="h6"
+            sx={{ color: "white", fontWeight: 700, fontSize: "1rem", lineHeight: 1.3 }}
+          >
+            Membership Tracker
+          </Typography>
+        </Box>
       </Box>
 
-      <Divider sx={{ borderColor: "rgba(255,255,255,0.1)" }} />
-
-      {/* Navigation */}
-      <List sx={{ px: 1.5, py: 2, flex: 1 }}>
-        {visibleItems.map((item) => (
-          <ListItem key={item.path} disablePadding sx={{ mb: 0.5 }}>
-            <ListItemButton
-              onClick={() => handleNavigate(item.path)}
-              sx={{
-                borderRadius: 1.5,
-                py: 1,
-                backgroundColor: isActive(item.path)
-                  ? "rgba(255,255,255,0.15)"
-                  : "transparent",
-                "&:hover": {
-                  backgroundColor: isActive(item.path)
-                    ? "rgba(255,255,255,0.2)"
-                    : "rgba(255,255,255,0.08)",
-                },
-              }}
-            >
-              <ListItemIcon
+      <Box sx={{ mt: 3 }}>
+        <Divider sx={{ borderColor: "rgba(255,255,255,0.1)" }} />
+        {/* Navigation */}
+        <List sx={{ px: 1.5, py: 2 }}>
+          {visibleItems.map((item) => (
+            <ListItem key={item.path} disablePadding sx={{ mb: 0.5 }}>
+              <ListItemButton
+                onClick={() => handleNavigate(item.path)}
                 sx={{
-                  color: isActive(item.path) ? "white" : "rgba(255,255,255,0.6)",
-                  minWidth: 36,
+                  borderRadius: 1.5,
+                  py: 1,
+                  backgroundColor: isActive(item.path)
+                    ? "rgba(255,255,255,0.15)"
+                    : "transparent",
+                  "&:hover": {
+                    backgroundColor: isActive(item.path)
+                      ? "rgba(255,255,255,0.2)"
+                      : "rgba(255,255,255,0.08)",
+                  },
                 }}
               >
-                {item.icon}
-              </ListItemIcon>
-              <ListItemText
-                primary={item.label}
-                primaryTypographyProps={{
-                  fontSize: "0.875rem",
-                  fontWeight: isActive(item.path) ? 600 : 400,
-                  color: isActive(item.path) ? "white" : "rgba(255,255,255,0.7)",
-                }}
-              />
-            </ListItemButton>
-          </ListItem>
-        ))}
-      </List>
+                <ListItemIcon
+                  sx={{
+                    color: isActive(item.path) ? "white" : "rgba(255,255,255,0.6)",
+                    minWidth: 36,
+                  }}
+                >
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText
+                  primary={item.label}
+                  primaryTypographyProps={{
+                    fontSize: "0.875rem",
+                    fontWeight: isActive(item.path) ? 600 : 400,
+                    color: isActive(item.path) ? "white" : "rgba(255,255,255,0.7)",
+                  }}
+                />
+              </ListItemButton>
+            </ListItem>
+          ))}
+        </List>
+      </Box>
 
-      {/* User info */}
-      <Divider sx={{ borderColor: "rgba(255,255,255,0.1)" }} />
-      <Box sx={{ px: 2.5, py: 2 }}>
-        <Typography
-          variant="body2"
-          sx={{ color: "white", fontWeight: 500, fontSize: "0.8rem" }}
-        >
-          {user?.name}
-        </Typography>
-        <Typography
-          variant="caption"
-          sx={{
-            color: "rgba(255,255,255,0.6)",
-            textTransform: "capitalize",
-            fontSize: "0.75rem",
-          }}
-        >
-          {user?.role}
-        </Typography>
+      <Box sx={{ mt: "auto" }}>
+        {/* User info */}
+        <Divider sx={{ borderColor: "rgba(255,255,255,0.1)" }} />
+        <Box sx={{ px: 2.5, py: 2 }}>
+          <Typography
+            variant="body2"
+            sx={{ color: "white", fontWeight: 500, fontSize: "0.8rem" }}
+          >
+            {user?.name}
+          </Typography>
+          <Typography
+            variant="caption"
+            sx={{
+              color: "rgba(255,255,255,0.6)",
+              textTransform: "capitalize",
+              fontSize: "0.75rem",
+            }}
+          >
+            {user?.role}
+          </Typography>
+        </Box>
       </Box>
     </Box>
   );
