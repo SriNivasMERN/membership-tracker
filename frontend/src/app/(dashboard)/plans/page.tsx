@@ -25,6 +25,7 @@ import {
   InputAdornment,
 } from "@mui/material";
 import {
+  AddOutlined,
   EditOutlined,
   DeleteOutlined,
   PowerSettingsNewOutlined,
@@ -33,7 +34,8 @@ import { useToast } from "@/context/ToastContext";
 import { plansApi } from "@/lib/api/plans.api";
 import { Plan, PlanFormData } from "@/types/plan.types";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
-import PageHeader from "@/components/layout/PageHeader";
+import EmptyState from "@/components/ui/EmptyState";
+import ErrorState from "@/components/ui/ErrorState";
 
 // ─── Empty form state ─────────────────────────────────────────────────────────
 
@@ -43,6 +45,54 @@ const EMPTY_FORM: PlanFormData = {
   basePrice: 0,
   description: "",
 };
+
+const C = {
+  navy: "#1E3A5F",
+  slate: "#334155",
+  muted: "#64748B",
+  border: "#E2E8F0",
+  surface: "#F8FAFC",
+  green: "#15803D",
+  red: "#B91C1C",
+  amber: "#92400E",
+};
+
+function SummaryStat({
+  label,
+  value,
+  tone = "default",
+}: {
+  label: string;
+  value: string;
+  tone?: "default" | "success" | "warning";
+}) {
+  const styles =
+    tone === "success"
+      ? { backgroundColor: "#F0FDF4", borderColor: "#BBF7D0", valueColor: C.green }
+      : tone === "warning"
+        ? { backgroundColor: "#FFFBEB", borderColor: "#FDE68A", valueColor: C.amber }
+        : { backgroundColor: "#EFF6FF", borderColor: "#BFDBFE", valueColor: C.navy };
+
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        p: 1.4,
+        borderRadius: "14px",
+        border: `1px solid ${styles.borderColor}`,
+        backgroundColor: styles.backgroundColor,
+        minWidth: 132,
+      }}
+    >
+      <Typography sx={{ fontSize: "0.72rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>
+        {label}
+      </Typography>
+      <Typography sx={{ mt: 0.45, fontSize: "1.08rem", fontWeight: 900, color: styles.valueColor }}>
+        {value}
+      </Typography>
+    </Paper>
+  );
+}
 
 // ─── Plan Form Dialog ─────────────────────────────────────────────────────────
 
@@ -305,30 +355,46 @@ export default function PlansPage() {
 
   const activePlans = plans.filter((p) => p.isActive).length;
   const inactivePlans = plans.filter((p) => !p.isActive).length;
+  const pricedPlans = plans.filter((p) => p.basePrice > 0).length;
 
   return (
-    <Box>
-    <PageHeader
-        title="Plans"
-        subtitle={
-            isLoading
-            ? "Loading..."
-            : `${plans.length} plan${plans.length !== 1 ? "s" : ""} - ${activePlans} active, ${inactivePlans} inactive`
-        }
-        action={{
-            label: "Add Plan",
-            onClick: handleAdd,
-        }}
-        />
-      {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>
-      )}
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 2.25 }}>
+      <Box sx={{ display: "flex", alignItems: { xs: "flex-start", lg: "center" }, justifyContent: "space-between", flexDirection: { xs: "column", lg: "row" }, gap: 1.5 }}>
+        <Box sx={{ flex: 1, display: "flex", justifyContent: { xs: "flex-start", lg: "center" } }}>
+          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+            {!isLoading ? (
+              <>
+                <SummaryStat label="Overall Plans" value={String(plans.length)} />
+                <SummaryStat label="Active" value={String(activePlans)} tone="success" />
+                <SummaryStat label="Inactive" value={String(inactivePlans)} tone="warning" />
+                <SummaryStat label="Priced Plans" value={String(pricedPlans)} />
+              </>
+            ) : (
+              <>
+                {[1, 2, 3, 4].map((item) => (
+                  <Skeleton key={item} variant="rounded" width={132} height={74} sx={{ borderRadius: "14px" }} />
+                ))}
+              </>
+            )}
+          </Box>
+        </Box>
+        <Button
+          variant="contained"
+          startIcon={<AddOutlined />}
+          onClick={handleAdd}
+          sx={{ px: 1.75, alignSelf: { xs: "flex-start", lg: "center" } }}
+        >
+          Add Plan
+        </Button>
+      </Box>
+
+      {error ? <ErrorState message={error} onRetry={fetchPlans} /> : null}
 
       <Paper
         elevation={0}
         sx={{
-          borderRadius: "12px",
-          border: "1px solid #E2E8F0",
+          borderRadius: "16px",
+          border: `1px solid ${C.border}`,
           boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
           overflow: "hidden",
         }}
@@ -336,16 +402,18 @@ export default function PlansPage() {
         <TableContainer>
           <Table>
             <TableHead>
-              <TableRow sx={{ backgroundColor: "#F8FAFC" }}>
-                {["Plan Name", "Duration", "Base Price", "Status", "Actions"].map((h) => (
+              <TableRow sx={{ backgroundColor: C.surface }}>
+                {["Plan", "Duration", "Base Price", "Status", "Actions"].map((h) => (
                   <TableCell
                     key={h}
                     sx={{
-                      fontWeight: 700,
-                      fontSize: "0.75rem",
-                      color: "#6B7280",
-                      py: 1.5,
-                      borderBottom: "1px solid #E2E8F0",
+                      fontWeight: 800,
+                      fontSize: "0.72rem",
+                      color: C.slate,
+                      py: 1.45,
+                      borderBottom: `1px solid ${C.border}`,
+                      letterSpacing: 0.5,
+                      textTransform: "uppercase",
                     }}
                   >
                     {h}
@@ -367,13 +435,13 @@ export default function PlansPage() {
                 ))
               ) : plans.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} sx={{ py: 8, textAlign: "center" }}>
-                    <Typography sx={{ fontSize: "0.9rem", color: "#6B7280", fontWeight: 500, mb: 1 }}>
-                      No plans created yet
-                    </Typography>
-                    <Typography sx={{ fontSize: "0.8rem", color: "#9CA3AF" }}>
-                      Click Add Plan to create your first membership plan
-                    </Typography>
+                  <TableCell colSpan={5} sx={{ border: 0, p: 0 }}>
+                    <EmptyState
+                      title="No plans created yet"
+                      subtitle="Add your first plan to start assigning memberships."
+                      actionLabel="Add Plan"
+                      onAction={handleAdd}
+                    />
                   </TableCell>
                 </TableRow>
               ) : (
@@ -382,49 +450,49 @@ export default function PlansPage() {
                     key={plan._id}
                     sx={{
                       "&:last-child td": { border: 0 },
-                      "&:hover": { backgroundColor: "#FAFAFA" },
+                      "&:hover": { backgroundColor: "#F8FAFF" },
                       opacity: plan.isActive ? 1 : 0.6,
                     }}
                   >
-                    <TableCell sx={{ py: 2 }}>
-                      <Typography sx={{ fontWeight: 600, fontSize: "0.88rem", color: "#111827" }}>
+                    <TableCell sx={{ py: 1.6 }}>
+                      <Typography sx={{ fontWeight: 800, fontSize: "0.88rem", color: "#111827" }}>
                         {plan.name}
                       </Typography>
                       {plan.description && (
-                        <Typography sx={{ fontSize: "0.75rem", color: "#9CA3AF", fontWeight: 500, mt: 0.25 }}>
+                        <Typography sx={{ fontSize: "0.74rem", color: C.muted, fontWeight: 600, mt: 0.3 }}>
                           {plan.description}
                         </Typography>
                       )}
                     </TableCell>
 
-                    <TableCell sx={{ py: 2 }}>
-                      <Typography sx={{ fontSize: "0.85rem", color: "#374151", fontWeight: 500 }}>
+                    <TableCell sx={{ py: 1.6 }}>
+                      <Typography sx={{ fontSize: "0.85rem", color: C.slate, fontWeight: 600 }}>
                         {plan.durationDays} days
                       </Typography>
                     </TableCell>
 
-                    <TableCell sx={{ py: 2 }}>
-                      <Typography sx={{ fontSize: "0.85rem", fontWeight: 700, color: "#111827" }}>
+                    <TableCell sx={{ py: 1.6 }}>
+                      <Typography sx={{ fontSize: "0.85rem", fontWeight: 800, color: "#111827" }}>
                         {formatCurrency(plan.basePrice)}
                       </Typography>
                     </TableCell>
 
-                    <TableCell sx={{ py: 2 }}>
+                    <TableCell sx={{ py: 1.6 }}>
                       <Chip
                         label={plan.isActive ? "Active" : "Inactive"}
                         size="small"
                         sx={{
-                          height: 24,
+                          height: 26,
                           fontSize: "0.72rem",
-                          fontWeight: 700,
+                          fontWeight: 800,
                           backgroundColor: plan.isActive ? "#F0FDF4" : "#F9FAFB",
-                          color: plan.isActive ? "#15803D" : "#6B7280",
+                          color: plan.isActive ? C.green : "#6B7280",
                           border: `1px solid ${plan.isActive ? "#BBF7D0" : "#E5E7EB"}`,
                         }}
                       />
                     </TableCell>
 
-                    <TableCell sx={{ py: 2 }}>
+                    <TableCell sx={{ py: 1.6 }}>
                       <Box sx={{ display: "flex", gap: 0.5 }}>
                         <Tooltip title="Edit plan">
                           <IconButton
