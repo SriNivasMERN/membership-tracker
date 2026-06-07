@@ -75,6 +75,25 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   );
 }
 
+function SummaryMetric({ label, value, tone = "default" }: { label: string; value: string; tone?: "default" | "success" | "warning" | "danger" }) {
+  const color =
+    tone === "success" ? C.green :
+      tone === "warning" ? C.navy :
+        tone === "danger" ? C.red :
+          C.slate;
+
+  return (
+    <Paper elevation={0} sx={{ p: 1.75, border: `1px solid ${C.border}`, backgroundColor: "#FCFDFE" }}>
+      <Typography sx={{ fontSize: "0.72rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>
+        {label}
+      </Typography>
+      <Typography sx={{ mt: 0.6, fontSize: "1.05rem", fontWeight: 900, color }}>
+        {value}
+      </Typography>
+    </Paper>
+  );
+}
+
 export default function MemberDetailPage() {
   const router = useRouter();
   const params = useParams();
@@ -306,20 +325,44 @@ export default function MemberDetailPage() {
   const memberIsActive = member.status === "active" || member.status === "expiring_soon";
 
   return (
-    <Box>
-      <Box sx={{ mb: 1 }}>
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 2.25 }}>
+      <PageHeader
+        title={member.name}
+        subtitle={`Member since ${fmtDate(member.createdAt)}. Review membership, record payments, or renew without leaving this page.`}
+      />
+
+      <Box sx={{ mt: -1.5 }}>
         <Button startIcon={<ArrowBackOutlined />} onClick={() => router.push("/members")} color="inherit" size="small">
           Back to Members
         </Button>
       </Box>
 
-      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2.5 }}>
-        <Box>
-          <Typography sx={{ fontSize: "1.5rem", fontWeight: 900, color: C.navy, lineHeight: 1.2 }}>{member.name}</Typography>
-          <Typography sx={{ fontSize: "0.8rem", fontWeight: 600, color: C.muted, mt: 0.5 }}>Member since {fmtDate(member.createdAt)}</Typography>
-        </Box>
-        <StatusBadge status={member.status} />
-      </Box>
+      <Grid container spacing={2}>
+        <Grid item xs={12} sm={6} lg={3}>
+          <SummaryMetric label="Current Status" value={member.status === "expiring_soon" ? "Renewal Due Soon" : member.status === "expired" ? "Expired" : "Active"} tone={member.status === "expired" ? "danger" : member.status === "expiring_soon" ? "warning" : "success"} />
+        </Grid>
+        <Grid item xs={12} sm={6} lg={3}>
+          <SummaryMetric label="Payment Due" value={member.pendingAmount > 0 ? fmt(member.pendingAmount) : "Fully Paid"} tone={member.pendingAmount > 0 ? "danger" : "success"} />
+        </Grid>
+        <Grid item xs={12} sm={6} lg={3}>
+          <SummaryMetric label="Renewal Date" value={fmtDate(member.endDate)} />
+        </Grid>
+        <Grid item xs={12} sm={6} lg={3}>
+          <Paper elevation={0} sx={{ p: 1.75, border: `1px solid ${C.border}`, backgroundColor: "#FCFDFE", height: "100%" }}>
+            <Typography sx={{ fontSize: "0.72rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>
+              Quick Actions
+            </Typography>
+            <Box sx={{ mt: 1.1, display: "flex", gap: 1, flexWrap: "wrap" }}>
+              <Button variant="contained" size="small" startIcon={<PaymentOutlined />} onClick={openPayment} disabled={member.pendingAmount <= 0}>
+                Record Payment
+              </Button>
+              <Button variant="outlined" size="small" startIcon={<AutorenewOutlined />} onClick={openRenew}>
+                {memberIsActive ? "Change / Renew" : "Renew"}
+              </Button>
+            </Box>
+          </Paper>
+        </Grid>
+      </Grid>
 
       <Grid container spacing={2}>
 
@@ -333,7 +376,7 @@ export default function MemberDetailPage() {
                 <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <PersonOutlined sx={{ fontSize: 16, color: C.muted }} />
-                    <Typography sx={{ fontSize: "0.68rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 1 }}>Personal</Typography>
+                    <Typography sx={{ fontSize: "0.72rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.8 }}>Personal Details</Typography>
                   </Box>
                   <Button size="small" startIcon={<EditOutlined sx={{ fontSize: 14 }} />} onClick={openEdit} sx={{ fontSize: "0.75rem", fontWeight: 700 }}>Edit</Button>
                 </Box>
@@ -348,7 +391,7 @@ export default function MemberDetailPage() {
                 <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <CalendarTodayOutlined sx={{ fontSize: 16, color: C.muted }} />
-                    <Typography sx={{ fontSize: "0.68rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 1 }}>Membership</Typography>
+                    <Typography sx={{ fontSize: "0.72rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.8 }}>Membership Details</Typography>
                   </Box>
                   <Button size="small" startIcon={<EditOutlined sx={{ fontSize: 14 }} />} onClick={openRenew} sx={{ fontSize: "0.75rem", fontWeight: 700 }}>Change</Button>
                 </Box>
@@ -365,7 +408,7 @@ export default function MemberDetailPage() {
               <Paper elevation={0} sx={{ borderRadius: "12px", border: `1px solid ${C.border}`, overflow: "hidden" }}>
                 <Box sx={{ px: 2.5, py: 1.75, borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", gap: 1 }}>
                   <CreditCardOutlined sx={{ fontSize: 16, color: C.muted }} />
-                  <Typography sx={{ fontSize: "0.68rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 1 }}>Payment History</Typography>
+                  <Typography sx={{ fontSize: "0.72rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.8 }}>Payment History</Typography>
                 </Box>
                 {member.payments.length === 0 ? (
                   <Box sx={{ py: 3, textAlign: "center" }}>
@@ -410,7 +453,10 @@ export default function MemberDetailPage() {
 
             {/* Payment summary */}
             <Paper elevation={0} sx={{ p: 2.5, borderRadius: "12px", border: `1px solid ${C.border}` }}>
-              <Typography sx={{ fontSize: "0.68rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 1, mb: 2 }}>Payment Summary</Typography>
+              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+                <Typography sx={{ fontSize: "0.72rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.8 }}>Payment Summary</Typography>
+                <StatusBadge status={member.status} />
+              </Box>
 
               <Box sx={{ display: "flex", flexDirection: "column", gap: 0 }}>
                 <InfoRow label="Final Price" value={fmt(member.finalPrice)} />
@@ -429,7 +475,10 @@ export default function MemberDetailPage() {
 
             {/* Actions */}
             <Paper elevation={0} sx={{ p: 2.5, borderRadius: "12px", border: `1px solid ${C.border}` }}>
-              <Typography sx={{ fontSize: "0.68rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 1, mb: 2 }}>Actions</Typography>
+              <Typography sx={{ fontSize: "0.72rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.8, mb: 0.5 }}>Actions</Typography>
+              <Typography sx={{ fontSize: "0.82rem", color: C.muted, fontWeight: 500, mb: 2 }}>
+                Use these actions when the member pays, renews, or changes plan.
+              </Typography>
               <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
                 <Button
                   variant="contained"
@@ -455,7 +504,7 @@ export default function MemberDetailPage() {
 
             {/* Quick stats */}
             <Paper elevation={0} sx={{ p: 2.5, borderRadius: "12px", border: `1px solid ${C.border}` }}>
-              <Typography sx={{ fontSize: "0.68rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 1, mb: 1.5 }}>Quick Info</Typography>
+              <Typography sx={{ fontSize: "0.72rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.8, mb: 1.5 }}>Quick Info</Typography>
               <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                 <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <Typography sx={{ fontSize: "0.78rem", fontWeight: 700, color: C.muted }}>Total payments</Typography>

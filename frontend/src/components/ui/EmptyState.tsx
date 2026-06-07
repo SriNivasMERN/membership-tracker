@@ -19,25 +19,25 @@ export default function EmptyState({
   return (
     <Box
       sx={{
-        py: 8,
+        py: 7,
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
         textAlign: "center",
-        gap: 1,
+        gap: 1.1,
       }}
     >
       <Box
         sx={{
           width: 56,
           height: 56,
-          borderRadius: "16px",
-          backgroundColor: "#F1F5F9",
+          borderRadius: "18px",
+          backgroundColor: "#EFF6FF",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          color: "#94A3B8",
+          color: "#64748B",
           mb: 1,
         }}
       >
@@ -45,7 +45,7 @@ export default function EmptyState({
       </Box>
 
       <Typography
-        sx={{ fontWeight: 700, fontSize: "0.95rem", color: "#374151" }}
+        sx={{ fontWeight: 800, fontSize: "0.98rem", color: "#334155" }}
       >
         {title}
       </Typography>
@@ -54,9 +54,10 @@ export default function EmptyState({
         <Typography
           sx={{
             fontSize: "0.82rem",
-            color: "#9CA3AF",
+            color: "#64748B",
             fontWeight: 500,
-            maxWidth: 320,
+            maxWidth: 340,
+            lineHeight: 1.6,
           }}
         >
           {subtitle}
@@ -68,7 +69,7 @@ export default function EmptyState({
           variant="contained"
           size="small"
           onClick={onAction}
-          sx={{ mt: 1.5, borderRadius: "8px" }}
+          sx={{ mt: 1.5, px: 1.5 }}
         >
           {actionLabel}
         </Button>

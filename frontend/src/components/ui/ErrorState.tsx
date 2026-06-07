@@ -13,20 +13,20 @@ export default function ErrorState({
   return (
     <Box
       sx={{
-        py: 8,
+        py: 7,
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
         textAlign: "center",
-        gap: 1,
+        gap: 1.1,
       }}
     >
       <Box
         sx={{
           width: 56,
           height: 56,
-          borderRadius: "16px",
+          borderRadius: "18px",
           backgroundColor: "#FEF2F2",
           display: "flex",
           alignItems: "center",
@@ -39,7 +39,7 @@ export default function ErrorState({
       </Box>
 
       <Typography
-        sx={{ fontWeight: 700, fontSize: "0.95rem", color: "#374151" }}
+        sx={{ fontWeight: 800, fontSize: "0.98rem", color: "#334155" }}
       >
         Failed to load data
       </Typography>
@@ -47,9 +47,10 @@ export default function ErrorState({
       <Typography
         sx={{
           fontSize: "0.82rem",
-          color: "#9CA3AF",
+          color: "#64748B",
           fontWeight: 500,
-          maxWidth: 320,
+          maxWidth: 340,
+          lineHeight: 1.6,
         }}
       >
         {message}
@@ -61,7 +62,7 @@ export default function ErrorState({
           size="small"
           startIcon={<RefreshOutlined />}
           onClick={onRetry}
-          sx={{ mt: 1.5, borderRadius: "8px" }}
+          sx={{ mt: 1.5, px: 1.5 }}
         >
           Try Again
         </Button>

@@ -22,19 +22,24 @@ export default function PageHeader({
         alignItems: { xs: "flex-start", sm: "center" },
         flexDirection: { xs: "column", sm: "row" },
         justifyContent: "space-between",
-        gap: { xs: 1.5, sm: 0 },
+        gap: { xs: 1.5, sm: 1 },
         mb: 3,
       }}
     >
       <Box>
-        <Typography variant="h5" fontWeight={700} color="text.primary">
+        <Typography
+          variant="h5"
+          fontWeight={800}
+          color="text.primary"
+          sx={{ letterSpacing: "-0.02em" }}
+        >
           {title}
         </Typography>
         {subtitle && (
           <Typography
             variant="body2"
             color="text.secondary"
-            sx={{ mt: 0.5, fontWeight: 500 }}
+            sx={{ mt: 0.5, fontWeight: 500, maxWidth: 640 }}
           >
             {subtitle}
           </Typography>
@@ -45,7 +50,7 @@ export default function PageHeader({
           variant="contained"
           startIcon={<AddOutlined />}
           onClick={action.onClick}
-          sx={{ flexShrink: 0, borderRadius: "10px", alignSelf: { xs: "flex-start", sm: "auto" } }}
+          sx={{ flexShrink: 0, alignSelf: { xs: "flex-start", sm: "auto" }, px: 1.75 }}
         >
           {action.label}
         </Button>

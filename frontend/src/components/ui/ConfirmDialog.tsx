@@ -40,13 +40,14 @@ export default function ConfirmDialog({
         sx: {
           borderRadius: "16px",
           border: "1px solid #E2E8F0",
+          boxShadow: "0 18px 40px rgba(15,23,42,0.12)",
         },
       }}
     >
       <DialogTitle
         sx={{
           fontWeight: 700,
-          fontSize: "1rem",
+          fontSize: "1.02rem",
           color: "#111827",
           pt: 2.5,
           pb: 1,
@@ -83,7 +84,7 @@ export default function ConfirmDialog({
           color={confirmColor}
           variant="contained"
           disabled={isLoading}
-          sx={{ fontWeight: 600, borderRadius: "8px", minWidth: 100 }}
+          sx={{ fontWeight: 700, minWidth: 108 }}
         >
           {isLoading ? (
             <CircularProgress size={20} color="inherit" />

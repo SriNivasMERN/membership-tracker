@@ -55,14 +55,15 @@ export default function Topbar({ title, onMenuClick }: TopbarProps) {
         left: { xs: 0, md: SIDEBAR_WIDTH },
         right: 0,
         height: 64,
-        backgroundColor: "background.paper",
+        backgroundColor: "rgba(255,255,255,0.94)",
+        backdropFilter: "blur(10px)",
         borderBottom: "1px solid #E2E8F0",
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
         px: { xs: 2, sm: 3 },
         zIndex: 99,
-        boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+        boxShadow: "0 1px 3px rgba(15,23,42,0.04)",
       }}
     >
       {/* Left - hamburger on mobile + page title */}
@@ -79,7 +80,7 @@ export default function Topbar({ title, onMenuClick }: TopbarProps) {
         </IconButton>
         <Typography
           variant="h6"
-          fontWeight={600}
+          fontWeight={700}
           color="text.primary"
           sx={{ fontSize: { xs: "1rem", sm: "1.15rem" } }}
         >
@@ -92,7 +93,7 @@ export default function Topbar({ title, onMenuClick }: TopbarProps) {
         <Typography
           variant="body2"
           color="text.secondary"
-          sx={{ display: { xs: "none", sm: "block" }, fontWeight: 500 }}
+          sx={{ display: { xs: "none", sm: "block" }, fontWeight: 600 }}
         >
           {user?.name}
         </Typography>

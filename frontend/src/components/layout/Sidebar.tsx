@@ -82,17 +82,36 @@ export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
     >
       <Box>
         {/* Branding */}
-        <Box sx={{ px: 3, pt: 3 }}>
+        <Box sx={{ px: 3, pt: 3, pb: 2 }}>
           <Typography
             variant="h6"
-            sx={{ color: "white", fontWeight: 700, fontSize: "1rem", lineHeight: 1.3 }}
+            sx={{ color: "white", fontWeight: 700, fontSize: "1rem", lineHeight: 1.3, textAlign: "center" }}
           >
             Membership Tracker
           </Typography>
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 1.5 }}>
+            <Box
+              sx={{
+                width: 46,
+                height: 46,
+                borderRadius: "16px",
+                border: "1px solid rgba(191,219,254,0.45)",
+                backgroundColor: "rgba(239,246,255,0.16)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)",
+              }}
+            >
+              <Typography sx={{ color: "#E0F2FE", fontWeight: 800, fontSize: "0.96rem", letterSpacing: 0.5 }}>
+                MT
+              </Typography>
+            </Box>
+          </Box>
         </Box>
       </Box>
 
-      <Box sx={{ mt: 3 }}>
+      <Box sx={{ mt: 2.5 }}>
         <Divider sx={{ borderColor: "rgba(255,255,255,0.1)" }} />
         {/* Navigation */}
         <List sx={{ px: 1.5, py: 2 }}>
@@ -102,14 +121,16 @@ export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
                 onClick={() => handleNavigate(item.path)}
                 sx={{
                   borderRadius: 1.5,
-                  py: 1,
+                  py: 1.05,
                   backgroundColor: isActive(item.path)
                     ? "rgba(255,255,255,0.15)"
                     : "transparent",
+                  transition: "background-color 0.15s ease, transform 0.15s ease",
                   "&:hover": {
                     backgroundColor: isActive(item.path)
                       ? "rgba(255,255,255,0.2)"
                       : "rgba(255,255,255,0.08)",
+                    transform: "translateX(1px)",
                   },
                 }}
               >
@@ -138,10 +159,10 @@ export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
       <Box sx={{ mt: "auto" }}>
         {/* User info */}
         <Divider sx={{ borderColor: "rgba(255,255,255,0.1)" }} />
-        <Box sx={{ px: 2.5, py: 2 }}>
+        <Box sx={{ px: 2.5, py: 2.25 }}>
           <Typography
             variant="body2"
-            sx={{ color: "white", fontWeight: 500, fontSize: "0.8rem" }}
+            sx={{ color: "white", fontWeight: 600, fontSize: "0.82rem" }}
           >
             {user?.name}
           </Typography>
@@ -151,6 +172,7 @@ export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
               color: "rgba(255,255,255,0.6)",
               textTransform: "capitalize",
               fontSize: "0.75rem",
+              fontWeight: 500,
             }}
           >
             {user?.role}

@@ -31,7 +31,7 @@ export const theme = createTheme({
     },
   },
   typography: {
-    fontFamily: 'var(--font-sans), "Inter", "Segoe UI", sans-serif',
+    fontFamily: '"Segoe UI", "Inter", "Helvetica Neue", Arial, sans-serif',
     h4: { fontWeight: 700 },
     h5: { fontWeight: 700 },
     h6: { fontWeight: 600 },
@@ -39,14 +39,29 @@ export const theme = createTheme({
     caption: { fontWeight: 500 },
   },
   shape: {
-    borderRadius: 8,
+    borderRadius: 12,
   },
   components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        body: {
+          color: "#111827",
+          backgroundColor: "#F1F5F9",
+        },
+      },
+    },
     MuiButton: {
       styleOverrides: {
         root: {
           textTransform: "none",
           fontWeight: 600,
+          borderRadius: 10,
+          boxShadow: "none",
+        },
+        containedPrimary: {
+          "&:hover": {
+            boxShadow: "0 10px 20px rgba(30,58,95,0.12)",
+          },
         },
       },
     },
@@ -54,6 +69,15 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           backgroundImage: "none",
+          borderRadius: 14,
+        },
+      },
+    },
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: {
+          borderRadius: 10,
+          backgroundColor: "#FFFFFF",
         },
       },
     },
@@ -68,6 +92,7 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           fontWeight: 600,
+          borderRadius: 999,
         },
       },
     },
