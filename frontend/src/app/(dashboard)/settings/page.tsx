@@ -58,6 +58,23 @@ const C = {
   sky: "#1D4ED8",
 };
 
+const FIELD_SX = {
+  "& .MuiOutlinedInput-root": {
+    borderRadius: "14px",
+    background: "linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(248,251,255,0.92) 100%)",
+    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.9)",
+    border: "1px solid rgba(191,219,254,0.5)",
+  },
+  "& .MuiInputLabel-root": {
+    fontWeight: 600,
+    color: "#475569",
+  },
+  "& .MuiFormHelperText-root": {
+    fontWeight: 600,
+    color: "#64748B",
+  },
+} as const;
+
 function SummaryStat({
   label,
   value,
@@ -122,8 +139,8 @@ function Section({
     >
       <Box
         sx={{
-          px: 2.5,
-          py: 1.7,
+          px: 2.3,
+          py: 1.45,
           background: "linear-gradient(90deg, rgba(239,246,255,0.92) 0%, rgba(248,250,252,0.82) 100%)",
           borderBottom: "1px solid rgba(191,219,254,0.55)",
           display: "flex",
@@ -156,7 +173,7 @@ function Section({
           </Typography>
         </Box>
       </Box>
-      <Box sx={{ p: 2.5 }}>{children}</Box>
+      <Box sx={{ p: 2.15 }}>{children}</Box>
     </Paper>
   );
 }
@@ -281,248 +298,241 @@ export default function SettingsPage() {
     form.terminology.memberLabel !== "Member",
   ].filter(Boolean).length;
 
+  const businessTypeLabel =
+    BUSINESS_TYPES.find((type) => type.value === form.businessType)?.label || "Not set";
+
   return (
     <Box
       sx={{
         display: "flex",
         flexDirection: "column",
-        gap: 2.25,
+        gap: 1.4,
         p: { xs: 0, md: 0.5 },
+        mt: { xs: -1, sm: -1.5 },
         borderRadius: "24px",
         background:
           "radial-gradient(circle at top left, rgba(191,219,254,0.35) 0%, rgba(255,255,255,0) 32%), linear-gradient(180deg, rgba(248,251,255,0.96) 0%, rgba(238,244,251,0.72) 100%)",
       }}
     >
-      <Box sx={{ display: "flex", alignItems: { xs: "flex-start", lg: "center" }, justifyContent: "space-between", flexDirection: { xs: "column", lg: "row" }, gap: 1.5 }}>
-        <Box sx={{ flex: 1, display: "flex", justifyContent: { xs: "flex-start", lg: "center" } }}>
-          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-            <SummaryStat label="Business Type" value={BUSINESS_TYPES.find((type) => type.value === form.businessType)?.label || "Not set"} />
-            <SummaryStat label="Expiry Alert" value={`${form.expiryAlertDays} days`} />
-            <SummaryStat label="Custom Labels" value={String(customLabelsCount)} tone="warning" />
-            <SummaryStat label="Configured" value={isConfigured ? "Yes" : "No"} tone="success" />
-          </Box>
+      <Box sx={{ display: "flex", justifyContent: { xs: "flex-start", lg: "center" } }}>
+        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+          <SummaryStat label="Business Type" value={businessTypeLabel} />
+          <SummaryStat label="Expiry Alert" value={`${form.expiryAlertDays} days`} />
+          <SummaryStat label="Custom Labels" value={String(customLabelsCount)} tone="warning" />
+          <SummaryStat label="Configured" value={isConfigured ? "Ready" : "Pending"} tone="success" />
         </Box>
-        <Button
-          variant="contained"
-          startIcon={<SaveOutlined />}
-          onClick={handleSave}
-          disabled={isSaving}
-          sx={{
-            px: 2,
-            borderRadius: "12px",
-            alignSelf: { xs: "flex-start", lg: "center" },
-            boxShadow: "0 14px 28px rgba(30,58,95,0.18)",
-          }}
-        >
-          {isSaving ? "Saving..." : "Save Settings"}
-        </Button>
       </Box>
 
       {error ? <ErrorState message={error} /> : null}
 
-      {/* Business Info */}
-      <Section
-        icon={<BusinessOutlined sx={{ fontSize: 20 }} />}
-        title="Business Profile"
-        subtitle="Basic business details used across the app"
-      >
-        <Grid container spacing={2.5}>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label="Business Name"
-              value={form.businessName}
-              onChange={(e) => setField("businessName", e.target.value)}
-              error={!!fieldErrors.businessName}
-              helperText={fieldErrors.businessName}
-              fullWidth
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              select
-              label="Business Type"
-              value={form.businessType}
-              onChange={(e) => setField("businessType", e.target.value)}
-              error={!!fieldErrors.businessType}
-              helperText={fieldErrors.businessType}
-              fullWidth
+      <Grid container spacing={1.5}>
+        <Grid item xs={12} lg={9}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+            <Section
+              icon={<BusinessOutlined sx={{ fontSize: 20 }} />}
+              title="Business Profile"
+              subtitle="Basic business details used across the app"
             >
-              {BUSINESS_TYPES.map((t) => (
-                <MenuItem key={t.value} value={t.value}>{t.label}</MenuItem>
-              ))}
-            </TextField>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label="Email (optional)"
-              type="email"
-              value={form.email}
-              onChange={(e) => setField("email", e.target.value)}
-              fullWidth
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label="Phone (optional)"
-              value={form.phone}
-              onChange={(e) => setField("phone", e.target.value)}
-              fullWidth
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              label="Address (optional)"
-              value={form.address}
-              onChange={(e) => setField("address", e.target.value)}
-              fullWidth
-              multiline
-              rows={2}
-            />
-          </Grid>
-        </Grid>
-      </Section>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Business Name"
+                    value={form.businessName}
+                    onChange={(e) => setField("businessName", e.target.value)}
+                    error={!!fieldErrors.businessName}
+                    helperText={fieldErrors.businessName}
+                    fullWidth
+                    sx={FIELD_SX}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    select
+                    label="Business Type"
+                    value={form.businessType}
+                    onChange={(e) => setField("businessType", e.target.value)}
+                    error={!!fieldErrors.businessType}
+                    helperText={fieldErrors.businessType}
+                    fullWidth
+                    sx={FIELD_SX}
+                  >
+                    {BUSINESS_TYPES.map((t) => (
+                      <MenuItem key={t.value} value={t.value}>{t.label}</MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Email (optional)"
+                    type="email"
+                    value={form.email}
+                    onChange={(e) => setField("email", e.target.value)}
+                    fullWidth
+                    sx={FIELD_SX}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    label="Phone (optional)"
+                    value={form.phone}
+                    onChange={(e) => setField("phone", e.target.value)}
+                    fullWidth
+                    sx={FIELD_SX}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    label="Address (optional)"
+                    value={form.address}
+                    onChange={(e) => setField("address", e.target.value)}
+                    fullWidth
+                    multiline
+                    rows={2}
+                    sx={FIELD_SX}
+                  />
+                </Grid>
+              </Grid>
+            </Section>
 
-      {/* Expiry Alert */}
-      <Section
-        icon={<AccessTimeOutlined sx={{ fontSize: 20 }} />}
-        title="Expiry Alerts"
-        subtitle="Choose when members start appearing in the renewal alert list"
-      >
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={5} md={4}>
-            <TextField
-              label="Alert Days Before Expiry"
-              type="number"
-              value={form.expiryAlertDays}
-              onChange={(e) => setField("expiryAlertDays", Number(e.target.value))}
-              error={!!fieldErrors.expiryAlertDays}
-              helperText={
-                fieldErrors.expiryAlertDays ||
-                "Members within this window appear in the dashboard renewal alert"
-              }
-              fullWidth
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <Typography variant="caption" color="text.secondary">days</Typography>
-                  </InputAdornment>
-                ),
-              }}
-              inputProps={{ min: 1, max: 90 }}
-            />
-          </Grid>
-          <Grid item xs={12} sm={7} md={8}>
+            <Section
+              icon={<LabelOutlined sx={{ fontSize: 20 }} />}
+              title="Terminology"
+              subtitle="Customize labels to match your business language throughout the app"
+            >
+              <Box
+                sx={{
+                  px: 1.5,
+                  py: 1.2,
+                  mb: 2,
+                  background: "linear-gradient(135deg, rgba(255,251,235,0.96) 0%, rgba(255,255,255,0.98) 50%, rgba(254,243,199,0.82) 100%)",
+                  borderRadius: "14px",
+                  border: "1px solid #FCD34D",
+                  boxShadow: "0 10px 18px rgba(245,158,11,0.08), inset 0 1px 0 rgba(255,255,255,0.86)",
+                }}
+              >
+                <Typography sx={{ fontSize: "0.77rem", color: "#92400E", fontWeight: 700, lineHeight: 1.5 }}>
+                  Example - if you run a library, you might use "Membership" instead of "Plan" and "Timing" instead of "Slot".
+                </Typography>
+              </Box>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={4}>
+                  <TextField
+                    label="Plan Label"
+                    value={form.terminology.planLabel}
+                    onChange={(e) => setTerminology("planLabel", e.target.value)}
+                    error={!!fieldErrors.planLabel}
+                    helperText={fieldErrors.planLabel || 'Default is "Plan"'}
+                    fullWidth
+                    sx={FIELD_SX}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <TextField
+                    label="Slot Label"
+                    value={form.terminology.slotLabel}
+                    onChange={(e) => setTerminology("slotLabel", e.target.value)}
+                    error={!!fieldErrors.slotLabel}
+                    helperText={fieldErrors.slotLabel || 'Default is "Slot"'}
+                    fullWidth
+                    sx={FIELD_SX}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <TextField
+                    label="Member Label"
+                    value={form.terminology.memberLabel}
+                    onChange={(e) => setTerminology("memberLabel", e.target.value)}
+                    error={!!fieldErrors.memberLabel}
+                    helperText={fieldErrors.memberLabel || 'Default is "Member"'}
+                    fullWidth
+                    sx={FIELD_SX}
+                  />
+                </Grid>
+              </Grid>
+            </Section>
+          </Box>
+        </Grid>
+
+        <Grid item xs={12} lg={3}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+            <Section
+              icon={<AccessTimeOutlined sx={{ fontSize: 20 }} />}
+              title="Expiry Alerts"
+              subtitle="Choose when members start appearing in the renewal alert list"
+            >
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1.6 }}>
+                <TextField
+                  label="Alert Days Before Expiry"
+                  type="number"
+                  value={form.expiryAlertDays}
+                  onChange={(e) => setField("expiryAlertDays", Number(e.target.value))}
+                  error={!!fieldErrors.expiryAlertDays}
+                  helperText={
+                    fieldErrors.expiryAlertDays ||
+                    "Members within this window appear in the dashboard renewal alert"
+                  }
+                  fullWidth
+                  sx={FIELD_SX}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <Typography variant="caption" color="text.secondary">days</Typography>
+                      </InputAdornment>
+                    ),
+                  }}
+                  inputProps={{ min: 1, max: 90 }}
+                />
+
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: 1.6,
+                    borderRadius: "14px",
+                    border: "1px solid rgba(191,219,254,0.55)",
+                    background: "linear-gradient(135deg, rgba(248,250,252,0.96) 0%, rgba(239,246,255,0.9) 100%)",
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: 1.1,
+                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.9)",
+                  }}
+                >
+                  <CheckCircleOutlined sx={{ fontSize: 18, color: "#1D4ED8", mt: 0.15 }} />
+                  <Typography sx={{ fontSize: "0.8rem", color: C.slate, fontWeight: 600, lineHeight: 1.55 }}>
+                    Members expiring in the next {form.expiryAlertDays} day{form.expiryAlertDays === 1 ? "" : "s"} will appear in the dashboard follow-up list.
+                  </Typography>
+                </Paper>
+              </Box>
+            </Section>
+
             <Paper
               elevation={0}
               sx={{
-                p: 1.6,
-                borderRadius: "12px",
-                border: "1px solid rgba(191,219,254,0.55)",
-                background: "linear-gradient(135deg, rgba(248,250,252,0.96) 0%, rgba(239,246,255,0.9) 100%)",
-                height: "100%",
-                display: "flex",
-                alignItems: "center",
-                gap: 1.1,
-                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.9)",
+                p: 1.15,
+                borderRadius: "14px",
+                border: "1px solid rgba(191,219,254,0.72)",
+                background: "linear-gradient(180deg, rgba(255,255,255,0.97) 0%, rgba(239,246,255,0.9) 100%)",
+                boxShadow: "0 12px 22px rgba(30,58,95,0.08)",
               }}
             >
-              <CheckCircleOutlined sx={{ fontSize: 18, color: "#1D4ED8" }} />
-              <Typography sx={{ fontSize: "0.8rem", color: C.slate, fontWeight: 600, lineHeight: 1.5 }}>
-                Members expiring in the next {form.expiryAlertDays} day{form.expiryAlertDays === 1 ? "" : "s"} will appear in the dashboard follow-up list.
-              </Typography>
+              <Button
+                variant="contained"
+                startIcon={<SaveOutlined />}
+                onClick={handleSave}
+                disabled={isSaving}
+                fullWidth
+                sx={{
+                  py: 0.95,
+                  borderRadius: "14px",
+                  boxShadow: "0 14px 28px rgba(30,58,95,0.18)",
+                }}
+              >
+                {isSaving ? "Saving..." : "Save Settings"}
+              </Button>
             </Paper>
-          </Grid>
-        </Grid>
-      </Section>
 
-      {/* Terminology */}
-      <Section
-        icon={<LabelOutlined sx={{ fontSize: 20 }} />}
-        title="Terminology"
-        subtitle="Customize labels to match your business language. These names appear throughout the app."
-      >
-        <Box
-          sx={{
-            px: 1.5,
-            py: 1.2,
-            mb: 2,
-            background: "linear-gradient(135deg, rgba(255,251,235,0.96) 0%, rgba(254,243,199,0.88) 100%)",
-            borderRadius: "12px",
-            border: "1px solid #FDE68A",
-            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.82)",
-          }}
-        >
-          <Typography sx={{ fontSize: "0.77rem", color: "#92400E", fontWeight: 700, lineHeight: 1.5 }}>
-            Example - if you run a library, you might use "Membership" instead of "Plan" and "Timing" instead of "Slot".
-          </Typography>
-        </Box>
-        <Grid container spacing={2.5}>
-          <Grid item xs={12} sm={4}>
-            <TextField
-              label="Plan Label"
-              value={form.terminology.planLabel}
-              onChange={(e) => setTerminology("planLabel", e.target.value)}
-              error={!!fieldErrors.planLabel}
-              helperText={fieldErrors.planLabel || 'Default is "Plan"'}
-              fullWidth
-            />
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <TextField
-              label="Slot Label"
-              value={form.terminology.slotLabel}
-              onChange={(e) => setTerminology("slotLabel", e.target.value)}
-              error={!!fieldErrors.slotLabel}
-              helperText={fieldErrors.slotLabel || 'Default is "Slot"'}
-              fullWidth
-            />
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <TextField
-              label="Member Label"
-              value={form.terminology.memberLabel}
-              onChange={(e) => setTerminology("memberLabel", e.target.value)}
-              error={!!fieldErrors.memberLabel}
-              helperText={fieldErrors.memberLabel || 'Default is "Member"'}
-              fullWidth
-            />
-          </Grid>
+          </Box>
         </Grid>
-      </Section>
-
-      <Paper
-        elevation={0}
-        sx={{
-          p: 1.5,
-          borderRadius: "14px",
-          border: "1px solid rgba(191,219,254,0.7)",
-          background: "linear-gradient(135deg, rgba(255,255,255,0.96) 0%, rgba(239,246,255,0.88) 100%)",
-          display: "flex",
-          alignItems: { xs: "flex-start", sm: "center" },
-          justifyContent: "space-between",
-          flexDirection: { xs: "column", sm: "row" },
-          gap: 1.25,
-          boxShadow: "0 10px 22px rgba(30,58,95,0.08)",
-        }}
-      >
-        <Typography sx={{ fontSize: "0.82rem", color: C.slate, fontWeight: 600 }}>
-          Review the business profile, alerts, and terminology above before saving changes.
-        </Typography>
-        <Button
-          variant="contained"
-          startIcon={<SaveOutlined />}
-          onClick={handleSave}
-          disabled={isSaving}
-          sx={{
-            px: 2.1,
-            borderRadius: "12px",
-            alignSelf: { xs: "flex-start", sm: "center" },
-            boxShadow: "0 14px 28px rgba(30,58,95,0.18)",
-          }}
-        >
-          {isSaving ? "Saving..." : "Save Settings"}
-        </Button>
-      </Paper>
+      </Grid>
     </Box>
   );
 }
