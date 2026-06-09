@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Box,
   Paper,
@@ -112,6 +112,7 @@ function AddUserDialog({
   onSaved: () => void;
 }) {
   const { showToast } = useToast();
+  const dialogContentRef = useRef<HTMLDivElement | null>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -128,6 +129,12 @@ function AddUserDialog({
       setApiError(null);
     }
   }, [open]);
+
+  useEffect(() => {
+    if (apiError) {
+      dialogContentRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [apiError]);
 
   const validate = () => {
     const e: Record<string, string> = {};
@@ -179,7 +186,7 @@ function AddUserDialog({
         Add Staff Account
       </DialogTitle>
 
-      <DialogContent sx={MODULE_DIALOG_CONTENT_SX}>
+      <DialogContent ref={dialogContentRef} sx={MODULE_DIALOG_CONTENT_SX}>
         {apiError && (
           <Alert severity="error" sx={{ mb: 2, mt: 1 }}>
             {apiError}
@@ -264,6 +271,7 @@ function EditUserDialog({
   onSaved: () => void;
 }) {
   const { showToast } = useToast();
+  const dialogContentRef = useRef<HTMLDivElement | null>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -282,6 +290,12 @@ function EditUserDialog({
       setApiError(null);
     }
   }, [open, user]);
+
+  useEffect(() => {
+    if (apiError) {
+      dialogContentRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [apiError]);
 
   const validate = () => {
     const e: Record<string, string> = {};
@@ -348,7 +362,7 @@ function EditUserDialog({
         Edit User
       </DialogTitle>
 
-      <DialogContent sx={MODULE_DIALOG_CONTENT_SX}>
+      <DialogContent ref={dialogContentRef} sx={MODULE_DIALOG_CONTENT_SX}>
         {apiError && (
           <Alert severity="error" sx={{ mb: 2, mt: 1 }}>
             {apiError}

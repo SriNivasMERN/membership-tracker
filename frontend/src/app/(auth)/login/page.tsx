@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -28,6 +28,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
+  const pageTopRef = useRef<HTMLDivElement | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -39,6 +40,12 @@ export default function LoginPage() {
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
+
+  useEffect(() => {
+    if (apiError) {
+      pageTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [apiError]);
 
   const onSubmit = async (data: LoginFormData) => {
     setApiError(null);
@@ -67,7 +74,7 @@ export default function LoginPage() {
         px: 2,
       }}
     >
-      <Box sx={{ width: "100%", maxWidth: 420 }}>
+      <Box ref={pageTopRef} sx={{ width: "100%", maxWidth: 420 }}>
         <Box sx={{ textAlign: "center", mb: 4 }}>
           <Box
             sx={{

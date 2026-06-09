@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, type WheelEvent } from "react";
+import { useState, useEffect, useCallback, useRef, type WheelEvent } from "react";
 import {
   Box,
   Paper,
@@ -93,6 +93,7 @@ function PlanFormDialog({
 }) {
   const { showToast } = useToast();
   const isEdit = !!plan;
+  const dialogContentRef = useRef<HTMLDivElement | null>(null);
 
   const [form, setForm] = useState<PlanFormData>(EMPTY_FORM);
   const [errors, setErrors] = useState<Partial<Record<keyof PlanFormData, string>>>({});
@@ -116,6 +117,12 @@ function PlanFormDialog({
       setApiError(null);
     }
   }, [open, plan]);
+
+  useEffect(() => {
+    if (apiError) {
+      dialogContentRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [apiError]);
 
   const validate = (): boolean => {
     const newErrors: Partial<Record<keyof PlanFormData, string>> = {};
@@ -171,7 +178,7 @@ function PlanFormDialog({
         {isEdit ? "Edit Plan" : "Add New Plan"}
       </DialogTitle>
 
-      <DialogContent sx={MODULE_DIALOG_CONTENT_SX}>
+      <DialogContent ref={dialogContentRef} sx={MODULE_DIALOG_CONTENT_SX}>
         {apiError && (
           <Alert severity="error" sx={{ mb: 2, mt: 1 }}>{apiError}</Alert>
         )}

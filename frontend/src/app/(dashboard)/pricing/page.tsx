@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, type WheelEvent } from "react";
+import { useState, useEffect, useCallback, useRef, type WheelEvent } from "react";
 import {
   Box,
   Paper,
@@ -118,6 +118,7 @@ function PricingFormDialog({
 }) {
   const { showToast } = useToast();
   const isEdit = !!rule;
+  const dialogContentRef = useRef<HTMLDivElement | null>(null);
 
   const [planId, setPlanId] = useState("");
   const [slotId, setSlotId] = useState("");
@@ -150,6 +151,12 @@ function PricingFormDialog({
       setApiError(null);
     }
   }, [open, rule]);
+
+  useEffect(() => {
+    if (apiError) {
+      dialogContentRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [apiError]);
 
   const validate = (): boolean => {
     const e: Record<string, string> = {};
@@ -205,7 +212,7 @@ function PricingFormDialog({
         {isEdit ? "Edit Pricing Rule" : "Add Pricing Rule"}
       </DialogTitle>
 
-      <DialogContent sx={MODULE_DIALOG_CONTENT_SX}>
+      <DialogContent ref={dialogContentRef} sx={MODULE_DIALOG_CONTENT_SX}>
         {apiError && <Alert severity="error" sx={{ mb: 2, mt: 1 }}>{apiError}</Alert>}
 
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5, mt: 1 }}>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, type WheelEvent } from "react";
+import { useState, useEffect, useCallback, useRef, type WheelEvent } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import {
   Box,
@@ -124,6 +124,10 @@ export default function MemberDetailPage() {
   const searchParams = useSearchParams();
   const memberId = params.id as string;
   const { showToast } = useToast();
+  const paymentDialogContentRef = useRef<HTMLDivElement | null>(null);
+  const renewDialogContentRef = useRef<HTMLDivElement | null>(null);
+  const editDialogContentRef = useRef<HTMLDivElement | null>(null);
+  const endDialogContentRef = useRef<HTMLDivElement | null>(null);
 
   const [member, setMember] = useState<Member | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -176,6 +180,14 @@ export default function MemberDetailPage() {
   }, [memberId]);
 
   useEffect(() => { fetchMember(); }, [fetchMember]);
+
+  useEffect(() => {
+    if (!modalError) return;
+    if (activeModal === "payment") paymentDialogContentRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    if (activeModal === "renew") renewDialogContentRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    if (activeModal === "edit") editDialogContentRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    if (activeModal === "end") endDialogContentRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  }, [modalError, activeModal]);
 
   useEffect(() => {
     Promise.all([plansApi.getAll(), slotsApi.getAll()]).then(([p, s]) => {
@@ -622,7 +634,7 @@ export default function MemberDetailPage() {
         PaperProps={{ elevation: 0, sx: { borderRadius: "16px", border: `1px solid ${C.border}` } }}
       >
         <DialogTitle sx={{ fontWeight: 800, fontSize: "1rem", pt: 2.5, pb: 1, px: 3 }}>Record Payment</DialogTitle>
-        <DialogContent sx={{ px: 3, pb: 1 }}>
+        <DialogContent ref={paymentDialogContentRef} sx={{ px: 3, pb: 1 }}>
           {modalError && <Alert severity="error" sx={{ mb: 2, mt: 1 }}>{modalError}</Alert>}
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
             <TextField label="Amount" type="number" value={paymentAmount} onChange={(e) => setPaymentAmount(e.target.value)} fullWidth autoFocus sx={MODULE_FIELD_SX}
@@ -648,7 +660,7 @@ export default function MemberDetailPage() {
         <DialogTitle sx={{ fontWeight: 800, fontSize: "1rem", pt: 2.5, pb: 1, px: 3 }}>
           {isUpgrade ? "Change Plan" : "Renew Membership"}
         </DialogTitle>
-        <DialogContent sx={{ px: 3, pb: 1 }}>
+        <DialogContent ref={renewDialogContentRef} sx={{ px: 3, pb: 1 }}>
           {modalError && <Alert severity="error" sx={{ mb: 2, mt: 1 }}>{modalError}</Alert>}
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
             {isUpgrade && (
@@ -736,7 +748,7 @@ export default function MemberDetailPage() {
         PaperProps={{ elevation: 0, sx: { borderRadius: "16px", border: `1px solid ${C.border}` } }}
       >
         <DialogTitle sx={{ fontWeight: 800, fontSize: "1rem", pt: 2.5, pb: 1, px: 3 }}>Edit Member</DialogTitle>
-        <DialogContent sx={{ px: 3, pb: 1 }}>
+        <DialogContent ref={editDialogContentRef} sx={{ px: 3, pb: 1 }}>
           {modalError && <Alert severity="error" sx={{ mb: 2, mt: 1 }}>{modalError}</Alert>}
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
             <TextField label="Full Name" value={editName} onChange={(e) => setEditName(e.target.value)} fullWidth autoFocus sx={MODULE_FIELD_SX} />
@@ -759,7 +771,7 @@ export default function MemberDetailPage() {
         <DialogTitle sx={{ fontWeight: 800, fontSize: "1rem", pt: 2.5, pb: 1, px: 3 }}>
           End Membership
         </DialogTitle>
-        <DialogContent sx={{ px: 3, pb: 1 }}>
+        <DialogContent ref={endDialogContentRef} sx={{ px: 3, pb: 1 }}>
           {modalError && <Alert severity="error" sx={{ mb: 2, mt: 1 }}>{modalError}</Alert>}
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
             <TextField

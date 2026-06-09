@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, type WheelEvent } from "react";
+import { useState, useEffect, useRef, type WheelEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -64,6 +64,8 @@ type CreateMemberFormData = z.infer<typeof createMemberSchema>;
 export default function AddMemberPage() {
   const router = useRouter();
   const { showToast } = useToast();
+  const pageTopRef = useRef<HTMLDivElement | null>(null);
+  const actionAreaRef = useRef<HTMLDivElement | null>(null);
 
   const [plans, setPlans] = useState<Plan[]>([]);
   const [slots, setSlots] = useState<Slot[]>([]);
@@ -91,6 +93,12 @@ export default function AddMemberPage() {
 
   const selectedPlanId = watch("planId");
   const selectedSlotId = watch("slotId");
+
+  useEffect(() => {
+    if (apiError) {
+      pageTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [apiError]);
 
   // Load plans and slots on mount
   useEffect(() => {
@@ -141,6 +149,7 @@ export default function AddMemberPage() {
   const onSubmit = async (data: CreateMemberFormData) => {
     setApiError(null);
     setIsSubmitting(true);
+    actionAreaRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
     try {
       await membersApi.create({
         ...data,
@@ -170,8 +179,8 @@ export default function AddMemberPage() {
   }
 
   return (
-    <Box sx={MODULE_PAGE_SX}>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+    <Box sx={MODULE_PAGE_SX} ref={pageTopRef}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.25 }}>
         <Button
           startIcon={<ArrowBackOutlined />}
           onClick={() => router.push("/members")}
@@ -182,23 +191,20 @@ export default function AddMemberPage() {
         </Button>
       </Box>
 
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 0.45 }}>
-        <Typography sx={{ fontSize: "2rem", fontWeight: 800, color: "#111827", lineHeight: 1.15 }}>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 0.1, mb: 0.2 }}>
+        <Typography sx={{ fontSize: "1.7rem", fontWeight: 800, color: "#111827", lineHeight: 1.05 }}>
           Add Member
-        </Typography>
-        <Typography sx={{ fontSize: "0.9rem", color: MODULE_COLORS.slate, fontWeight: 600 }}>
-          Create a new membership record
         </Typography>
       </Box>
 
       {apiError && (
-        <Alert severity="error" sx={{ mb: 3 }}>{apiError}</Alert>
+        <Alert severity="error" sx={{ mb: 1.6 }}>{apiError}</Alert>
       )}
 
-      <Paper elevation={0} sx={{ ...MODULE_CARD_SX, p: { xs: 2.25, sm: 3 }, borderRadius: "14px" }}>
+      <Paper elevation={0} sx={{ ...MODULE_CARD_SX, p: { xs: 1.8, sm: 2.1 }, borderRadius: "14px" }}>
         <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
           {(selectedPlan || selectedSlot) && (
-            <Box sx={{ mb: 2.25 }}>
+            <Box sx={{ mb: 1.4 }}>
               <ModuleInfoStrip
                 title="Selection Snapshot"
                 message={[
@@ -215,11 +221,11 @@ export default function AddMemberPage() {
           )}
 
           {/* Personal Details */}
-          <Typography sx={{ fontSize: "0.72rem", fontWeight: 700, color: MODULE_COLORS.muted, textTransform: "uppercase", letterSpacing: 0.5, mb: 1.5 }}>
+          <Typography sx={{ fontSize: "0.72rem", fontWeight: 700, color: MODULE_COLORS.muted, textTransform: "uppercase", letterSpacing: 0.5, mb: 1 }}>
             Personal Details
           </Typography>
 
-          <Grid container spacing={2} sx={{ mb: 2.5 }}>
+          <Grid container spacing={1.4} sx={{ mb: 1.7 }}>
             <Grid item xs={12} sm={6}>
               <TextField
                 {...register("name")}
@@ -254,14 +260,14 @@ export default function AddMemberPage() {
             </Grid>
           </Grid>
 
-          <Divider sx={{ mb: 2.5 }} />
+          <Divider sx={{ mb: 1.7 }} />
 
           {/* Membership Details */}
-          <Typography sx={{ fontSize: "0.72rem", fontWeight: 700, color: MODULE_COLORS.muted, textTransform: "uppercase", letterSpacing: 0.5, mb: 1.5 }}>
+          <Typography sx={{ fontSize: "0.72rem", fontWeight: 700, color: MODULE_COLORS.muted, textTransform: "uppercase", letterSpacing: 0.5, mb: 1 }}>
             Membership Details
           </Typography>
 
-          <Grid container spacing={2} sx={{ mb: 2.5 }}>
+          <Grid container spacing={1.4} sx={{ mb: 1.6 }}>
             <Grid item xs={12} sm={6}>
               <Controller
                 name="planId"
@@ -374,7 +380,7 @@ export default function AddMemberPage() {
               />
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} md={6}>
               <Controller
                 name="initialPayment"
                 control={control}
@@ -397,28 +403,22 @@ export default function AddMemberPage() {
                 )}
               />
             </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                {...register("notes")}
+                label="Notes (optional)"
+                multiline
+                rows={2}
+                fullWidth
+                sx={MODULE_FIELD_SX}
+                error={!!errors.notes}
+                helperText={errors.notes?.message}
+              />
+            </Grid>
           </Grid>
 
-          <Divider sx={{ mb: 2.5 }} />
-
-          {/* Notes */}
-          <Typography sx={{ fontSize: "0.72rem", fontWeight: 700, color: MODULE_COLORS.muted, textTransform: "uppercase", letterSpacing: 0.5, mb: 1.5 }}>
-            Additional Notes
-          </Typography>
-
-          <TextField
-            {...register("notes")}
-            label="Notes (optional)"
-            multiline
-            rows={3}
-            fullWidth
-            sx={{ ...MODULE_FIELD_SX, mb: 2.75 }}
-            error={!!errors.notes}
-            helperText={errors.notes?.message}
-          />
-
           {/* Actions */}
-          <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
+          <Box ref={actionAreaRef} sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
             <Button
               variant="outlined"
               onClick={() => router.push("/members")}

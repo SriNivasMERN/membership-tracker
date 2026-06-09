@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, type WheelEvent } from "react";
+import { useState, useEffect, useRef, type WheelEvent } from "react";
 import {
   Box,
   Grid,
@@ -214,6 +214,7 @@ function Section({
 
 export default function SettingsPage() {
   const { showToast } = useToast();
+  const pageTopRef = useRef<HTMLDivElement | null>(null);
   const [form, setForm] = useState<SettingsFormData>(DEFAULT_FORM);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -251,6 +252,12 @@ export default function SettingsPage() {
     };
     load();
   }, []);
+
+  useEffect(() => {
+    if (error) {
+      pageTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [error]);
 
   const validate = (): boolean => {
     const e: Record<string, string> = {};
@@ -335,6 +342,7 @@ export default function SettingsPage() {
 
   return (
     <Box
+      ref={pageTopRef}
       sx={{
         display: "flex",
         flexDirection: "column",

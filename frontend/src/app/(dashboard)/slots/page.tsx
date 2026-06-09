@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Box,
   Paper,
@@ -81,6 +81,7 @@ function SlotFormDialog({
 }) {
   const { showToast } = useToast();
   const isEdit = !!slot;
+  const dialogContentRef = useRef<HTMLDivElement | null>(null);
 
   const [form, setForm] = useState<SlotFormData>(EMPTY_FORM);
   const [errors, setErrors] = useState<Partial<Record<keyof SlotFormData, string>>>({});
@@ -98,6 +99,12 @@ function SlotFormDialog({
       setApiError(null);
     }
   }, [open, slot]);
+
+  useEffect(() => {
+    if (apiError) {
+      dialogContentRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [apiError]);
 
   const validate = (): boolean => {
     const e: Partial<Record<keyof SlotFormData, string>> = {};
@@ -153,7 +160,7 @@ function SlotFormDialog({
         {isEdit ? "Edit Slot" : "Add New Slot"}
       </DialogTitle>
 
-      <DialogContent sx={MODULE_DIALOG_CONTENT_SX}>
+      <DialogContent ref={dialogContentRef} sx={MODULE_DIALOG_CONTENT_SX}>
         {apiError ? <Alert severity="error" sx={{ mb: 2, mt: 1 }}>{apiError}</Alert> : null}
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5, mt: 1 }}>
           <TextField
