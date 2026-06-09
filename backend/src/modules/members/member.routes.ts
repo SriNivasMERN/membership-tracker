@@ -7,6 +7,7 @@ import {
   deleteMember,
   addPayment,
   renewMember,
+  endMembership,
 } from "./member.controller";
 import { authenticate } from "../../middleware/auth.middleware";
 import { requireRole } from "../../middleware/role.middleware";
@@ -16,6 +17,7 @@ import {
   updateMemberSchema,
   addPaymentSchema,
   renewMemberSchema,
+  endMembershipSchema,
 } from "./member.schema";
 
 const router = Router();
@@ -50,6 +52,12 @@ router.post(
   "/:id/renew",
   validate(renewMemberSchema),
   renewMember
+);
+
+router.post(
+  "/:id/end",
+  validate(endMembershipSchema),
+  endMembership
 );
 
 export default router;

@@ -24,6 +24,12 @@ const statusConfig = {
     color: "#B91C1C",
     border: "1px solid #FECACA",
   },
+  ended: {
+    label: "Ended",
+    backgroundColor: "#F8FAFC",
+    color: "#475569",
+    border: "1px solid #CBD5E1",
+  },
 };
 
 export default function StatusBadge({ status }: StatusBadgeProps) {

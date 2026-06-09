@@ -34,6 +34,17 @@ import {
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
+import {
+  MODULE_ACTION_ICON_SX,
+  MODULE_CARD_SX,
+  MODULE_COLORS,
+  MODULE_FIELD_SX,
+  MODULE_NEUTRAL_CHIP_SX,
+  MODULE_PAGE_SX,
+  ModuleSummaryStat,
+  MODULE_TABLE_HEAD_CELL_SX,
+  MODULE_TABLE_ROW_SX,
+} from "@/components/ui/moduleStyles";
 import StatusBadge from "@/components/ui/StatusBadge";
 import { useToast } from "@/context/ToastContext";
 import { membersApi } from "@/lib/api/members.api";
@@ -42,51 +53,14 @@ import { Member } from "@/types/member.types";
 import { Plan } from "@/types/plan.types";
 
 const C = {
-  navy: "#1E3A5F",
-  slate: "#334155",
-  muted: "#64748B",
-  border: "#E2E8F0",
-  surface: "#F8FAFC",
-  green: "#15803D",
-  red: "#B91C1C",
+  navy: MODULE_COLORS.ink,
+  slate: MODULE_COLORS.slate,
+  muted: MODULE_COLORS.muted,
+  border: MODULE_COLORS.border,
+  surface: MODULE_COLORS.surface,
+  green: MODULE_COLORS.green,
+  red: MODULE_COLORS.red,
 };
-
-function SummaryStat({
-  label,
-  value,
-  tone = "default",
-}: {
-  label: string;
-  value: string;
-  tone?: "default" | "warning" | "success";
-}) {
-  const styles =
-    tone === "warning"
-      ? { backgroundColor: "#FFFBEB", borderColor: "#FDE68A", valueColor: "#92400E" }
-      : tone === "success"
-        ? { backgroundColor: "#F0FDF4", borderColor: "#BBF7D0", valueColor: "#15803D" }
-        : { backgroundColor: "#EFF6FF", borderColor: "#BFDBFE", valueColor: C.navy };
-
-  return (
-    <Paper
-      elevation={0}
-      sx={{
-        p: 1.4,
-        borderRadius: "14px",
-        border: `1px solid ${styles.borderColor}`,
-        backgroundColor: styles.backgroundColor,
-        minWidth: 132,
-      }}
-    >
-      <Typography sx={{ fontSize: "0.72rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>
-        {label}
-      </Typography>
-      <Typography sx={{ mt: 0.45, fontSize: "1.08rem", fontWeight: 900, color: styles.valueColor }}>
-        {value}
-      </Typography>
-    </Paper>
-  );
-}
 
 export default function MembersPage() {
   const router = useRouter();
@@ -173,16 +147,16 @@ export default function MembersPage() {
   const formatCurrency = (amount: number) => `Rs.${amount.toLocaleString("en-IN")}`;
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 2.25 }}>
+    <Box sx={MODULE_PAGE_SX}>
       <Box sx={{ display: "flex", alignItems: { xs: "flex-start", lg: "center" }, justifyContent: "space-between", flexDirection: { xs: "column", lg: "row" }, gap: 1.5 }}>
         <Box sx={{ flex: 1, display: "flex", justifyContent: { xs: "flex-start", lg: "center" } }}>
           <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
           {!isLoading ? (
             <>
-              <SummaryStat label="Overall Members" value={String(total)} />
-              <SummaryStat label="Active" value={String(counts.active)} tone="success" />
-              <SummaryStat label="Renewal Due" value={String(counts.expiring)} tone="warning" />
-              <SummaryStat label="Payment Due" value={String(counts.pending)} />
+                <ModuleSummaryStat label="Overall Members" value={String(total)} />
+              <ModuleSummaryStat label="Active" value={String(counts.active)} tone="success" />
+              <ModuleSummaryStat label="Renewal Due" value={String(counts.expiring)} tone="warning" />
+              <ModuleSummaryStat label="Payment Due" value={String(counts.pending)} />
             </>
           ) : (
             <>
@@ -203,7 +177,7 @@ export default function MembersPage() {
         </Button>
       </Box>
 
-      <Paper elevation={0} sx={{ borderRadius: "16px", border: `1px solid ${C.border}`, p: 2 }}>
+      <Paper elevation={0} sx={{ ...MODULE_CARD_SX, p: 2 }}>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <Grid container spacing={1.5}>
             <Grid item xs={12} md={4}>
@@ -214,8 +188,10 @@ export default function MembersPage() {
                   setSearch(e.target.value);
                   setPage(1);
                 }}
+                autoFocus
                 size="small"
                 fullWidth
+                sx={MODULE_FIELD_SX}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -249,11 +225,13 @@ export default function MembersPage() {
                 }}
                 size="small"
                 fullWidth
+                sx={MODULE_FIELD_SX}
               >
                 <MenuItem value="">All Status</MenuItem>
                 <MenuItem value="active">Active</MenuItem>
                 <MenuItem value="expiring_soon">Renewal Due Soon</MenuItem>
                 <MenuItem value="expired">Expired</MenuItem>
+                <MenuItem value="ended">Ended</MenuItem>
               </TextField>
             </Grid>
             <Grid item xs={12} sm={4} md={2.5}>
@@ -267,6 +245,7 @@ export default function MembersPage() {
                 }}
                 size="small"
                 fullWidth
+                sx={MODULE_FIELD_SX}
               >
                 <MenuItem value="">All Plans</MenuItem>
                 {plans.map((plan) => (
@@ -287,6 +266,7 @@ export default function MembersPage() {
                 }}
                 size="small"
                 fullWidth
+                sx={MODULE_FIELD_SX}
               >
                 <MenuItem value="">All</MenuItem>
                 <MenuItem value="pending">Payment Due</MenuItem>
@@ -315,21 +295,21 @@ export default function MembersPage() {
           {hasActiveFilters ? (
             <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
               {statusFilter ? (
-                <Chip label={`Status: ${statusFilter.replace("_", " ")}`} size="small" onDelete={() => setStatusFilter("")} />
+                <Chip label={`Status: ${statusFilter.replace("_", " ")}`} size="small" onDelete={() => setStatusFilter("")} sx={MODULE_NEUTRAL_CHIP_SX} />
               ) : null}
               {planFilter ? (
-                <Chip label={`Plan: ${plans.find((p) => p._id === planFilter)?.name || planFilter}`} size="small" onDelete={() => setPlanFilter("")} />
+                <Chip label={`Plan: ${plans.find((p) => p._id === planFilter)?.name || planFilter}`} size="small" onDelete={() => setPlanFilter("")} sx={MODULE_NEUTRAL_CHIP_SX} />
               ) : null}
               {paymentFilter ? (
-                <Chip label={paymentFilter === "pending" ? "Payment Due" : "Fully Paid"} size="small" onDelete={() => setPaymentFilter("")} />
+                <Chip label={paymentFilter === "pending" ? "Payment Due" : "Fully Paid"} size="small" onDelete={() => setPaymentFilter("")} sx={MODULE_NEUTRAL_CHIP_SX} />
               ) : null}
-              {search ? <Chip label={`Search: ${search}`} size="small" onDelete={() => setSearch("")} /> : null}
+              {search ? <Chip label={`Search: ${search}`} size="small" onDelete={() => setSearch("")} sx={MODULE_NEUTRAL_CHIP_SX} /> : null}
             </Box>
           ) : null}
         </Box>
       </Paper>
 
-      <Paper elevation={0} sx={{ borderRadius: "16px", border: `1px solid ${C.border}`, overflow: "hidden" }}>
+      <Paper elevation={0} sx={{ ...MODULE_CARD_SX, overflow: "hidden" }}>
         {error ? (
           <ErrorState message={error} onRetry={fetchMembers} />
         ) : (
@@ -338,7 +318,7 @@ export default function MembersPage() {
               <TableHead>
                 <TableRow sx={{ backgroundColor: C.surface }}>
                   {["Member", "Mobile", "Plan", "Slot", "Renewal Date", "Payment Due", "Status", "Actions"].map((heading) => (
-                    <TableCell key={heading} sx={{ fontWeight: 800, fontSize: "0.72rem", color: C.slate, py: 1.45, borderBottom: `1px solid ${C.border}`, letterSpacing: 0.5, textTransform: "uppercase" }}>
+                    <TableCell key={heading} sx={MODULE_TABLE_HEAD_CELL_SX}>
                       {heading}
                     </TableCell>
                   ))}
@@ -376,8 +356,8 @@ export default function MembersPage() {
                       key={member._id}
                       onClick={() => router.push(`/members/${member._id}`)}
                       sx={{
+                        ...MODULE_TABLE_ROW_SX,
                         "&:last-child td": { border: 0 },
-                        "&:hover": { backgroundColor: "#F8FAFF" },
                         cursor: "pointer",
                       }}
                     >
@@ -415,17 +395,17 @@ export default function MembersPage() {
                       <TableCell sx={{ py: 1.6 }} onClick={(e) => e.stopPropagation()}>
                         <Box sx={{ display: "flex", gap: 0.4 }}>
                           <Tooltip title="View">
-                            <IconButton size="small" onClick={() => router.push(`/members/${member._id}`)} sx={{ color: C.muted, "&:hover": { color: "#1D4ED8", backgroundColor: "#EFF6FF" } }}>
+                            <IconButton size="small" onClick={() => router.push(`/members/${member._id}`)} sx={MODULE_ACTION_ICON_SX}>
                               <VisibilityOutlined sx={{ fontSize: 16 }} />
                             </IconButton>
                           </Tooltip>
                           <Tooltip title="Edit">
-                            <IconButton size="small" onClick={() => router.push(`/members/${member._id}?action=edit`)} sx={{ color: C.muted, "&:hover": { color: C.green, backgroundColor: "#F0FDF4" } }}>
+                            <IconButton size="small" onClick={() => router.push(`/members/${member._id}?action=edit`)} sx={MODULE_ACTION_ICON_SX}>
                               <EditOutlined sx={{ fontSize: 16 }} />
                             </IconButton>
                           </Tooltip>
                           <Tooltip title="Delete">
-                            <IconButton size="small" onClick={() => { setDeletingMember(member); setDeleteOpen(true); }} sx={{ color: C.muted, "&:hover": { color: C.red, backgroundColor: "#FEF2F2" } }}>
+                            <IconButton size="small" onClick={() => { setDeletingMember(member); setDeleteOpen(true); }} sx={MODULE_ACTION_ICON_SX}>
                               <DeleteOutlined sx={{ fontSize: 16 }} />
                             </IconButton>
                           </Tooltip>

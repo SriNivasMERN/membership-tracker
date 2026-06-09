@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, type WheelEvent } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import {
   Box,
@@ -35,6 +35,7 @@ import {
   CalendarTodayOutlined,
   PersonOutlined,
   CreditCardOutlined,
+  PersonOffOutlined,
 } from "@mui/icons-material";
 import { Member } from "@/types/member.types";
 import { Plan } from "@/types/plan.types";
@@ -45,11 +46,18 @@ import { slotsApi } from "@/lib/api/slots.api";
 import { pricingApi } from "@/lib/api/pricing.api";
 import { useToast } from "@/context/ToastContext";
 import StatusBadge from "@/components/ui/StatusBadge";
-import PageHeader from "@/components/layout/PageHeader";
+import {
+  MODULE_CARD_SX,
+  MODULE_COLORS,
+  MODULE_FIELD_SX,
+  MODULE_PAGE_SX,
+  ModuleSummaryStat,
+  MODULE_TABLE_HEAD_CELL_SX,
+} from "@/components/ui/moduleStyles";
 
 const C = {
-  navy: "#1E3A5F", slate: "#334155", muted: "#64748B",
-  border: "#E2E8F0", surface: "#F8FAFC", green: "#15803D", red: "#B91C1C",
+  navy: MODULE_COLORS.ink, slate: MODULE_COLORS.slate, muted: MODULE_COLORS.muted,
+  border: MODULE_COLORS.border, surface: MODULE_COLORS.surface, green: MODULE_COLORS.green, red: MODULE_COLORS.red,
 };
 
 function getTodayString() {
@@ -60,6 +68,36 @@ function addDays(dateStr: string, days: number): string {
   const date = new Date(dateStr);
   date.setDate(date.getDate() + days);
   return date.toISOString().split("T")[0];
+}
+
+function preventNumberScroll(event: WheelEvent<HTMLInputElement>) {
+  event.currentTarget.blur();
+}
+
+function getPlanChangeSettlement(member: Member) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const startDate = new Date(member.startDate);
+  startDate.setHours(0, 0, 0, 0);
+
+  const dayMs = 1000 * 60 * 60 * 24;
+  const usedDays = Math.min(
+    member.planSnapshot.durationDays,
+    Math.max(1, Math.floor((today.getTime() - startDate.getTime()) / dayMs) + 1)
+  );
+  const usedValue = Math.round(
+    (member.finalPrice / member.planSnapshot.durationDays) * usedDays
+  );
+  const totalFundedValue = member.paidAmount + (member.creditBalance || 0);
+
+  return {
+    usedDays,
+    usedValue,
+    totalFundedValue,
+    availableCredit: Math.max(0, totalFundedValue - usedValue),
+    shortfall: Math.max(0, usedValue - totalFundedValue),
+  };
 }
 
 function InfoRow({ label, value }: { label: string; value: string }) {
@@ -76,22 +114,8 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 }
 
 function SummaryMetric({ label, value, tone = "default" }: { label: string; value: string; tone?: "default" | "success" | "warning" | "danger" }) {
-  const color =
-    tone === "success" ? C.green :
-      tone === "warning" ? C.navy :
-        tone === "danger" ? C.red :
-          C.slate;
-
-  return (
-    <Paper elevation={0} sx={{ p: 1.75, border: `1px solid ${C.border}`, backgroundColor: "#FCFDFE" }}>
-      <Typography sx={{ fontSize: "0.72rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>
-        {label}
-      </Typography>
-      <Typography sx={{ mt: 0.6, fontSize: "1.05rem", fontWeight: 900, color }}>
-        {value}
-      </Typography>
-    </Paper>
-  );
+  const mappedTone = tone === "danger" ? "warning" : tone === "success" ? "success" : tone === "warning" ? "warning" : "default";
+  return <ModuleSummaryStat label={label} value={value} tone={mappedTone} />;
 }
 
 export default function MemberDetailPage() {
@@ -107,7 +131,7 @@ export default function MemberDetailPage() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [slots, setSlots] = useState<Slot[]>([]);
 
-  const [activeModal, setActiveModal] = useState<"payment" | "renew" | "edit" | null>(null);
+  const [activeModal, setActiveModal] = useState<"payment" | "renew" | "edit" | "end" | null>(null);
   const [autoOpenDone, setAutoOpenDone] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modalError, setModalError] = useState<string | null>(null);
@@ -123,6 +147,8 @@ export default function MemberDetailPage() {
   const [renewFinalPrice, setRenewFinalPrice] = useState("");
   const [renewPayment, setRenewPayment] = useState("");
   const [proratedCredit, setProratedCredit] = useState(0);
+  const [planChangeUsedValue, setPlanChangeUsedValue] = useState(0);
+  const [planChangeShortfall, setPlanChangeShortfall] = useState(0);
   const [newPlanPrice, setNewPlanPrice] = useState(0);
   const [isCalculating, setIsCalculating] = useState(false);
   const [isUpgrade, setIsUpgrade] = useState(false);
@@ -131,6 +157,10 @@ export default function MemberDetailPage() {
   const [editMobile, setEditMobile] = useState("");
   const [editEmail, setEditEmail] = useState("");
   const [editNotes, setEditNotes] = useState("");
+
+  const [endDate, setEndDate] = useState("");
+  const [settlementDeduction, setSettlementDeduction] = useState("");
+  const [endNote, setEndNote] = useState("");
 
   const fetchMember = useCallback(async () => {
     setIsLoading(true);
@@ -179,6 +209,7 @@ export default function MemberDetailPage() {
     if (!member) return;
     const today = getTodayString();
     const memberIsActive = member.status === "active" || member.status === "expiring_soon";
+    const existingCredit = member.creditBalance || 0;
     setIsUpgrade(memberIsActive);
     setRenewPlanId(member.planSnapshot.planId as string);
     setRenewSlotId(member.slotSnapshot.slotId as string);
@@ -186,14 +217,17 @@ export default function MemberDetailPage() {
     setRenewEndDate(addDays(today, member.planSnapshot.durationDays));
 
     if (memberIsActive) {
-      const unusedDays = Math.max(0, Math.ceil((new Date(member.endDate).getTime() - new Date(today).getTime()) / (1000 * 60 * 60 * 24)));
-      const credit = Math.round((member.finalPrice / member.planSnapshot.durationDays) * unusedDays);
-      setProratedCredit(credit);
+      const settlement = getPlanChangeSettlement(member);
+      setPlanChangeUsedValue(settlement.usedValue);
+      setPlanChangeShortfall(settlement.shortfall);
+      setProratedCredit(settlement.availableCredit);
       setNewPlanPrice(member.finalPrice);
       setRenewFinalPrice(String(member.finalPrice));
-      setRenewPayment(String(Math.max(0, member.finalPrice - credit)));
+      setRenewPayment("");
     } else {
-      setProratedCredit(0);
+      setPlanChangeUsedValue(0);
+      setPlanChangeShortfall(0);
+      setProratedCredit(existingCredit);
       setNewPlanPrice(member.finalPrice);
       setRenewFinalPrice(String(member.finalPrice));
       setRenewPayment("");
@@ -209,7 +243,6 @@ export default function MemberDetailPage() {
       setRenewEndDate(addDays(renewStartDate, selectedPlan.durationDays));
       setRenewFinalPrice(String(selectedPlan.basePrice));
       setNewPlanPrice(selectedPlan.basePrice);
-      if (isUpgrade) setRenewPayment(String(Math.max(0, selectedPlan.basePrice - proratedCredit)));
     }
     await recalculatePrice(planId, renewSlotId);
   };
@@ -229,13 +262,11 @@ export default function MemberDetailPage() {
       const final = calc && calc > 0 ? calc : selectedPlan?.basePrice ?? 0;
       setNewPlanPrice(final);
       setRenewFinalPrice(String(final));
-      if (isUpgrade) setRenewPayment(String(Math.max(0, final - proratedCredit)));
     } catch {
       const selectedPlan = plans.find((p) => p._id === planId);
       const fallback = selectedPlan?.basePrice ?? 0;
       setNewPlanPrice(fallback);
       setRenewFinalPrice(String(fallback));
-      if (isUpgrade) setRenewPayment(String(Math.max(0, fallback - proratedCredit)));
     } finally {
       setIsCalculating(false);
     }
@@ -251,12 +282,24 @@ export default function MemberDetailPage() {
     setActiveModal("edit");
   };
 
+  const openEndMembership = () => {
+    if (!member) return;
+    setEndDate(getTodayString());
+    setSettlementDeduction("");
+    setEndNote("");
+    setModalError(null);
+    setActiveModal("end");
+  };
+
   const handlePayment = async () => {
-    if (!paymentAmount || parseFloat(paymentAmount) <= 0) { setModalError("Enter a valid amount"); return; }
+    if (!member) return;
+    const amount = parseFloat(paymentAmount);
+    if (!paymentAmount || amount <= 0) { setModalError("Enter a valid amount"); return; }
+    if (amount > member.pendingAmount) { setModalError(`Payment cannot exceed pending amount of ${fmt(member.pendingAmount)}`); return; }
     setIsSubmitting(true);
     setModalError(null);
     try {
-      await membersApi.addPayment(memberId, { amount: parseFloat(paymentAmount), paidOn: paymentDate, note: paymentNote || undefined });
+      await membersApi.addPayment(memberId, { amount, paidOn: paymentDate, note: paymentNote || undefined });
       showToast("Payment recorded");
       closeModal();
       fetchMember();
@@ -266,6 +309,16 @@ export default function MemberDetailPage() {
 
   const handleRenew = async () => {
     if (!renewStartDate) { setModalError("Start date is required"); return; }
+    const finalPriceValue = renewFinalPrice ? parseFloat(renewFinalPrice) : 0;
+    const paymentValue = renewPayment ? parseFloat(renewPayment) : 0;
+    const payableAfterCredit = Math.max(
+      0,
+      finalPriceValue - (isUpgrade ? proratedCredit : 0) + (isUpgrade ? planChangeShortfall : 0)
+    );
+    if (renewPayment && paymentValue > payableAfterCredit) {
+      setModalError(`Payment cannot exceed payable amount of ${fmt(payableAfterCredit)}`);
+      return;
+    }
     setIsSubmitting(true);
     setModalError(null);
     try {
@@ -273,8 +326,8 @@ export default function MemberDetailPage() {
         planId: renewPlanId || undefined,
         slotId: renewSlotId || undefined,
         startDate: renewStartDate,
-        finalPrice: renewFinalPrice ? parseFloat(renewFinalPrice) : undefined,
-        initialPayment: renewPayment ? parseFloat(renewPayment) : undefined,
+        finalPrice: finalPriceValue || undefined,
+        initialPayment: paymentValue || undefined,
       });
       showToast(isUpgrade ? "Plan changed" : "Membership renewed");
       closeModal();
@@ -296,6 +349,37 @@ export default function MemberDetailPage() {
       const e = err as { response?: { data?: { message?: string } } };
       setModalError(e.response?.data?.message || "Failed to update.");
     } finally { setIsSubmitting(false); }
+  };
+
+  const handleEndMembership = async () => {
+    if (!endDate) {
+      setModalError("Effective end date is required");
+      return;
+    }
+
+    const deductionValue = settlementDeduction ? parseFloat(settlementDeduction) : 0;
+    if (deductionValue < 0) {
+      setModalError("Settlement deduction cannot be negative");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setModalError(null);
+    try {
+      await membersApi.endMembership(memberId, {
+        effectiveEndDate: endDate,
+        settlementDeduction: deductionValue || undefined,
+        note: endNote || undefined,
+      });
+      showToast("Membership ended");
+      closeModal();
+      fetchMember();
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } } };
+      setModalError(e.response?.data?.message || "Failed to end membership.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const fmt = (n: number) => `Rs.${n.toLocaleString("en-IN")}`;
@@ -323,44 +407,54 @@ export default function MemberDetailPage() {
   }
 
   const memberIsActive = member.status === "active" || member.status === "expiring_soon";
+  const renewFinalPriceValue = renewFinalPrice ? parseFloat(renewFinalPrice) : 0;
+  const renewPayableAmount = Math.max(
+    0,
+    renewFinalPriceValue - (isUpgrade ? proratedCredit : 0) + (isUpgrade ? planChangeShortfall : 0)
+  );
+  const effectiveEndDateValue = endDate ? new Date(endDate) : new Date();
+  effectiveEndDateValue.setHours(0, 0, 0, 0);
+  const membershipStartDateValue = new Date(member.startDate);
+  membershipStartDateValue.setHours(0, 0, 0, 0);
+  const usedDaysForClosure = Math.min(
+    member.planSnapshot.durationDays,
+    Math.max(
+      1,
+      Math.floor((effectiveEndDateValue.getTime() - membershipStartDateValue.getTime()) / (1000 * 60 * 60 * 24)) + 1
+    )
+  );
+  const closureUsedValue = Math.round((member.finalPrice / member.planSnapshot.durationDays) * usedDaysForClosure);
+  const closureDeductionValue = settlementDeduction ? parseFloat(settlementDeduction) || 0 : 0;
+  const closurePaidAndCredit = member.paidAmount + (member.creditBalance || 0);
+  const closureRefundableBalance = Math.max(0, closurePaidAndCredit - closureUsedValue - closureDeductionValue);
+  const closurePayableBalance = Math.max(0, closureUsedValue + closureDeductionValue - closurePaidAndCredit);
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 2.25 }}>
-      <PageHeader
-        title={member.name}
-        subtitle={`Member since ${fmtDate(member.createdAt)}. Review membership, record payments, or renew without leaving this page.`}
-      />
+    <Box sx={MODULE_PAGE_SX}>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+        <Typography sx={{ fontSize: "2rem", fontWeight: 800, color: "#111827", lineHeight: 1.15 }}>
+          {member.name}
+        </Typography>
+        <Typography sx={{ fontSize: "0.92rem", color: C.slate, fontWeight: 600 }}>
+          Member since {fmtDate(member.createdAt)}
+        </Typography>
+      </Box>
 
-      <Box sx={{ mt: -1.5 }}>
+      <Box sx={{ mt: -0.5 }}>
         <Button startIcon={<ArrowBackOutlined />} onClick={() => router.push("/members")} color="inherit" size="small">
           Back to Members
         </Button>
       </Box>
 
       <Grid container spacing={2}>
-        <Grid item xs={12} sm={6} lg={3}>
-          <SummaryMetric label="Current Status" value={member.status === "expiring_soon" ? "Renewal Due Soon" : member.status === "expired" ? "Expired" : "Active"} tone={member.status === "expired" ? "danger" : member.status === "expiring_soon" ? "warning" : "success"} />
+        <Grid item xs={12} sm={4}>
+          <SummaryMetric label="Plan" value={member.planSnapshot.name} />
         </Grid>
-        <Grid item xs={12} sm={6} lg={3}>
+        <Grid item xs={12} sm={4}>
           <SummaryMetric label="Payment Due" value={member.pendingAmount > 0 ? fmt(member.pendingAmount) : "Fully Paid"} tone={member.pendingAmount > 0 ? "danger" : "success"} />
         </Grid>
-        <Grid item xs={12} sm={6} lg={3}>
+        <Grid item xs={12} sm={4}>
           <SummaryMetric label="Renewal Date" value={fmtDate(member.endDate)} />
-        </Grid>
-        <Grid item xs={12} sm={6} lg={3}>
-          <Paper elevation={0} sx={{ p: 1.75, border: `1px solid ${C.border}`, backgroundColor: "#FCFDFE", height: "100%" }}>
-            <Typography sx={{ fontSize: "0.72rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>
-              Quick Actions
-            </Typography>
-            <Box sx={{ mt: 1.1, display: "flex", gap: 1, flexWrap: "wrap" }}>
-              <Button variant="contained" size="small" startIcon={<PaymentOutlined />} onClick={openPayment} disabled={member.pendingAmount <= 0}>
-                Record Payment
-              </Button>
-              <Button variant="outlined" size="small" startIcon={<AutorenewOutlined />} onClick={openRenew}>
-                {memberIsActive ? "Change / Renew" : "Renew"}
-              </Button>
-            </Box>
-          </Paper>
         </Grid>
       </Grid>
 
@@ -372,7 +466,7 @@ export default function MemberDetailPage() {
 
             {/* Personal + Membership side by side */}
             <Grid item xs={12} sm={6}>
-              <Paper elevation={0} sx={{ p: 2.5, borderRadius: "12px", border: `1px solid ${C.border}`, height: "100%" }}>
+              <Paper elevation={0} sx={{ ...MODULE_CARD_SX, p: 2.1, borderRadius: "12px", height: "100%" }}>
                 <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <PersonOutlined sx={{ fontSize: 16, color: C.muted }} />
@@ -387,7 +481,7 @@ export default function MemberDetailPage() {
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <Paper elevation={0} sx={{ p: 2.5, borderRadius: "12px", border: `1px solid ${C.border}`, height: "100%" }}>
+              <Paper elevation={0} sx={{ ...MODULE_CARD_SX, p: 2.1, borderRadius: "12px", height: "100%" }}>
                 <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <CalendarTodayOutlined sx={{ fontSize: 16, color: C.muted }} />
@@ -405,8 +499,8 @@ export default function MemberDetailPage() {
 
             {/* Payment history */}
             <Grid item xs={12}>
-              <Paper elevation={0} sx={{ borderRadius: "12px", border: `1px solid ${C.border}`, overflow: "hidden" }}>
-                <Box sx={{ px: 2.5, py: 1.75, borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", gap: 1 }}>
+              <Paper elevation={0} sx={{ ...MODULE_CARD_SX, borderRadius: "12px", overflow: "hidden" }}>
+                <Box sx={{ px: 2.1, py: 1.45, borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", gap: 1 }}>
                   <CreditCardOutlined sx={{ fontSize: 16, color: C.muted }} />
                   <Typography sx={{ fontSize: "0.72rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.8 }}>Payment History</Typography>
                 </Box>
@@ -420,7 +514,7 @@ export default function MemberDetailPage() {
                       <TableHead>
                         <TableRow sx={{ backgroundColor: C.surface }}>
                           {["Date", "Amount", "Note"].map(h => (
-                            <TableCell key={h} sx={{ fontWeight: 800, fontSize: "0.7rem", color: C.slate, py: 1.25, borderBottom: `1px solid ${C.border}`, letterSpacing: 0.5 }}>{h}</TableCell>
+                            <TableCell key={h} sx={MODULE_TABLE_HEAD_CELL_SX}>{h}</TableCell>
                           ))}
                         </TableRow>
                       </TableHead>
@@ -428,13 +522,13 @@ export default function MemberDetailPage() {
                         {member.payments.map((payment) => (
                           <TableRow key={payment._id} sx={{ "&:last-child td": { border: 0 } }}>
                             <TableCell sx={{ py: 1.25 }}>
-                              <Typography sx={{ fontSize: "0.82rem", color: C.slate, fontWeight: 600 }}>{fmtDate(payment.paidOn)}</Typography>
+                              <Typography sx={{ fontSize: "0.9rem", color: C.slate, fontWeight: 600 }}>{fmtDate(payment.paidOn)}</Typography>
                             </TableCell>
                             <TableCell sx={{ py: 1.25 }}>
-                              <Typography sx={{ fontSize: "0.85rem", fontWeight: 800, color: C.green }}>{fmt(payment.amount)}</Typography>
+                              <Typography sx={{ fontSize: "0.9rem", fontWeight: 800, color: C.green }}>{fmt(payment.amount)}</Typography>
                             </TableCell>
                             <TableCell sx={{ py: 1.25 }}>
-                              <Typography sx={{ fontSize: "0.82rem", color: C.muted, fontWeight: 600 }}>{payment.note || "-"}</Typography>
+                              <Typography sx={{ fontSize: "0.88rem", color: C.muted, fontWeight: 600 }}>{payment.note || "-"}</Typography>
                             </TableCell>
                           </TableRow>
                         ))}
@@ -447,12 +541,12 @@ export default function MemberDetailPage() {
           </Grid>
         </Grid>
 
-        {/* Right column - sticky summary + actions */}
+        {/* Right column */}
         <Grid item xs={12} md={4}>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
 
             {/* Payment summary */}
-            <Paper elevation={0} sx={{ p: 2.5, borderRadius: "12px", border: `1px solid ${C.border}` }}>
+            <Paper elevation={0} sx={{ ...MODULE_CARD_SX, p: 2.1, borderRadius: "12px" }}>
               <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
                 <Typography sx={{ fontSize: "0.72rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.8 }}>Payment Summary</Typography>
                 <StatusBadge status={member.status} />
@@ -471,22 +565,14 @@ export default function MemberDetailPage() {
                   {member.pendingAmount > 0 ? fmt(member.pendingAmount) : "Fully Paid"}
                 </Typography>
               </Box>
-            </Paper>
-
-            {/* Actions */}
-            <Paper elevation={0} sx={{ p: 2.5, borderRadius: "12px", border: `1px solid ${C.border}` }}>
-              <Typography sx={{ fontSize: "0.72rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.8, mb: 0.5 }}>Actions</Typography>
-              <Typography sx={{ fontSize: "0.82rem", color: C.muted, fontWeight: 500, mb: 2 }}>
-                Use these actions when the member pays, renews, or changes plan.
-              </Typography>
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1.25, mt: 2 }}>
                 <Button
                   variant="contained"
                   startIcon={<PaymentOutlined />}
                   fullWidth
                   onClick={openPayment}
-                  disabled={member.pendingAmount <= 0}
-                  sx={{ fontWeight: 700, borderRadius: "10px", py: 1.25 }}
+                  disabled={member.pendingAmount <= 0 || member.status === "ended"}
+                  sx={{ fontWeight: 700, borderRadius: "10px", py: 1.1 }}
                 >
                   Record Payment
                 </Button>
@@ -495,35 +581,38 @@ export default function MemberDetailPage() {
                   startIcon={<AutorenewOutlined />}
                   fullWidth
                   onClick={openRenew}
-                  sx={{ fontWeight: 700, borderRadius: "10px", py: 1.25 }}
+                  disabled={member.status === "ended"}
+                  sx={{ fontWeight: 700, borderRadius: "10px", py: 1.1 }}
                 >
                   {memberIsActive ? "Change / Renew Plan" : "Renew Membership"}
+                </Button>
+                <Button
+                  variant="text"
+                  startIcon={<PersonOffOutlined />}
+                  fullWidth
+                  onClick={openEndMembership}
+                  disabled={member.status === "ended"}
+                  sx={{ fontWeight: 700, borderRadius: "10px", py: 1.05, color: "#B45309" }}
+                >
+                  End Membership
                 </Button>
               </Box>
             </Paper>
 
-            {/* Quick stats */}
-            <Paper elevation={0} sx={{ p: 2.5, borderRadius: "12px", border: `1px solid ${C.border}` }}>
-              <Typography sx={{ fontSize: "0.72rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.8, mb: 1.5 }}>Quick Info</Typography>
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <Typography sx={{ fontSize: "0.78rem", fontWeight: 700, color: C.muted }}>Total payments</Typography>
-                  <Chip label={member.payments.length} size="small" sx={{ fontWeight: 800, fontSize: "0.78rem", backgroundColor: "#EFF6FF", color: C.navy }} />
-                </Box>
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <Typography sx={{ fontSize: "0.78rem", fontWeight: 700, color: C.muted }}>Payment rate</Typography>
-                  <Typography sx={{ fontSize: "0.85rem", fontWeight: 800, color: C.slate }}>
-                    {member.finalPrice > 0 ? `${Math.round((member.paidAmount / member.finalPrice) * 100)}%` : "0%"}
-                  </Typography>
-                </Box>
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <Typography sx={{ fontSize: "0.78rem", fontWeight: 700, color: C.muted }}>Days remaining</Typography>
-                  <Typography sx={{ fontSize: "0.85rem", fontWeight: 800, color: memberIsActive ? C.green : "#B91C1C" }}>
-                    {Math.max(0, Math.ceil((new Date(member.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))}
-                  </Typography>
-                </Box>
-              </Box>
-            </Paper>
+            {member.membershipClosure && (
+              <Paper elevation={0} sx={{ ...MODULE_CARD_SX, p: 2.1, borderRadius: "12px" }}>
+                <Typography sx={{ fontSize: "0.72rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.8, mb: 1.5 }}>
+                  Closure Summary
+                </Typography>
+                <InfoRow label="Ended On" value={fmtDate(member.membershipClosure.endedOn)} />
+                <InfoRow label="Used Value" value={fmt(member.membershipClosure.usedValue)} />
+                <InfoRow label="Settlement Deduction" value={fmt(member.membershipClosure.settlementDeduction)} />
+                <InfoRow
+                  label={member.membershipClosure.refundableBalance > 0 ? "Refundable Balance" : "Balance Due"}
+                  value={fmt(member.membershipClosure.refundableBalance > 0 ? member.membershipClosure.refundableBalance : member.membershipClosure.payableBalance)}
+                />
+              </Paper>
+            )}
           </Box>
         </Grid>
       </Grid>
@@ -536,11 +625,12 @@ export default function MemberDetailPage() {
         <DialogContent sx={{ px: 3, pb: 1 }}>
           {modalError && <Alert severity="error" sx={{ mb: 2, mt: 1 }}>{modalError}</Alert>}
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
-            <TextField label="Amount" type="number" value={paymentAmount} onChange={(e) => setPaymentAmount(e.target.value)} fullWidth
+            <TextField label="Amount" type="number" value={paymentAmount} onChange={(e) => setPaymentAmount(e.target.value)} fullWidth autoFocus sx={MODULE_FIELD_SX}
               InputProps={{ startAdornment: <InputAdornment position="start">Rs.</InputAdornment> }}
+              inputProps={{ min: 1, max: Math.max(member.pendingAmount, 0), onWheel: preventNumberScroll }}
               helperText={member.pendingAmount > 0 ? `Pending: ${fmt(member.pendingAmount)}` : ""} />
-            <TextField label="Payment Date" type="date" value={paymentDate} onChange={(e) => setPaymentDate(e.target.value)} fullWidth InputLabelProps={{ shrink: true }} />
-            <TextField label="Note (optional)" value={paymentNote} onChange={(e) => setPaymentNote(e.target.value)} fullWidth multiline rows={2} />
+            <TextField label="Payment Date" type="date" value={paymentDate} onChange={(e) => setPaymentDate(e.target.value)} fullWidth sx={MODULE_FIELD_SX} InputLabelProps={{ shrink: true }} />
+            <TextField label="Note (optional)" value={paymentNote} onChange={(e) => setPaymentNote(e.target.value)} fullWidth multiline rows={2} sx={MODULE_FIELD_SX} />
           </Box>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 3, pt: 2, gap: 1 }}>
@@ -565,22 +655,22 @@ export default function MemberDetailPage() {
               <Box sx={{ p: 2, backgroundColor: "#EFF6FF", borderRadius: "10px", border: "1px solid #BFDBFE" }}>
                 <Typography sx={{ fontSize: "0.78rem", fontWeight: 800, color: "#1D4ED8", mb: 0.5 }}>Mid-cycle plan change</Typography>
                 <Typography sx={{ fontSize: "0.75rem", color: "#1E40AF", fontWeight: 600 }}>
-                  {Math.max(0, Math.ceil((new Date(member.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))} unused days. Credit of {fmt(proratedCredit)} deducted from new plan price.
+                  Credit is now based on funded value already paid, after settling the portion already used.
                 </Typography>
               </Box>
             )}
-            <TextField select label="Plan" value={renewPlanId} onChange={(e) => handleRenewPlanChange(e.target.value)} fullWidth>
+              <TextField select label="Plan" value={renewPlanId} onChange={(e) => handleRenewPlanChange(e.target.value)} fullWidth autoFocus sx={MODULE_FIELD_SX}>
               {plans.map((plan) => <MenuItem key={plan._id} value={plan._id}>{plan.name} - {fmt(plan.basePrice)} / {plan.durationDays} days</MenuItem>)}
             </TextField>
-            <TextField select label="Slot" value={renewSlotId} onChange={(e) => handleRenewSlotChange(e.target.value)} fullWidth>
+              <TextField select label="Slot" value={renewSlotId} onChange={(e) => handleRenewSlotChange(e.target.value)} fullWidth sx={MODULE_FIELD_SX}>
               {slots.map((slot) => <MenuItem key={slot._id} value={slot._id}>{slot.label} ({slot.startTime} - {slot.endTime})</MenuItem>)}
             </TextField>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
-                <TextField label="Start Date" type="date" value={renewStartDate} onChange={(e) => { setRenewStartDate(e.target.value); const p = plans.find(pl => pl._id === renewPlanId); if (p) setRenewEndDate(addDays(e.target.value, p.durationDays)); }} fullWidth InputLabelProps={{ shrink: true }} />
+                <TextField label="Start Date" type="date" value={renewStartDate} onChange={(e) => { setRenewStartDate(e.target.value); const p = plans.find(pl => pl._id === renewPlanId); if (p) setRenewEndDate(addDays(e.target.value, p.durationDays)); }} fullWidth sx={MODULE_FIELD_SX} InputLabelProps={{ shrink: true }} disabled={isUpgrade} helperText={isUpgrade ? "Plan changes start from today" : undefined} />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField label="End Date" type="date" value={renewEndDate} fullWidth InputLabelProps={{ shrink: true }} disabled helperText="Auto-calculated" />
+                <TextField label="End Date" type="date" value={renewEndDate} fullWidth sx={MODULE_FIELD_SX} InputLabelProps={{ shrink: true }} disabled helperText="Auto-calculated" />
               </Grid>
             </Grid>
             {isUpgrade && newPlanPrice > 0 && (
@@ -591,13 +681,29 @@ export default function MemberDetailPage() {
                   <Typography sx={{ fontSize: "0.78rem", fontWeight: 700 }}>{fmt(newPlanPrice)}</Typography>
                 </Box>
                 <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.75 }}>
-                  <Typography sx={{ fontSize: "0.78rem", color: C.muted, fontWeight: 600 }}>Unused days credit</Typography>
+                  <Typography sx={{ fontSize: "0.78rem", color: C.muted, fontWeight: 600 }}>Paid + credit balance</Typography>
+                  <Typography sx={{ fontSize: "0.78rem", fontWeight: 700 }}>{fmt(member.paidAmount + (member.creditBalance || 0))}</Typography>
+                </Box>
+                <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.75 }}>
+                  <Typography sx={{ fontSize: "0.78rem", color: C.muted, fontWeight: 600 }}>Used value</Typography>
+                  <Typography sx={{ fontSize: "0.78rem", fontWeight: 700 }}>{fmt(planChangeUsedValue)}</Typography>
+                </Box>
+                <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.75 }}>
+                  <Typography sx={{ fontSize: "0.78rem", color: C.muted, fontWeight: 600 }}>Available credit</Typography>
                   <Typography sx={{ fontSize: "0.78rem", fontWeight: 700, color: C.green }}>- {fmt(proratedCredit)}</Typography>
                 </Box>
+                {planChangeShortfall > 0 && (
+                  <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.75 }}>
+                    <Typography sx={{ fontSize: "0.78rem", color: C.muted, fontWeight: 600 }}>Used portion still to settle</Typography>
+                    <Typography sx={{ fontSize: "0.78rem", fontWeight: 700, color: C.red }}>{fmt(planChangeShortfall)}</Typography>
+                  </Box>
+                )}
                 <Divider sx={{ my: 0.75 }} />
                 <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                   <Typography sx={{ fontSize: "0.78rem", fontWeight: 800 }}>Amount due</Typography>
-                  <Typography sx={{ fontSize: "0.78rem", fontWeight: 800, color: "#1D4ED8" }}>{fmt(Math.max(0, newPlanPrice - proratedCredit))}</Typography>
+                  <Typography sx={{ fontSize: "0.78rem", fontWeight: 800, color: "#1D4ED8" }}>
+                    {fmt(Math.max(0, newPlanPrice - proratedCredit + planChangeShortfall))}
+                  </Typography>
                 </Box>
               </Box>
             )}
@@ -607,12 +713,14 @@ export default function MemberDetailPage() {
                 <Typography sx={{ fontSize: "0.75rem", color: C.muted, fontWeight: 600 }}>Calculating price...</Typography>
               </Box>
             )}
-            <TextField label="Final Price for this period" type="number" value={renewFinalPrice} onChange={(e) => setRenewFinalPrice(e.target.value)} fullWidth
+            <TextField label="Final Price for this period" type="number" value={renewFinalPrice} onChange={(e) => setRenewFinalPrice(e.target.value)} fullWidth sx={MODULE_FIELD_SX}
               InputProps={{ startAdornment: <InputAdornment position="start">Rs.</InputAdornment> }}
+              inputProps={{ onWheel: preventNumberScroll }}
               helperText="Auto-calculated. Override if needed." />
-            <TextField label="Payment collected now (optional)" type="number" value={renewPayment} onChange={(e) => setRenewPayment(e.target.value)} fullWidth
+            <TextField label="Payment collected now (optional)" type="number" value={renewPayment} onChange={(e) => setRenewPayment(e.target.value)} fullWidth sx={MODULE_FIELD_SX}
               InputProps={{ startAdornment: <InputAdornment position="start">Rs.</InputAdornment> }}
-              helperText={isUpgrade ? "Pre-filled with amount due after credit" : "Leave blank if no payment now"} />
+              inputProps={{ min: 0, max: Math.max(renewPayableAmount, 0), onWheel: preventNumberScroll }}
+              helperText={isUpgrade ? `Payable after settlement: ${fmt(renewPayableAmount)}` : "Leave blank if no payment now"} />
           </Box>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 3, pt: 2, gap: 1 }}>
@@ -631,16 +739,109 @@ export default function MemberDetailPage() {
         <DialogContent sx={{ px: 3, pb: 1 }}>
           {modalError && <Alert severity="error" sx={{ mb: 2, mt: 1 }}>{modalError}</Alert>}
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
-            <TextField label="Full Name" value={editName} onChange={(e) => setEditName(e.target.value)} fullWidth autoFocus />
-            <TextField label="Mobile" value={editMobile} onChange={(e) => setEditMobile(e.target.value)} fullWidth />
-            <TextField label="Email (optional)" type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} fullWidth />
-            <TextField label="Notes (optional)" value={editNotes} onChange={(e) => setEditNotes(e.target.value)} fullWidth multiline rows={3} />
+            <TextField label="Full Name" value={editName} onChange={(e) => setEditName(e.target.value)} fullWidth autoFocus sx={MODULE_FIELD_SX} />
+            <TextField label="Mobile" value={editMobile} onChange={(e) => setEditMobile(e.target.value)} fullWidth sx={MODULE_FIELD_SX} />
+            <TextField label="Email (optional)" type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} fullWidth sx={MODULE_FIELD_SX} />
+            <TextField label="Notes (optional)" value={editNotes} onChange={(e) => setEditNotes(e.target.value)} fullWidth multiline rows={3} sx={MODULE_FIELD_SX} />
           </Box>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 3, pt: 2, gap: 1 }}>
           <Button onClick={closeModal} disabled={isSubmitting} color="inherit">Cancel</Button>
           <Button variant="contained" onClick={handleEdit} disabled={isSubmitting} sx={{ fontWeight: 700 }}>
             {isSubmitting ? <CircularProgress size={20} color="inherit" /> : "Save Changes"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={activeModal === "end"} onClose={closeModal} maxWidth="sm" fullWidth
+        PaperProps={{ elevation: 0, sx: { borderRadius: "16px", border: `1px solid ${C.border}` } }}
+      >
+        <DialogTitle sx={{ fontWeight: 800, fontSize: "1rem", pt: 2.5, pb: 1, px: 3 }}>
+          End Membership
+        </DialogTitle>
+        <DialogContent sx={{ px: 3, pb: 1 }}>
+          {modalError && <Alert severity="error" sx={{ mb: 2, mt: 1 }}>{modalError}</Alert>}
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
+            <TextField
+              label="Effective End Date"
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              fullWidth
+              autoFocus
+              sx={MODULE_FIELD_SX}
+              InputLabelProps={{ shrink: true }}
+            />
+            <TextField
+              label="Settlement Deduction"
+              type="number"
+              value={settlementDeduction}
+              onChange={(e) => setSettlementDeduction(e.target.value)}
+              fullWidth
+              sx={MODULE_FIELD_SX}
+              InputProps={{ startAdornment: <InputAdornment position="start">Rs.</InputAdornment> }}
+              inputProps={{ min: 0, onWheel: preventNumberScroll }}
+              helperText="Optional deduction before final refund or settlement."
+            />
+            <Paper elevation={0} sx={{ ...MODULE_CARD_SX, p: 2, borderRadius: "12px", backgroundColor: C.surface }}>
+              <Typography sx={{ fontSize: "0.78rem", fontWeight: 800, color: C.slate, mb: 1.25 }}>
+                Settlement Preview
+              </Typography>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
+                  <Typography sx={{ fontSize: "0.82rem", color: C.muted, fontWeight: 600 }}>Plan</Typography>
+                  <Typography sx={{ fontSize: "0.82rem", color: C.slate, fontWeight: 700 }}>{member.planSnapshot.name}</Typography>
+                </Box>
+                <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
+                  <Typography sx={{ fontSize: "0.82rem", color: C.muted, fontWeight: 600 }}>Used Value</Typography>
+                  <Typography sx={{ fontSize: "0.82rem", color: C.slate, fontWeight: 700 }}>{fmt(closureUsedValue)}</Typography>
+                </Box>
+                <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
+                  <Typography sx={{ fontSize: "0.82rem", color: C.muted, fontWeight: 600 }}>Paid + Credit Balance</Typography>
+                  <Typography sx={{ fontSize: "0.82rem", color: C.slate, fontWeight: 700 }}>{fmt(closurePaidAndCredit)}</Typography>
+                </Box>
+                <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
+                  <Typography sx={{ fontSize: "0.82rem", color: C.muted, fontWeight: 600 }}>Settlement Deduction</Typography>
+                  <Typography sx={{ fontSize: "0.82rem", color: C.slate, fontWeight: 700 }}>{fmt(closureDeductionValue)}</Typography>
+                </Box>
+                <Divider sx={{ my: 0.5 }} />
+                <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
+                  <Typography sx={{ fontSize: "0.82rem", color: C.slate, fontWeight: 800 }}>
+                    {closureRefundableBalance > 0 ? "Refundable Balance" : "Balance Due"}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: "0.9rem",
+                      color: closureRefundableBalance > 0 ? C.green : "#B91C1C",
+                      fontWeight: 900,
+                    }}
+                  >
+                    {fmt(closureRefundableBalance > 0 ? closureRefundableBalance : closurePayableBalance)}
+                  </Typography>
+                </Box>
+              </Box>
+            </Paper>
+            <TextField
+              label="Notes (optional)"
+              value={endNote}
+              onChange={(e) => setEndNote(e.target.value)}
+              fullWidth
+              multiline
+              rows={3}
+              sx={MODULE_FIELD_SX}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 3, pt: 2, gap: 1 }}>
+          <Button onClick={closeModal} disabled={isSubmitting} color="inherit">Cancel</Button>
+          <Button
+            variant="contained"
+            color="warning"
+            onClick={handleEndMembership}
+            disabled={isSubmitting}
+            sx={{ fontWeight: 700 }}
+          >
+            {isSubmitting ? <CircularProgress size={20} color="inherit" /> : "Confirm End Membership"}
           </Button>
         </DialogActions>
       </Dialog>

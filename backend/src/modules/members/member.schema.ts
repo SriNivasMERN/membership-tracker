@@ -123,7 +123,24 @@ export const renewMemberSchema = z.object({
     .optional(),
 });
 
+export const endMembershipSchema = z.object({
+  effectiveEndDate: z
+    .string()
+    .min(1, "Effective end date is required"),
+
+  settlementDeduction: z
+    .number()
+    .min(0, "Settlement deduction cannot be negative")
+    .optional(),
+
+  note: z
+    .string()
+    .max(300, "Note cannot exceed 300 characters")
+    .optional(),
+});
+
 export type CreateMemberInput = z.infer<typeof createMemberSchema>;
 export type UpdateMemberInput = z.infer<typeof updateMemberSchema>;
 export type AddPaymentInput = z.infer<typeof addPaymentSchema>;
 export type RenewMemberInput = z.infer<typeof renewMemberSchema>;
+export type EndMembershipInput = z.infer<typeof endMembershipSchema>;

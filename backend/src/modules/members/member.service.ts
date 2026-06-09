@@ -16,6 +16,7 @@ import {
   UpdateMemberInput,
   AddPaymentInput,
   RenewMemberInput,
+  EndMembershipInput,
 } from "./member.schema";
 
 const getExpiryAlertDays = async (businessId: string): Promise<number> => {
@@ -30,8 +31,12 @@ export const attachComputedFields = (
   expiryAlertDays: number
 ) => {
   const paidAmount = calculatePaidAmount(member.payments);
-  const pendingAmount = calculatePendingAmount(member.finalPrice, member.payments);
-  const status = deriveMemberStatus(member.startDate, member.endDate, expiryAlertDays);
+  const pendingAmount = member.membershipClosure
+    ? member.membershipClosure.payableBalance
+    : calculatePendingAmount(member.finalPrice, member.payments);
+  const status = member.membershipClosure
+    ? "ended"
+    : deriveMemberStatus(member.startDate, member.endDate, expiryAlertDays);
   return { ...member.toObject(), paidAmount, pendingAmount, status };
 };
 
@@ -112,6 +117,7 @@ export const memberService = {
       startDate: new Date(input.startDate),
       endDate,
       finalPrice,
+      creditBalance: 0,
       payments,
       notes: input.notes,
       createdBy: new mongoose.Types.ObjectId(userId),
@@ -265,6 +271,11 @@ export const memberService = {
 
     if (!member) throw new AppError("Member not found", 404);
 
+    const pendingAmount = calculatePendingAmount(member.finalPrice, member.payments);
+    if (input.amount > pendingAmount) {
+      throw new AppError(`Payment cannot exceed pending amount of ${pendingAmount}`, 400);
+    }
+
     member.payments.push({
       amount: input.amount,
       paidOn: new Date(input.paidOn),
@@ -292,6 +303,14 @@ export const memberService = {
     });
 
     if (!member) throw new AppError("Member not found", 404);
+
+    const expiryAlertDays = await getExpiryAlertDays(businessId);
+    const currentStatus = deriveMemberStatus(
+      member.startDate,
+      member.endDate,
+      expiryAlertDays
+    );
+    const isPlanChange = currentStatus === "active" || currentStatus === "expiring_soon";
 
     const planId = input.planId || member.planSnapshot.planId.toString();
     const slotId = input.slotId || member.slotSnapshot.slotId.toString();
@@ -323,8 +342,47 @@ export const memberService = {
       );
     }
 
-    const newStartDate = new Date(input.startDate);
-    const newEndDate = calculateEndDate(input.startDate, plan.durationDays);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+    const effectiveStartDate = isPlanChange ? todayString : input.startDate;
+    const newStartDate = new Date(effectiveStartDate);
+    const newEndDate = calculateEndDate(effectiveStartDate, plan.durationDays);
+
+    let availableCredit = member.creditBalance ?? 0;
+    let currentPlanShortfall = 0;
+    if (isPlanChange) {
+      const currentStartDate = new Date(member.startDate);
+      currentStartDate.setHours(0, 0, 0, 0);
+
+      const dayMs = 1000 * 60 * 60 * 24;
+      const usedDays = Math.min(
+        member.planSnapshot.durationDays,
+        Math.max(
+          1,
+          Math.floor((today.getTime() - currentStartDate.getTime()) / dayMs) + 1
+        )
+      );
+      const usedValue = Math.round(
+        (member.finalPrice / member.planSnapshot.durationDays) * usedDays
+      );
+      const totalFundedValue =
+        calculatePaidAmount(member.payments) + (member.creditBalance ?? 0);
+
+      availableCredit = Math.max(0, totalFundedValue - usedValue);
+      currentPlanShortfall = Math.max(0, usedValue - totalFundedValue);
+    }
+
+    const appliedCredit = Math.min(availableCredit, finalPrice);
+    const remainingCreditBalance = Math.max(0, availableCredit - appliedCredit);
+    const payableAfterCredit = Math.max(
+      0,
+      finalPrice - appliedCredit + currentPlanShortfall
+    );
+    if (input.initialPayment !== undefined && input.initialPayment > payableAfterCredit) {
+      throw new AppError(`Payment cannot exceed payable amount of ${payableAfterCredit}`, 400);
+    }
 
     member.planSnapshot = {
       planId: plan._id as mongoose.Types.ObjectId,
@@ -343,16 +401,106 @@ export const memberService = {
     member.startDate = newStartDate;
     member.endDate = newEndDate;
     member.finalPrice = finalPrice;
+    member.creditBalance = remainingCreditBalance;
     member.updatedBy = new mongoose.Types.ObjectId(userId);
+    member.payments = [];
+
+    if (appliedCredit > 0) {
+      member.payments.push({
+        amount: appliedCredit,
+        paidOn: newStartDate,
+        note: "Credit applied",
+        recordedBy: new mongoose.Types.ObjectId(userId),
+      });
+    }
 
     if (input.initialPayment && input.initialPayment > 0) {
+      const paymentAppliedToNewPlan = Math.max(
+        0,
+        input.initialPayment - currentPlanShortfall
+      );
+
+      if (paymentAppliedToNewPlan > 0) {
       member.payments.push({
-        amount: input.initialPayment,
+        amount: paymentAppliedToNewPlan,
         paidOn: new Date(),
         note: "Renewal payment",
         recordedBy: new mongoose.Types.ObjectId(userId),
       });
+      }
     }
+
+    await member.save();
+    return attachComputedFields(member, expiryAlertDays);
+  },
+
+  async endMembership(
+    memberId: string,
+    businessId: string,
+    userId: string,
+    input: EndMembershipInput
+  ) {
+    const member = await Member.findOne({
+      _id: new mongoose.Types.ObjectId(memberId),
+      businessId: new mongoose.Types.ObjectId(businessId),
+      isDeleted: false,
+    });
+
+    if (!member) throw new AppError("Member not found", 404);
+
+    const effectiveEndDate = new Date(input.effectiveEndDate);
+    effectiveEndDate.setHours(0, 0, 0, 0);
+
+    const currentStartDate = new Date(member.startDate);
+    currentStartDate.setHours(0, 0, 0, 0);
+
+    const currentEndDate = new Date(member.endDate);
+    currentEndDate.setHours(0, 0, 0, 0);
+
+    if (effectiveEndDate < currentStartDate) {
+      throw new AppError("End date cannot be before the membership start date", 400);
+    }
+
+    if (effectiveEndDate > currentEndDate) {
+      throw new AppError("End date cannot be after the current renewal date", 400);
+    }
+
+    const dayMs = 1000 * 60 * 60 * 24;
+    const usedDays = Math.min(
+      member.planSnapshot.durationDays,
+      Math.max(
+        1,
+        Math.floor((effectiveEndDate.getTime() - currentStartDate.getTime()) / dayMs) + 1
+      )
+    );
+    const usedValue = Math.round(
+      (member.finalPrice / member.planSnapshot.durationDays) * usedDays
+    );
+    const paidAmount = calculatePaidAmount(member.payments);
+    const existingCredit = member.creditBalance ?? 0;
+    const settlementDeduction = input.settlementDeduction ?? 0;
+    const totalAvailableValue = paidAmount + existingCredit;
+    const refundableBalance = Math.max(
+      0,
+      totalAvailableValue - usedValue - settlementDeduction
+    );
+    const payableBalance = Math.max(
+      0,
+      usedValue + settlementDeduction - totalAvailableValue
+    );
+
+    member.endDate = effectiveEndDate;
+    member.creditBalance = 0;
+    member.membershipClosure = {
+      endedOn: effectiveEndDate,
+      usedValue,
+      settlementDeduction,
+      refundableBalance,
+      payableBalance,
+      note: input.note,
+      closedBy: new mongoose.Types.ObjectId(userId),
+    };
+    member.updatedBy = new mongoose.Types.ObjectId(userId);
 
     await member.save();
 

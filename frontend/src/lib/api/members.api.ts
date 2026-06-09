@@ -63,4 +63,16 @@ export const membersApi = {
     const response = await api.post(`/members/${id}/renew`, data);
     return response.data;
   },
+
+  endMembership: async (
+    id: string,
+    data: {
+      effectiveEndDate: string;
+      settlementDeduction?: number;
+      note?: string;
+    }
+  ) => {
+    const response = await api.post(`/members/${id}/end`, data);
+    return response.data;
+  },
 };

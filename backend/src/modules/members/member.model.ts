@@ -24,6 +24,16 @@ export interface ISlotSnapshot {
   endTime: string;
 }
 
+export interface IMembershipClosure {
+  endedOn: Date;
+  usedValue: number;
+  settlementDeduction: number;
+  refundableBalance: number;
+  payableBalance: number;
+  note?: string;
+  closedBy: mongoose.Types.ObjectId;
+}
+
 // Full member interface
 export interface IMember {
   businessId: mongoose.Types.ObjectId;
@@ -36,7 +46,9 @@ export interface IMember {
   startDate: Date;
   endDate: Date;
   finalPrice: number;
+  creditBalance: number;
   payments: IPaymentEntry[];
+  membershipClosure?: IMembershipClosure;
   notes?: string;
   isDeleted: boolean;
   createdBy: mongoose.Types.ObjectId;
@@ -93,6 +105,44 @@ const slotSnapshotSchema = new Schema<ISlotSnapshot>(
   { _id: false }
 );
 
+const membershipClosureSchema = new Schema<IMembershipClosure>(
+  {
+    endedOn: {
+      type: Date,
+      required: true,
+    },
+    usedValue: {
+      type: Number,
+      required: true,
+      min: [0, "Used value cannot be negative"],
+    },
+    settlementDeduction: {
+      type: Number,
+      required: true,
+      min: [0, "Settlement deduction cannot be negative"],
+    },
+    refundableBalance: {
+      type: Number,
+      required: true,
+      min: [0, "Refundable balance cannot be negative"],
+    },
+    payableBalance: {
+      type: Number,
+      required: true,
+      min: [0, "Payable balance cannot be negative"],
+    },
+    note: {
+      type: String,
+      trim: true,
+    },
+    closedBy: {
+      type: Schema.Types.ObjectId,
+      required: true,
+    },
+  },
+  { _id: false }
+);
+
 // Main member schema
 const memberSchema = new Schema<IMemberDocument>(
   {
@@ -139,9 +189,17 @@ const memberSchema = new Schema<IMemberDocument>(
       required: [true, "Final price is required"],
       min: [0, "Final price cannot be negative"],
     },
+    creditBalance: {
+      type: Number,
+      default: 0,
+      min: [0, "Credit balance cannot be negative"],
+    },
     payments: {
       type: [paymentEntrySchema],
       default: [],
+    },
+    membershipClosure: {
+      type: membershipClosureSchema,
     },
     notes: {
       type: String,

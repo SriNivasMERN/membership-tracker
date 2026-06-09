@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, type WheelEvent } from "react";
 import {
   Box,
   Paper,
@@ -36,6 +36,23 @@ import { Plan, PlanFormData } from "@/types/plan.types";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
+import {
+  MODULE_ACTION_ICON_SX,
+  MODULE_CARD_SX,
+  MODULE_COLORS,
+  MODULE_DIALOG_ACTIONS_SX,
+  MODULE_DIALOG_CONTENT_SX,
+  MODULE_DIALOG_PAPER_SX,
+  MODULE_DIALOG_TITLE_SX,
+  MODULE_FIELD_SX,
+  MODULE_NEUTRAL_CHIP_SX,
+  MODULE_PAGE_SX,
+  MODULE_SUCCESS_CHIP_SX,
+  MODULE_TABLE_HEAD_CELL_SX,
+  MODULE_TABLE_ROW_SX,
+  MODULE_WARNING_CHIP_SX,
+  ModuleSummaryStat,
+} from "@/components/ui/moduleStyles";
 
 // ─── Empty form state ─────────────────────────────────────────────────────────
 
@@ -47,51 +64,18 @@ const EMPTY_FORM: PlanFormData = {
 };
 
 const C = {
-  navy: "#1E3A5F",
-  slate: "#334155",
-  muted: "#64748B",
-  border: "#E2E8F0",
-  surface: "#F8FAFC",
-  green: "#15803D",
-  red: "#B91C1C",
-  amber: "#92400E",
+  navy: MODULE_COLORS.ink,
+  slate: MODULE_COLORS.slate,
+  muted: MODULE_COLORS.muted,
+  border: MODULE_COLORS.border,
+  surface: MODULE_COLORS.surface,
+  green: MODULE_COLORS.green,
+  red: MODULE_COLORS.red,
+  amber: MODULE_COLORS.amber,
 };
 
-function SummaryStat({
-  label,
-  value,
-  tone = "default",
-}: {
-  label: string;
-  value: string;
-  tone?: "default" | "success" | "warning";
-}) {
-  const styles =
-    tone === "success"
-      ? { backgroundColor: "#F0FDF4", borderColor: "#BBF7D0", valueColor: C.green }
-      : tone === "warning"
-        ? { backgroundColor: "#FFFBEB", borderColor: "#FDE68A", valueColor: C.amber }
-        : { backgroundColor: "#EFF6FF", borderColor: "#BFDBFE", valueColor: C.navy };
-
-  return (
-    <Paper
-      elevation={0}
-      sx={{
-        p: 1.4,
-        borderRadius: "14px",
-        border: `1px solid ${styles.borderColor}`,
-        backgroundColor: styles.backgroundColor,
-        minWidth: 132,
-      }}
-    >
-      <Typography sx={{ fontSize: "0.72rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>
-        {label}
-      </Typography>
-      <Typography sx={{ mt: 0.45, fontSize: "1.08rem", fontWeight: 900, color: styles.valueColor }}>
-        {value}
-      </Typography>
-    </Paper>
-  );
+function preventNumberScroll(event: WheelEvent<HTMLInputElement>) {
+  event.currentTarget.blur();
 }
 
 // ─── Plan Form Dialog ─────────────────────────────────────────────────────────
@@ -181,13 +165,13 @@ function PlanFormDialog({
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth
-      PaperProps={{ elevation: 0, sx: { borderRadius: "16px", border: "1px solid #E2E8F0" } }}
+      PaperProps={{ elevation: 0, sx: MODULE_DIALOG_PAPER_SX }}
     >
-      <DialogTitle sx={{ pb: 1, pt: 2.5, px: 3, fontWeight: 700, fontSize: "1rem", color: "#111827" }}>
+      <DialogTitle sx={MODULE_DIALOG_TITLE_SX}>
         {isEdit ? "Edit Plan" : "Add New Plan"}
       </DialogTitle>
 
-      <DialogContent sx={{ px: 3, pb: 1 }}>
+      <DialogContent sx={MODULE_DIALOG_CONTENT_SX}>
         {apiError && (
           <Alert severity="error" sx={{ mb: 2, mt: 1 }}>{apiError}</Alert>
         )}
@@ -202,6 +186,7 @@ function PlanFormDialog({
             fullWidth
             placeholder="e.g. Monthly Plan, Quarterly Plan"
             autoFocus
+            sx={MODULE_FIELD_SX}
           />
 
           <TextField
@@ -219,6 +204,8 @@ function PlanFormDialog({
                 </InputAdornment>
               ),
             }}
+            inputProps={{ onWheel: preventNumberScroll }}
+            sx={MODULE_FIELD_SX}
           />
 
           <TextField
@@ -234,6 +221,8 @@ function PlanFormDialog({
                 <InputAdornment position="start">Rs.</InputAdornment>
               ),
             }}
+            inputProps={{ onWheel: preventNumberScroll }}
+            sx={MODULE_FIELD_SX}
           />
 
           <TextField
@@ -244,11 +233,12 @@ function PlanFormDialog({
             multiline
             rows={2}
             placeholder="Brief description of what this plan includes"
+            sx={MODULE_FIELD_SX}
           />
         </Box>
       </DialogContent>
 
-      <DialogActions sx={{ px: 3, pb: 3, pt: 2, gap: 1 }}>
+      <DialogActions sx={MODULE_DIALOG_ACTIONS_SX}>
         <Button onClick={onClose} disabled={isSubmitting} color="inherit">
           Cancel
         </Button>
@@ -358,16 +348,16 @@ export default function PlansPage() {
   const pricedPlans = plans.filter((p) => p.basePrice > 0).length;
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 2.25 }}>
+    <Box sx={MODULE_PAGE_SX}>
       <Box sx={{ display: "flex", alignItems: { xs: "flex-start", lg: "center" }, justifyContent: "space-between", flexDirection: { xs: "column", lg: "row" }, gap: 1.5 }}>
         <Box sx={{ flex: 1, display: "flex", justifyContent: { xs: "flex-start", lg: "center" } }}>
           <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
             {!isLoading ? (
               <>
-                <SummaryStat label="Overall Plans" value={String(plans.length)} />
-                <SummaryStat label="Active" value={String(activePlans)} tone="success" />
-                <SummaryStat label="Inactive" value={String(inactivePlans)} tone="warning" />
-                <SummaryStat label="Priced Plans" value={String(pricedPlans)} />
+                <ModuleSummaryStat label="Overall Plans" value={String(plans.length)} />
+                <ModuleSummaryStat label="Active" value={String(activePlans)} tone="success" />
+                <ModuleSummaryStat label="Inactive" value={String(inactivePlans)} tone="warning" />
+                <ModuleSummaryStat label="Priced Plans" value={String(pricedPlans)} />
               </>
             ) : (
               <>
@@ -393,9 +383,7 @@ export default function PlansPage() {
       <Paper
         elevation={0}
         sx={{
-          borderRadius: "16px",
-          border: `1px solid ${C.border}`,
-          boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+          ...MODULE_CARD_SX,
           overflow: "hidden",
         }}
       >
@@ -407,13 +395,7 @@ export default function PlansPage() {
                   <TableCell
                     key={h}
                     sx={{
-                      fontWeight: 800,
-                      fontSize: "0.72rem",
-                      color: C.slate,
-                      py: 1.45,
-                      borderBottom: `1px solid ${C.border}`,
-                      letterSpacing: 0.5,
-                      textTransform: "uppercase",
+                      ...MODULE_TABLE_HEAD_CELL_SX,
                     }}
                   >
                     {h}
@@ -449,8 +431,8 @@ export default function PlansPage() {
                   <TableRow
                     key={plan._id}
                     sx={{
+                      ...MODULE_TABLE_ROW_SX,
                       "&:last-child td": { border: 0 },
-                      "&:hover": { backgroundColor: "#F8FAFF" },
                       opacity: plan.isActive ? 1 : 0.6,
                     }}
                   >
@@ -481,14 +463,7 @@ export default function PlansPage() {
                       <Chip
                         label={plan.isActive ? "Active" : "Inactive"}
                         size="small"
-                        sx={{
-                          height: 26,
-                          fontSize: "0.72rem",
-                          fontWeight: 800,
-                          backgroundColor: plan.isActive ? "#F0FDF4" : "#F9FAFB",
-                          color: plan.isActive ? C.green : "#6B7280",
-                          border: `1px solid ${plan.isActive ? "#BBF7D0" : "#E5E7EB"}`,
-                        }}
+                        sx={plan.isActive ? MODULE_SUCCESS_CHIP_SX : MODULE_NEUTRAL_CHIP_SX}
                       />
                     </TableCell>
 
@@ -498,7 +473,7 @@ export default function PlansPage() {
                           <IconButton
                             size="small"
                             onClick={() => handleEdit(plan)}
-                            sx={{ color: "#6B7280", "&:hover": { color: "#1D4ED8", backgroundColor: "#EFF6FF" } }}
+                            sx={MODULE_ACTION_ICON_SX}
                           >
                             <EditOutlined sx={{ fontSize: 17 }} />
                           </IconButton>
@@ -508,13 +483,7 @@ export default function PlansPage() {
                           <IconButton
                             size="small"
                             onClick={() => handleToggleConfirm(plan)}
-                            sx={{
-                              color: "#6B7280",
-                              "&:hover": {
-                                color: plan.isActive ? "#B45309" : "#15803D",
-                                backgroundColor: plan.isActive ? "#FFFBEB" : "#F0FDF4",
-                              },
-                            }}
+                            sx={MODULE_ACTION_ICON_SX}
                           >
                             <PowerSettingsNewOutlined sx={{ fontSize: 17 }} />
                           </IconButton>
@@ -524,7 +493,7 @@ export default function PlansPage() {
                           <IconButton
                             size="small"
                             onClick={() => handleDeleteConfirm(plan)}
-                            sx={{ color: "#6B7280", "&:hover": { color: "#DC2626", backgroundColor: "#FEF2F2" } }}
+                            sx={MODULE_ACTION_ICON_SX}
                           >
                             <DeleteOutlined sx={{ fontSize: 17 }} />
                           </IconButton>

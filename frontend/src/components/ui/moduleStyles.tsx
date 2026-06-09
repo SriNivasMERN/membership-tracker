@@ -58,6 +58,43 @@ export const MODULE_CARD_SX: SxProps<Theme> = {
   background: "linear-gradient(180deg, rgba(255,255,255,0.995) 0%, rgba(253,250,246,0.985) 100%)",
 };
 
+export const MODULE_DIALOG_PAPER_SX: SxProps<Theme> = {
+  borderRadius: "18px",
+  border: `1px solid ${MODULE_COLORS.border}`,
+  boxShadow: "0 24px 44px rgba(36,58,87,0.14)",
+  background: "linear-gradient(180deg, rgba(255,255,255,0.996) 0%, rgba(253,250,246,0.988) 100%)",
+};
+
+export const MODULE_DIALOG_TITLE_SX: SxProps<Theme> = {
+  px: 3,
+  pt: 2.5,
+  pb: 1.2,
+  fontWeight: 800,
+  fontSize: "1rem",
+  color: MODULE_COLORS.ink,
+  borderBottom: `1px solid ${MODULE_COLORS.border}`,
+};
+
+export const MODULE_DIALOG_CONTENT_SX: SxProps<Theme> = {
+  px: 3,
+  pb: 1.5,
+};
+
+export const MODULE_DIALOG_ACTIONS_SX: SxProps<Theme> = {
+  px: 3,
+  pb: 3,
+  pt: 2,
+  gap: 1,
+  borderTop: `1px solid ${MODULE_COLORS.border}`,
+};
+
+export const MODULE_INLINE_PANEL_SX: SxProps<Theme> = {
+  p: 1.5,
+  borderRadius: "12px",
+  border: `1px solid ${MODULE_COLORS.border}`,
+  background: "linear-gradient(180deg, rgba(255,255,255,0.995) 0%, rgba(250,246,241,0.97) 100%)",
+};
+
 export const MODULE_TABLE_HEAD_CELL_SX: SxProps<Theme> = {
   fontWeight: 800,
   fontSize: "0.72rem",
@@ -184,9 +221,11 @@ export function ModuleSummaryStat({
 export function ModuleInfoStrip({
   title,
   message,
+  sx,
 }: {
   title: string;
   message: string;
+  sx?: SxProps<Theme>;
 }) {
   return (
     <Paper
@@ -197,6 +236,7 @@ export function ModuleInfoStrip({
         border: "1px solid #DDD1C1",
         background: "linear-gradient(135deg, rgba(255,251,246,0.99) 0%, rgba(250,245,239,0.97) 100%)",
         boxShadow: "0 10px 18px rgba(36,58,87,0.06), inset 0 1px 0 rgba(255,255,255,0.86)",
+        ...sx,
       }}
     >
       <Typography

@@ -82,14 +82,23 @@ export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
     >
       <Box>
         {/* Branding */}
-        <Box sx={{ px: 3, pt: 3, pb: 2 }}>
+        <Box
+          sx={{
+            px: 3,
+            pt: 3,
+            pb: 0,
+            minHeight: 146,
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
           <Typography
             variant="h6"
             sx={{ color: "white", fontWeight: 700, fontSize: "1rem", lineHeight: 1.3, textAlign: "center" }}
           >
             Membership Tracker
           </Typography>
-          <Box sx={{ display: "flex", justifyContent: "center", mt: 1.5 }}>
+          <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", flex: 1 }}>
             <Box
               sx={{
                 width: 46,
@@ -111,7 +120,7 @@ export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
         </Box>
       </Box>
 
-      <Box sx={{ mt: 2.5 }}>
+      <Box>
         <Divider sx={{ borderColor: "rgba(255,255,255,0.1)" }} />
         {/* Navigation */}
         <List sx={{ px: 1.5, py: 2 }}>

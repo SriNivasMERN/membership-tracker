@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, type WheelEvent } from "react";
 import {
   Box,
   Grid,
@@ -48,30 +48,41 @@ const DEFAULT_FORM: SettingsFormData = {
 };
 
 const C = {
-  navy: "#1E3A5F",
-  slate: "#334155",
-  muted: "#64748B",
-  border: "#E2E8F0",
-  surface: "#F8FAFC",
-  green: "#15803D",
-  amber: "#92400E",
-  sky: "#1D4ED8",
+  ink: "#243A57",
+  slate: "#27405E",
+  muted: "#2F4764",
+  border: "#EEE6DB",
+  surface: "#FDFBF8",
+  green: "#356548",
+  amber: "#A36A2C",
+  accent: "#355072",
 };
+
+function preventNumberScroll(event: WheelEvent<HTMLInputElement>) {
+  event.currentTarget.blur();
+}
 
 const FIELD_SX = {
   "& .MuiOutlinedInput-root": {
     borderRadius: "14px",
-    background: "linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(248,251,255,0.92) 100%)",
+    background: "linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(254,252,249,0.985) 100%)",
     boxShadow: "inset 0 1px 0 rgba(255,255,255,0.9)",
-    border: "1px solid rgba(191,219,254,0.5)",
+    border: "1px solid rgba(221,211,197,0.78)",
   },
   "& .MuiInputLabel-root": {
+    fontWeight: 700,
+    color: "#27405E",
+  },
+  "& .MuiInputBase-input": {
     fontWeight: 600,
-    color: "#475569",
+    color: C.ink,
   },
   "& .MuiFormHelperText-root": {
     fontWeight: 600,
-    color: "#64748B",
+    color: "#27405E",
+    opacity: 1,
+    letterSpacing: 0,
+    fontSize: "0.83rem",
   },
 } as const;
 
@@ -86,10 +97,28 @@ function SummaryStat({
 }) {
   const styles =
     tone === "success"
-      ? { backgroundColor: "#F0FDF4", borderColor: "#BBF7D0", valueColor: C.green }
+      ? {
+          backgroundColor: "#F4FAF5",
+          borderColor: "#C9DFCF",
+          valueColor: C.green,
+          labelColor: "#4A5A6E",
+          shadow: "0 14px 28px rgba(53,101,72,0.08)",
+        }
       : tone === "warning"
-        ? { backgroundColor: "#FFFBEB", borderColor: "#FDE68A", valueColor: C.amber }
-        : { backgroundColor: "#EFF6FF", borderColor: "#BFDBFE", valueColor: C.navy };
+        ? {
+            backgroundColor: "#FCF4E9",
+            borderColor: "#E2CCAF",
+            valueColor: C.amber,
+            labelColor: "#4A5A6E",
+            shadow: "0 14px 28px rgba(163,106,44,0.08)",
+          }
+        : {
+            backgroundColor: "#FCF8F3",
+            borderColor: "#DDD1C1",
+            valueColor: C.ink,
+            labelColor: "#4A5A6E",
+            shadow: "0 14px 28px rgba(36,58,87,0.08)",
+          };
 
   return (
     <Paper
@@ -100,13 +129,13 @@ function SummaryStat({
         border: `1px solid ${styles.borderColor}`,
         background: `linear-gradient(180deg, rgba(255,255,255,0.96) 0%, ${styles.backgroundColor} 100%)`,
         minWidth: 132,
-        boxShadow: "0 10px 22px rgba(30,58,95,0.08)",
+        boxShadow: styles.shadow,
       }}
     >
-      <Typography sx={{ fontSize: "0.72rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>
+      <Typography sx={{ fontSize: "0.71rem", fontWeight: 700, color: styles.labelColor, textTransform: "uppercase", letterSpacing: 0.3 }}>
         {label}
       </Typography>
-      <Typography sx={{ mt: 0.45, fontSize: "1.02rem", fontWeight: 900, color: styles.valueColor }}>
+      <Typography sx={{ mt: 0.5, fontSize: "1.08rem", fontWeight: 800, color: styles.valueColor, lineHeight: 1.15 }}>
         {value}
       </Typography>
     </Paper>
@@ -120,29 +149,32 @@ function Section({
   title,
   subtitle,
   children,
+  sx,
 }: {
   icon: React.ReactNode;
   title: string;
   subtitle: string;
   children: React.ReactNode;
+  sx?: object;
 }) {
   return (
     <Paper
       elevation={0}
       sx={{
         borderRadius: "16px",
-        border: "1px solid rgba(191,219,254,0.65)",
-        boxShadow: "0 16px 32px rgba(30,58,95,0.08)",
-        background: "linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(248,251,255,0.96) 100%)",
+        border: "1px solid rgba(228,216,200,0.92)",
+        boxShadow: "0 16px 32px rgba(36,58,87,0.08)",
+        background: "linear-gradient(180deg, rgba(255,255,255,0.995) 0%, rgba(253,250,246,0.985) 100%)",
         overflow: "hidden",
+        ...sx,
       }}
     >
       <Box
         sx={{
           px: 2.3,
           py: 1.45,
-          background: "linear-gradient(90deg, rgba(239,246,255,0.92) 0%, rgba(248,250,252,0.82) 100%)",
-          borderBottom: "1px solid rgba(191,219,254,0.55)",
+          background: "linear-gradient(90deg, rgba(253,249,244,0.96) 0%, rgba(255,254,252,0.97) 100%)",
+          borderBottom: "1px solid rgba(228,216,200,0.85)",
           display: "flex",
           alignItems: "center",
           gap: 1.5,
@@ -156,19 +188,19 @@ function Section({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            color: C.sky,
-            background: "linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(219,234,254,0.9) 100%)",
-            border: "1px solid rgba(147,197,253,0.6)",
-            boxShadow: "0 8px 18px rgba(59,130,246,0.12)",
+            color: C.accent,
+            background: "linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(243,233,220,0.94) 100%)",
+            border: "1px solid rgba(221,205,184,0.76)",
+            boxShadow: "0 8px 18px rgba(53,80,114,0.12)",
           }}
         >
           {icon}
         </Box>
         <Box>
-          <Typography sx={{ fontWeight: 800, fontSize: "0.86rem", color: "#111827" }}>
+          <Typography sx={{ fontWeight: 700, fontSize: "0.88rem", color: C.ink }}>
             {title}
           </Typography>
-          <Typography sx={{ fontSize: "0.75rem", color: C.muted, fontWeight: 600 }}>
+          <Typography sx={{ fontSize: "0.8rem", color: C.slate, fontWeight: 600, opacity: 1, lineHeight: 1.45 }}>
             {subtitle}
           </Typography>
         </Box>
@@ -311,7 +343,7 @@ export default function SettingsPage() {
         mt: { xs: -1, sm: -1.5 },
         borderRadius: "24px",
         background:
-          "radial-gradient(circle at top left, rgba(191,219,254,0.35) 0%, rgba(255,255,255,0) 32%), linear-gradient(180deg, rgba(248,251,255,0.96) 0%, rgba(238,244,251,0.72) 100%)",
+          "radial-gradient(circle at top left, rgba(236,228,218,0.18) 0%, rgba(255,255,255,0) 34%), linear-gradient(180deg, rgba(254,251,248,0.995) 0%, rgba(250,246,241,0.96) 100%)",
       }}
     >
       <Box sx={{ display: "flex", justifyContent: { xs: "flex-start", lg: "center" } }}>
@@ -325,214 +357,235 @@ export default function SettingsPage() {
 
       {error ? <ErrorState message={error} /> : null}
 
-      <Grid container spacing={1.5}>
-        <Grid item xs={12} lg={9}>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-            <Section
-              icon={<BusinessOutlined sx={{ fontSize: 20 }} />}
-              title="Business Profile"
-              subtitle="Basic business details used across the app"
-            >
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="Business Name"
-                    value={form.businessName}
-                    onChange={(e) => setField("businessName", e.target.value)}
-                    error={!!fieldErrors.businessName}
-                    helperText={fieldErrors.businessName}
-                    fullWidth
-                    sx={FIELD_SX}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    select
-                    label="Business Type"
-                    value={form.businessType}
-                    onChange={(e) => setField("businessType", e.target.value)}
-                    error={!!fieldErrors.businessType}
-                    helperText={fieldErrors.businessType}
-                    fullWidth
-                    sx={FIELD_SX}
-                  >
-                    {BUSINESS_TYPES.map((t) => (
-                      <MenuItem key={t.value} value={t.value}>{t.label}</MenuItem>
-                    ))}
-                  </TextField>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="Email (optional)"
-                    type="email"
-                    value={form.email}
-                    onChange={(e) => setField("email", e.target.value)}
-                    fullWidth
-                    sx={FIELD_SX}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="Phone (optional)"
-                    value={form.phone}
-                    onChange={(e) => setField("phone", e.target.value)}
-                    fullWidth
-                    sx={FIELD_SX}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    label="Address (optional)"
-                    value={form.address}
-                    onChange={(e) => setField("address", e.target.value)}
-                    fullWidth
-                    multiline
-                    rows={2}
-                    sx={FIELD_SX}
-                  />
-                </Grid>
-              </Grid>
-            </Section>
-
-            <Section
-              icon={<LabelOutlined sx={{ fontSize: 20 }} />}
-              title="Terminology"
-              subtitle="Customize labels to match your business language throughout the app"
-            >
-              <Box
-                sx={{
-                  px: 1.5,
-                  py: 1.2,
-                  mb: 2,
-                  background: "linear-gradient(135deg, rgba(255,251,235,0.96) 0%, rgba(255,255,255,0.98) 50%, rgba(254,243,199,0.82) 100%)",
-                  borderRadius: "14px",
-                  border: "1px solid #FCD34D",
-                  boxShadow: "0 10px 18px rgba(245,158,11,0.08), inset 0 1px 0 rgba(255,255,255,0.86)",
-                }}
-              >
-                <Typography sx={{ fontSize: "0.77rem", color: "#92400E", fontWeight: 700, lineHeight: 1.5 }}>
-                  Example - if you run a library, you might use "Membership" instead of "Plan" and "Timing" instead of "Slot".
-                </Typography>
-              </Box>
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={4}>
-                  <TextField
-                    label="Plan Label"
-                    value={form.terminology.planLabel}
-                    onChange={(e) => setTerminology("planLabel", e.target.value)}
-                    error={!!fieldErrors.planLabel}
-                    helperText={fieldErrors.planLabel || 'Default is "Plan"'}
-                    fullWidth
-                    sx={FIELD_SX}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <TextField
-                    label="Slot Label"
-                    value={form.terminology.slotLabel}
-                    onChange={(e) => setTerminology("slotLabel", e.target.value)}
-                    error={!!fieldErrors.slotLabel}
-                    helperText={fieldErrors.slotLabel || 'Default is "Slot"'}
-                    fullWidth
-                    sx={FIELD_SX}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <TextField
-                    label="Member Label"
-                    value={form.terminology.memberLabel}
-                    onChange={(e) => setTerminology("memberLabel", e.target.value)}
-                    error={!!fieldErrors.memberLabel}
-                    helperText={fieldErrors.memberLabel || 'Default is "Member"'}
-                    fullWidth
-                    sx={FIELD_SX}
-                  />
-                </Grid>
-              </Grid>
-            </Section>
-          </Box>
-        </Grid>
-
-        <Grid item xs={12} lg={3}>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-            <Section
-              icon={<AccessTimeOutlined sx={{ fontSize: 20 }} />}
-              title="Expiry Alerts"
-              subtitle="Choose when members start appearing in the renewal alert list"
-            >
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 1.6 }}>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", lg: "minmax(0, 9fr) minmax(0, 3fr)" },
+          gap: 1.5,
+          alignItems: "stretch",
+        }}
+      >
+        <Box>
+          <Section
+            icon={<BusinessOutlined sx={{ fontSize: 20 }} />}
+            title="Business Profile"
+            subtitle="Basic business details used across the app"
+            sx={{ height: "100%" }}
+          >
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
                 <TextField
-                  label="Alert Days Before Expiry"
-                  type="number"
-                  value={form.expiryAlertDays}
-                  onChange={(e) => setField("expiryAlertDays", Number(e.target.value))}
-                  error={!!fieldErrors.expiryAlertDays}
-                  helperText={
-                    fieldErrors.expiryAlertDays ||
-                    "Members within this window appear in the dashboard renewal alert"
-                  }
+                  label="Business Name"
+                  value={form.businessName}
+                  onChange={(e) => setField("businessName", e.target.value)}
+                  autoFocus
+                  error={!!fieldErrors.businessName}
+                  helperText={fieldErrors.businessName}
                   fullWidth
                   sx={FIELD_SX}
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <Typography variant="caption" color="text.secondary">days</Typography>
-                      </InputAdornment>
-                    ),
-                  }}
-                  inputProps={{ min: 1, max: 90 }}
                 />
-
-                <Paper
-                  elevation={0}
-                  sx={{
-                    p: 1.6,
-                    borderRadius: "14px",
-                    border: "1px solid rgba(191,219,254,0.55)",
-                    background: "linear-gradient(135deg, rgba(248,250,252,0.96) 0%, rgba(239,246,255,0.9) 100%)",
-                    display: "flex",
-                    alignItems: "flex-start",
-                    gap: 1.1,
-                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.9)",
-                  }}
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  select
+                  label="Business Type"
+                  value={form.businessType}
+                  onChange={(e) => setField("businessType", e.target.value)}
+                  error={!!fieldErrors.businessType}
+                  helperText={fieldErrors.businessType}
+                  fullWidth
+                  sx={FIELD_SX}
                 >
-                  <CheckCircleOutlined sx={{ fontSize: 18, color: "#1D4ED8", mt: 0.15 }} />
-                  <Typography sx={{ fontSize: "0.8rem", color: C.slate, fontWeight: 600, lineHeight: 1.55 }}>
-                    Members expiring in the next {form.expiryAlertDays} day{form.expiryAlertDays === 1 ? "" : "s"} will appear in the dashboard follow-up list.
-                  </Typography>
-                </Paper>
-              </Box>
-            </Section>
+                  {BUSINESS_TYPES.map((t) => (
+                    <MenuItem key={t.value} value={t.value}>{t.label}</MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Email (optional)"
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => setField("email", e.target.value)}
+                  fullWidth
+                  sx={FIELD_SX}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Phone (optional)"
+                  value={form.phone}
+                  onChange={(e) => setField("phone", e.target.value)}
+                  fullWidth
+                  sx={FIELD_SX}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  label="Address (optional)"
+                  value={form.address}
+                  onChange={(e) => setField("address", e.target.value)}
+                  fullWidth
+                  multiline
+                  rows={2}
+                  sx={FIELD_SX}
+                />
+              </Grid>
+            </Grid>
+          </Section>
+        </Box>
 
-            <Paper
-              elevation={0}
-              sx={{
-                p: 1.15,
-                borderRadius: "14px",
-                border: "1px solid rgba(191,219,254,0.72)",
-                background: "linear-gradient(180deg, rgba(255,255,255,0.97) 0%, rgba(239,246,255,0.9) 100%)",
-                boxShadow: "0 12px 22px rgba(30,58,95,0.08)",
-              }}
-            >
-              <Button
-                variant="contained"
-                startIcon={<SaveOutlined />}
-                onClick={handleSave}
-                disabled={isSaving}
+        <Box>
+          <Section
+            icon={<AccessTimeOutlined sx={{ fontSize: 20 }} />}
+            title="Expiry Alerts"
+            subtitle="Choose when members start appearing in the renewal alert list"
+            sx={{ height: "100%" }}
+          >
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.6, height: "100%" }}>
+              <TextField
+                label="Alert Days Before Expiry"
+                type="number"
+                value={form.expiryAlertDays}
+                onChange={(e) => setField("expiryAlertDays", Number(e.target.value))}
+                error={!!fieldErrors.expiryAlertDays}
+                helperText={fieldErrors.expiryAlertDays || ""}
+                FormHelperTextProps={{
+                  sx: {
+                    display: fieldErrors.expiryAlertDays ? "block" : "none",
+                    mt: 0.75,
+                  },
+                }}
                 fullWidth
+                sx={FIELD_SX}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <Typography variant="caption" color={C.muted}>days</Typography>
+                    </InputAdornment>
+                  ),
+                }}
+                inputProps={{ min: 1, max: 90, onWheel: preventNumberScroll }}
+              />
+
+              <Paper
+                elevation={0}
                 sx={{
-                  py: 0.95,
+                  p: 1.6,
                   borderRadius: "14px",
-                  boxShadow: "0 14px 28px rgba(30,58,95,0.18)",
+                  border: "1px solid rgba(228,216,200,0.86)",
+                  background: "linear-gradient(135deg, rgba(255,253,250,0.99) 0%, rgba(251,246,240,0.975) 100%)",
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 1.1,
+                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.9)",
+                  mt: 0.4,
                 }}
               >
-                {isSaving ? "Saving..." : "Save Settings"}
-              </Button>
-            </Paper>
+                <CheckCircleOutlined sx={{ fontSize: 18, color: C.accent, mt: 0.15 }} />
+              <Typography sx={{ fontSize: "0.8rem", color: C.slate, fontWeight: 600, lineHeight: 1.55 }}>
+                Members expiring in the next {form.expiryAlertDays} day{form.expiryAlertDays === 1 ? "" : "s"} will appear in the dashboard follow-up list.
+              </Typography>
+              </Paper>
+            </Box>
+          </Section>
+        </Box>
 
-          </Box>
-        </Grid>
-      </Grid>
+        <Box>
+          <Section
+            icon={<LabelOutlined sx={{ fontSize: 20 }} />}
+            title="Terminology"
+            subtitle="Customize labels to match your business language throughout the app"
+            sx={{ height: "100%" }}
+          >
+            <Box
+              sx={{
+                px: 1.5,
+                py: 1.2,
+                mb: 2,
+                background: "linear-gradient(135deg, rgba(255,253,249,0.99) 0%, rgba(255,255,255,0.995) 48%, rgba(249,244,238,0.95) 100%)",
+                borderRadius: "14px",
+                border: "1px solid #D8DFE8",
+                boxShadow: "0 10px 18px rgba(36,58,87,0.07), inset 0 1px 0 rgba(255,255,255,0.86)",
+              }}
+            >
+              <Typography sx={{ fontSize: "0.8rem", color: C.ink, fontWeight: 600, lineHeight: 1.55 }}>
+                Example: A library might use "Membership" instead of "Plan" and "Timing" instead of "Slot".
+              </Typography>
+            </Box>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  label="Plan Label"
+                  value={form.terminology.planLabel}
+                  onChange={(e) => setTerminology("planLabel", e.target.value)}
+                  error={!!fieldErrors.planLabel}
+                  helperText={fieldErrors.planLabel || 'Default is "Plan"'}
+                  fullWidth
+                  sx={FIELD_SX}
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  label="Slot Label"
+                  value={form.terminology.slotLabel}
+                  onChange={(e) => setTerminology("slotLabel", e.target.value)}
+                  error={!!fieldErrors.slotLabel}
+                  helperText={fieldErrors.slotLabel || 'Default is "Slot"'}
+                  fullWidth
+                  sx={FIELD_SX}
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  label="Member Label"
+                  value={form.terminology.memberLabel}
+                  onChange={(e) => setTerminology("memberLabel", e.target.value)}
+                  error={!!fieldErrors.memberLabel}
+                  helperText={fieldErrors.memberLabel || 'Default is "Member"'}
+                  fullWidth
+                  sx={FIELD_SX}
+                />
+              </Grid>
+            </Grid>
+          </Section>
+        </Box>
+
+        <Box>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 1.4,
+              borderRadius: "16px",
+              border: "1px solid rgba(228,216,200,0.92)",
+              boxShadow: "0 16px 32px rgba(36,58,87,0.08)",
+              background: "linear-gradient(180deg, rgba(255,255,255,0.995) 0%, rgba(253,250,246,0.985) 100%)",
+              height: "100%",
+              display: "flex",
+              alignItems: "flex-start",
+            }}
+          >
+            <Button
+              variant="contained"
+              startIcon={<SaveOutlined />}
+              onClick={handleSave}
+              disabled={isSaving}
+              fullWidth
+              sx={{
+                py: 0.95,
+                borderRadius: "14px",
+                backgroundColor: C.ink,
+                boxShadow: "0 14px 28px rgba(36,58,87,0.18)",
+                "&:hover": {
+                  backgroundColor: "#2E4867",
+                },
+              }}
+            >
+              {isSaving ? "Saving..." : "Save Settings"}
+            </Button>
+          </Paper>
+        </Box>
+      </Box>
     </Box>
   );
 }

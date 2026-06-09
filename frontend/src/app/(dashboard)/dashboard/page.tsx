@@ -36,6 +36,18 @@ import {
 import { Line, LineChart, ResponsiveContainer } from "recharts";
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
+import {
+  MODULE_CARD_SX,
+  MODULE_COLORS,
+  MODULE_DIALOG_PAPER_SX,
+  MODULE_DIALOG_TITLE_SX,
+  MODULE_NEUTRAL_CHIP_SX,
+  MODULE_PAGE_SX,
+  MODULE_SUCCESS_CHIP_SX,
+  MODULE_TABLE_HEAD_CELL_SX,
+  MODULE_TABLE_ROW_SX,
+  MODULE_WARNING_CHIP_SX,
+} from "@/components/ui/moduleStyles";
 import { dashboardApi } from "@/lib/api/dashboard.api";
 import { membersApi } from "@/lib/api/members.api";
 import { Member } from "@/types/member.types";
@@ -92,15 +104,15 @@ type ModalType = "total" | "active" | "expiring" | "expired" | null;
 const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 const C = {
-  navy: "#1E3A5F",
-  blue: "#2E75B6",
-  green: "#15803D",
-  orange: "#B45309",
-  red: "#B91C1C",
-  slate: "#334155",
-  muted: "#64748B",
-  border: "#E2E8F0",
-  surface: "#F8FAFC",
+  navy: MODULE_COLORS.ink,
+  blue: MODULE_COLORS.accent,
+  green: MODULE_COLORS.green,
+  orange: MODULE_COLORS.amber,
+  red: MODULE_COLORS.red,
+  slate: MODULE_COLORS.slate,
+  muted: MODULE_COLORS.muted,
+  border: MODULE_COLORS.border,
+  surface: MODULE_COLORS.surface,
 };
 
 const fmt = (n: number) => `Rs.${n.toLocaleString("en-IN")}`;
@@ -134,13 +146,13 @@ function StatCard({
       elevation={0}
       sx={{
         p: 1.8,
-        border: `1px solid ${C.border}`,
+        ...MODULE_CARD_SX,
         borderRadius: "14px",
         cursor: "pointer",
         transition: "transform 0.15s ease, box-shadow 0.15s ease",
         "&:hover": {
           transform: "translateY(-1px)",
-          boxShadow: "0 10px 24px rgba(15,23,42,0.08)",
+          boxShadow: "0 18px 30px rgba(36,58,87,0.1)",
         },
       }}
     >
@@ -164,15 +176,16 @@ function StatCard({
           sx={{
             width: 40,
             height: 40,
-            borderRadius: "12px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: accentColor,
-            backgroundColor: `${accentColor}12`,
-            flexShrink: 0,
-          }}
-        >
+          borderRadius: "12px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: accentColor,
+          background: "linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(248,242,235,0.94) 100%)",
+          border: `1px solid ${C.border}`,
+          flexShrink: 0,
+        }}
+      >
           {icon}
         </Box>
       </Box>
@@ -192,7 +205,7 @@ function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <Paper elevation={0} sx={{ borderRadius: "16px", border: `1px solid ${C.border}`, overflow: "hidden" }}>
+    <Paper elevation={0} sx={{ ...MODULE_CARD_SX, borderRadius: "16px", overflow: "hidden" }}>
       <Box
         sx={{
           px: 2,
@@ -209,7 +222,7 @@ function SectionCard({
             {title}
           </Typography>
           {subtitle ? (
-            <Typography sx={{ mt: 0.45, fontSize: "0.82rem", color: C.muted, fontWeight: 600 }}>
+            <Typography sx={{ mt: 0.45, fontSize: "0.82rem", color: C.slate, fontWeight: 600 }}>
               {subtitle}
             </Typography>
           ) : null}
@@ -234,15 +247,15 @@ function PulseMetric({
 }) {
   const styles =
     tone === "success"
-      ? { bg: "#F0FDF4", border: "#BBF7D0", color: C.green }
+      ? { bg: "#F4FAF5", border: "#C9DFCF", color: C.green }
       : tone === "warning"
-        ? { bg: "#FFFBEB", border: "#FDE68A", color: C.orange }
+        ? { bg: "#FCF4E9", border: "#E2CCAF", color: C.orange }
         : tone === "danger"
-          ? { bg: "#FEF2F2", border: "#FECACA", color: C.red }
-          : { bg: "#EFF6FF", border: "#BFDBFE", color: C.navy };
+          ? { bg: "#FBEFEA", border: "#E8C9BF", color: C.red }
+          : { bg: "#FBF7F1", border: "#D9CCBB", color: C.navy };
 
   return (
-    <Paper elevation={0} sx={{ p: 1.45, borderRadius: "14px", border: `1px solid ${styles.border}`, backgroundColor: styles.bg, height: "100%" }}>
+    <Paper elevation={0} sx={{ p: 1.45, borderRadius: "14px", border: `1px solid ${styles.border}`, background: `linear-gradient(180deg, rgba(255,255,255,0.98) 0%, ${styles.bg} 100%)`, height: "100%", boxShadow: "0 10px 20px rgba(36,58,87,0.05)" }}>
       <Typography sx={{ fontSize: "0.7rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>
         {label}
       </Typography>
@@ -278,7 +291,7 @@ function ActionLine({
         px: 1.4,
         py: 1.15,
         borderRadius: "12px",
-        backgroundColor: "#FFFFFF",
+        background: "linear-gradient(180deg, rgba(255,255,255,0.99) 0%, rgba(253,250,246,0.98) 100%)",
         border: `1px solid ${C.border}`,
       }}
     >
@@ -311,7 +324,7 @@ function MetricStrip({
         py: 0.8,
         borderRadius: "12px",
         border: `1px solid ${C.border}`,
-        backgroundColor: "rgba(255,255,255,0.84)",
+        background: "linear-gradient(180deg, rgba(255,255,255,0.99) 0%, rgba(252,248,243,0.96) 100%)",
       }}
     >
       <Typography sx={{ fontSize: "0.72rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.45 }}>
@@ -336,9 +349,9 @@ function SparklinePanel({
       sx={{
         p: 1.35,
         borderRadius: "16px",
-        border: "1px solid rgba(191,219,254,0.7)",
-        background: "linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(243,248,255,0.92) 100%)",
-        boxShadow: "0 14px 28px rgba(46,117,182,0.10)",
+        border: `1px solid ${C.border}`,
+        background: "linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(253,250,246,0.96) 100%)",
+        boxShadow: "0 14px 28px rgba(36,58,87,0.07)",
         minHeight: 116,
         display: "flex",
         flexDirection: "column",
@@ -354,18 +367,6 @@ function SparklinePanel({
             {trend ? `${trend.up ? "+" : ""}${trend.pct}%` : "Stable"}
           </Typography>
         </Box>
-        <Chip
-          label="Live"
-          size="small"
-          sx={{
-            height: 24,
-            backgroundColor: "rgba(30,58,95,0.92)",
-            color: "#FFFFFF",
-            fontWeight: 800,
-            fontSize: "0.68rem",
-            "& .MuiChip-label": { px: 1 },
-          }}
-        />
       </Box>
       <Box sx={{ height: 46, mt: 1 }}>
         <ResponsiveContainer width="100%" height="100%">
@@ -415,17 +416,17 @@ function RevenueTimeline({
         position: "relative",
         p: { xs: 1.5, sm: 2 },
         borderRadius: "18px",
-        border: "1px solid rgba(186,214,245,0.9)",
+        border: `1px solid ${C.border}`,
         background:
-          "linear-gradient(145deg, rgba(193,227,255,0.9) 0%, rgba(232,245,255,0.88) 38%, rgba(204,231,255,0.92) 100%)",
-        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.96), 0 16px 30px rgba(46,117,182,0.08)",
+          "linear-gradient(145deg, rgba(255,255,255,0.98) 0%, rgba(252,248,243,0.96) 52%, rgba(248,242,234,0.97) 100%)",
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.96), 0 16px 30px rgba(36,58,87,0.06)",
         overflow: "hidden",
         "&::before": {
           content: '""',
           position: "absolute",
           inset: 0,
-          background:
-            "linear-gradient(60deg, rgba(255,255,255,0.18) 10%, transparent 10%, transparent 42%, rgba(255,255,255,0.18) 42%, rgba(255,255,255,0.18) 52%, transparent 52%, transparent 76%, rgba(255,255,255,0.16) 76%)",
+              background:
+                "linear-gradient(60deg, rgba(250,242,233,0.4) 10%, transparent 10%, transparent 42%, rgba(250,242,233,0.32) 42%, rgba(250,242,233,0.32) 52%, transparent 52%, transparent 76%, rgba(255,255,255,0.28) 76%)",
           opacity: 0.75,
           pointerEvents: "none",
         },
@@ -442,24 +443,6 @@ function RevenueTimeline({
             </Typography>
           </Box>
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.9 }}>
-            <Chip
-              label="Live"
-              size="small"
-              sx={{
-                height: 24,
-                backgroundColor: "rgba(30,58,95,0.94)",
-                color: "#FFFFFF",
-                fontWeight: 800,
-                fontSize: "0.68rem",
-                boxShadow: "0 10px 24px rgba(30,58,95,0.18)",
-                animation: "liveBadgePulse 2.1s ease-in-out infinite",
-                "@keyframes liveBadgePulse": {
-                  "0%": { transform: "translateY(0px)" },
-                  "50%": { transform: "translateY(-1px)" },
-                  "100%": { transform: "translateY(0px)" },
-                },
-              }}
-            />
             {trend ? (
               <Typography sx={{ fontSize: "0.84rem", fontWeight: 900, color: trend.up ? C.green : C.red }}>
                 {trend.up ? "+" : ""}{trend.pct}%
@@ -509,7 +492,7 @@ function RevenueTimeline({
                   <Box
                     key={value}
                     sx={{
-                      borderTop: "1px solid rgba(255,255,255,0.55)",
+                      borderTop: "1px solid rgba(221,211,197,0.52)",
                     }}
                   />
                 ))}
@@ -770,7 +753,7 @@ function MemberTable({ members }: { members: Member[] }) {
         <TableHead>
           <TableRow sx={{ backgroundColor: C.surface }}>
             {["Member", "Mobile", "Plan / Slot", "Renewal Date", "Payment Due"].map((h) => (
-              <TableCell key={h} sx={{ fontSize: "0.72rem", fontWeight: 800, color: C.slate, py: 1.2, px: 2, borderBottom: `1px solid ${C.border}` }}>
+              <TableCell key={h} sx={{ ...MODULE_TABLE_HEAD_CELL_SX, py: 1.2, px: 2 }}>
                 {h}
               </TableCell>
             ))}
@@ -778,9 +761,9 @@ function MemberTable({ members }: { members: Member[] }) {
         </TableHead>
         <TableBody>
           {members.map((m) => (
-            <TableRow key={m._id} sx={{ "&:last-child td": { border: 0 }, "&:hover": { backgroundColor: C.surface } }}>
+            <TableRow key={m._id} sx={{ ...MODULE_TABLE_ROW_SX, "&:last-child td": { border: 0 } }}>
               <TableCell sx={{ py: 1.2, px: 2 }}>
-                <Typography sx={{ fontWeight: 700, fontSize: "0.84rem", color: "#0F172A" }}>{m.name}</Typography>
+                <Typography sx={{ fontWeight: 800, fontSize: "0.84rem", color: C.navy }}>{m.name}</Typography>
               </TableCell>
               <TableCell sx={{ py: 1.2, px: 2 }}>
                 <Typography sx={{ fontSize: "0.82rem", color: C.slate, fontWeight: 600 }}>{m.mobile}</Typography>
@@ -849,13 +832,13 @@ function DetailModal({
   if (!type) return null;
 
   const configMap = {
-    total: { title: "All Members", color: C.navy, bg: "#EFF6FF" },
-    active: { title: "Active Members", color: C.green, bg: "#F0FDF4" },
-    expiring: { title: "Renewal Due Soon", color: C.orange, bg: "#FFFBEB" },
-    expired: { title: "Expired Members", color: C.red, bg: "#FEF2F2" },
+    total: { title: "All Members", color: C.navy, badgeSx: MODULE_NEUTRAL_CHIP_SX },
+    active: { title: "Active Members", color: C.green, badgeSx: MODULE_SUCCESS_CHIP_SX },
+    expiring: { title: "Renewal Due Soon", color: C.orange, badgeSx: MODULE_WARNING_CHIP_SX },
+    expired: { title: "Expired Members", color: C.red, badgeSx: { ...MODULE_WARNING_CHIP_SX, color: C.red, border: "1px solid #E8C9BF", backgroundColor: "#FBEFEA" } },
   };
 
-  const { title, color, bg } = configMap[type];
+  const { title, color, badgeSx } = configMap[type];
 
   return (
     <Dialog
@@ -867,24 +850,28 @@ function DetailModal({
       PaperProps={{
         elevation: 0,
         sx: {
+          ...MODULE_DIALOG_PAPER_SX,
           borderRadius: fullScreen ? 0 : "18px",
-          border: `1px solid ${C.border}`,
           overflow: "hidden",
         },
       }}
     >
-      <DialogTitle sx={{ backgroundColor: bg, borderBottom: `1px solid ${color}25`, px: 3, py: 2, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <DialogTitle sx={{ ...MODULE_DIALOG_TITLE_SX, display: "flex", alignItems: "center", justifyContent: "space-between", background: "linear-gradient(180deg, rgba(255,255,255,0.995) 0%, rgba(252,248,243,0.97) 100%)" }}>
         <Box>
           <Typography sx={{ fontWeight: 800, fontSize: "1rem", color }}>{title}</Typography>
-          <Typography sx={{ fontSize: "0.74rem", color, opacity: 0.84, fontWeight: 600, mt: 0.25 }}>
-            {type === "expiring" ? `${data?.expiryAlerts.length ?? 0} members` : isLoadingMembers ? "Loading..." : `${members.length} members`}
-          </Typography>
         </Box>
-        <IconButton size="small" onClick={onClose} sx={{ color: C.muted }}>
-          <CloseOutlined fontSize="small" />
-        </IconButton>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Chip
+            label={type === "expiring" ? `${data?.expiryAlerts.length ?? 0} members` : isLoadingMembers ? "Loading..." : `${members.length} members`}
+            size="small"
+            sx={badgeSx}
+          />
+          <IconButton size="small" onClick={onClose} sx={{ color: C.muted }}>
+            <CloseOutlined fontSize="small" />
+          </IconButton>
+        </Box>
       </DialogTitle>
-      <DialogContent sx={{ p: 0 }}>
+      <DialogContent sx={{ p: 0, background: "linear-gradient(180deg, rgba(255,255,255,0.995) 0%, rgba(253,250,246,0.985) 100%)" }}>
         {type === "expiring" ? (
           !data?.expiryAlerts.length ? (
             <EmptyState title="No renewals due right now" subtitle="Members who are close to expiry will appear here." />
@@ -998,7 +985,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+    <Box sx={MODULE_PAGE_SX}>
       <Grid container spacing={1.5}>
         {[
           {
@@ -1042,7 +1029,7 @@ export default function DashboardPage() {
 
       <Grid container spacing={2}>
         <Grid item xs={12} xl={8}>
-          <SectionCard title="Business Pulse" subtitle="Collections, dues, renewals, and what needs attention now.">
+          <SectionCard title="Business Pulse" subtitle="Collections, pending dues, and renewal activity.">
             <Grid container spacing={1.5}>
               <Grid item xs={12} sm={6} lg={3}>
                 {isLoading ? <Skeleton variant="rounded" height={94} sx={{ borderRadius: "14px" }} /> : <PulseMetric label="Collections" value={fmt(data?.revenue.totalRevenue ?? 0)} helper="Recorded payments so far" tone="success" />}
@@ -1102,7 +1089,7 @@ export default function DashboardPage() {
         </Grid>
 
         <Grid item xs={12} xl={4}>
-          <SectionCard title="Utilization" subtitle="Which plans and slots are carrying the load.">
+          <SectionCard title="Utilization" subtitle="Member distribution across plans and slots.">
             {isLoading ? (
               <Box sx={{ display: "flex", flexDirection: "column", gap: 1.1 }}>
                 {[1, 2, 3, 4].map((item) => (
@@ -1175,9 +1162,7 @@ export default function DashboardPage() {
                   label={`${trend.up ? "+" : ""}${trend.pct}% vs previous`}
                   size="small"
                   sx={{
-                    backgroundColor: trend.up ? "#F0FDF4" : "#FEF2F2",
-                    color: trend.up ? C.green : C.red,
-                    border: trend.up ? "1px solid #BBF7D0" : "1px solid #FECACA",
+                    ...(trend.up ? MODULE_SUCCESS_CHIP_SX : MODULE_WARNING_CHIP_SX),
                     "& .MuiChip-icon": { color: "inherit" },
                   }}
                 />

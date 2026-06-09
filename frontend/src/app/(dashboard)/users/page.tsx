@@ -35,6 +35,23 @@ import api from "@/lib/api/axios.instance";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
+import {
+  MODULE_ACTION_ICON_SX,
+  MODULE_CARD_SX,
+  MODULE_COLORS,
+  MODULE_DIALOG_ACTIONS_SX,
+  MODULE_DIALOG_CONTENT_SX,
+  MODULE_DIALOG_PAPER_SX,
+  MODULE_DIALOG_TITLE_SX,
+  MODULE_FIELD_SX,
+  MODULE_INLINE_PANEL_SX,
+  MODULE_NEUTRAL_CHIP_SX,
+  MODULE_PAGE_SX,
+  MODULE_SUCCESS_CHIP_SX,
+  ModuleSummaryStat,
+  MODULE_TABLE_HEAD_CELL_SX,
+  MODULE_TABLE_ROW_SX,
+} from "@/components/ui/moduleStyles";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -48,51 +65,14 @@ interface StaffUser {
 }
 
 const C = {
-  navy: "#1E3A5F",
-  slate: "#334155",
-  muted: "#64748B",
-  border: "#E2E8F0",
-  surface: "#F8FAFC",
-  green: "#15803D",
-  amber: "#92400E",
+  navy: MODULE_COLORS.ink,
+  slate: MODULE_COLORS.slate,
+  muted: MODULE_COLORS.muted,
+  border: MODULE_COLORS.border,
+  surface: MODULE_COLORS.surface,
+  green: MODULE_COLORS.green,
+  amber: MODULE_COLORS.amber,
 };
-
-function SummaryStat({
-  label,
-  value,
-  tone = "default",
-}: {
-  label: string;
-  value: string;
-  tone?: "default" | "success" | "warning";
-}) {
-  const styles =
-    tone === "success"
-      ? { backgroundColor: "#F0FDF4", borderColor: "#BBF7D0", valueColor: C.green }
-      : tone === "warning"
-        ? { backgroundColor: "#FFFBEB", borderColor: "#FDE68A", valueColor: C.amber }
-        : { backgroundColor: "#EFF6FF", borderColor: "#BFDBFE", valueColor: C.navy };
-
-  return (
-    <Paper
-      elevation={0}
-      sx={{
-        p: 1.4,
-        borderRadius: "14px",
-        border: `1px solid ${styles.borderColor}`,
-        backgroundColor: styles.backgroundColor,
-        minWidth: 132,
-      }}
-    >
-      <Typography sx={{ fontSize: "0.72rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>
-        {label}
-      </Typography>
-      <Typography sx={{ mt: 0.45, fontSize: "1.08rem", fontWeight: 900, color: styles.valueColor }}>
-        {value}
-      </Typography>
-    </Paper>
-  );
-}
 
 // ─── API ──────────────────────────────────────────────────────────────────────
 
@@ -192,23 +172,14 @@ function AddUserDialog({
       fullWidth
       PaperProps={{
         elevation: 0,
-        sx: { borderRadius: "16px", border: "1px solid #E2E8F0" },
+        sx: MODULE_DIALOG_PAPER_SX,
       }}
     >
-      <DialogTitle
-        sx={{
-          pb: 1,
-          pt: 2.5,
-          px: 3,
-          fontWeight: 700,
-          fontSize: "1rem",
-          color: "#111827",
-        }}
-      >
+      <DialogTitle sx={MODULE_DIALOG_TITLE_SX}>
         Add Staff Account
       </DialogTitle>
 
-      <DialogContent sx={{ px: 3, pb: 1 }}>
+      <DialogContent sx={MODULE_DIALOG_CONTENT_SX}>
         {apiError && (
           <Alert severity="error" sx={{ mb: 2, mt: 1 }}>
             {apiError}
@@ -226,6 +197,7 @@ function AddUserDialog({
             helperText={errors.name}
             fullWidth
             autoFocus
+            sx={MODULE_FIELD_SX}
           />
           <TextField
             label="Email"
@@ -238,6 +210,7 @@ function AddUserDialog({
             error={!!errors.email}
             helperText={errors.email}
             fullWidth
+            sx={MODULE_FIELD_SX}
           />
           <TextField
             label="Password"
@@ -250,16 +223,10 @@ function AddUserDialog({
             error={!!errors.password}
             helperText={errors.password || "Minimum 8 characters"}
             fullWidth
+            sx={MODULE_FIELD_SX}
           />
-          <Box
-            sx={{
-              p: 1.5,
-              backgroundColor: "#EFF6FF",
-              borderRadius: "8px",
-              border: "1px solid #BFDBFE",
-            }}
-          >
-            <Typography sx={{ fontSize: "0.75rem", color: "#1D4ED8", fontWeight: 600 }}>
+          <Box sx={MODULE_INLINE_PANEL_SX}>
+            <Typography sx={{ fontSize: "0.78rem", color: C.slate, fontWeight: 700, lineHeight: 1.5 }}>
               Staff accounts can view and manage members but cannot access
               settings or manage other users.
             </Typography>
@@ -267,7 +234,7 @@ function AddUserDialog({
         </Box>
       </DialogContent>
 
-      <DialogActions sx={{ px: 3, pb: 3, pt: 2, gap: 1 }}>
+      <DialogActions sx={MODULE_DIALOG_ACTIONS_SX}>
         <Button onClick={onClose} disabled={isSubmitting} color="inherit">
           Cancel
         </Button>
@@ -374,23 +341,14 @@ function EditUserDialog({
       fullWidth
       PaperProps={{
         elevation: 0,
-        sx: { borderRadius: "16px", border: "1px solid #E2E8F0" },
+        sx: MODULE_DIALOG_PAPER_SX,
       }}
     >
-      <DialogTitle
-        sx={{
-          pb: 1,
-          pt: 2.5,
-          px: 3,
-          fontWeight: 700,
-          fontSize: "1rem",
-          color: "#111827",
-        }}
-      >
+      <DialogTitle sx={MODULE_DIALOG_TITLE_SX}>
         Edit User
       </DialogTitle>
 
-      <DialogContent sx={{ px: 3, pb: 1 }}>
+      <DialogContent sx={MODULE_DIALOG_CONTENT_SX}>
         {apiError && (
           <Alert severity="error" sx={{ mb: 2, mt: 1 }}>
             {apiError}
@@ -408,6 +366,7 @@ function EditUserDialog({
             helperText={errors.name}
             fullWidth
             autoFocus
+            sx={MODULE_FIELD_SX}
           />
 
           {!isOwner && (
@@ -423,6 +382,7 @@ function EditUserDialog({
                 error={!!errors.email}
                 helperText={errors.email}
                 fullWidth
+                sx={MODULE_FIELD_SX}
               />
               <TextField
                 label="New Password"
@@ -438,21 +398,15 @@ function EditUserDialog({
                   errors.newPassword || "Leave blank to keep current password"
                 }
                 fullWidth
+                sx={MODULE_FIELD_SX}
               />
             </>
           )}
 
           {isOwner && (
-            <Box
-              sx={{
-                p: 1.5,
-                backgroundColor: "#F8FAFC",
-                borderRadius: "8px",
-                border: "1px solid #E2E8F0",
-              }}
-            >
+            <Box sx={MODULE_INLINE_PANEL_SX}>
               <Typography
-                sx={{ fontSize: "0.75rem", color: "#6B7280", fontWeight: 600 }}
+                sx={{ fontSize: "0.78rem", color: C.slate, fontWeight: 700, lineHeight: 1.5 }}
               >
                 Only name can be edited for owner accounts. Email and password
                 changes for the owner are not supported here.
@@ -462,7 +416,7 @@ function EditUserDialog({
         </Box>
       </DialogContent>
 
-      <DialogActions sx={{ px: 3, pb: 3, pt: 2, gap: 1 }}>
+      <DialogActions sx={MODULE_DIALOG_ACTIONS_SX}>
         <Button onClick={onClose} disabled={isSubmitting} color="inherit">
           Cancel
         </Button>
@@ -556,16 +510,16 @@ export default function UsersPage() {
   const ownerCount = users.filter((u) => u.role === "owner").length;
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 2.25 }}>
+    <Box sx={MODULE_PAGE_SX}>
       <Box sx={{ display: "flex", alignItems: { xs: "flex-start", lg: "center" }, justifyContent: "space-between", flexDirection: { xs: "column", lg: "row" }, gap: 1.5 }}>
         <Box sx={{ flex: 1, display: "flex", justifyContent: { xs: "flex-start", lg: "center" } }}>
           <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
             {!isLoading ? (
               <>
-                <SummaryStat label="Overall Users" value={String(users.length)} />
-                <SummaryStat label="Active" value={String(totalActiveUsers)} tone="success" />
-                <SummaryStat label="Staff" value={String(staffCount)} />
-                <SummaryStat label="Owners" value={String(ownerCount)} tone="warning" />
+                <ModuleSummaryStat label="Overall Users" value={String(users.length)} />
+                <ModuleSummaryStat label="Active" value={String(totalActiveUsers)} tone="success" />
+                <ModuleSummaryStat label="Staff" value={String(staffCount)} />
+                <ModuleSummaryStat label="Owners" value={String(ownerCount)} tone="warning" />
               </>
             ) : (
               <>
@@ -586,31 +540,12 @@ export default function UsersPage() {
         </Button>
       </Box>
 
-      <Paper
-        elevation={0}
-        sx={{
-          p: 1.5,
-          borderRadius: "14px",
-          border: "1px solid #BFDBFE",
-          backgroundColor: "#F8FBFF",
-        }}
-      >
-        <Typography sx={{ fontSize: "0.76rem", color: "#1D4ED8", fontWeight: 800, letterSpacing: 0.45, textTransform: "uppercase", mb: 0.4 }}>
-          Access Note
-        </Typography>
-        <Typography sx={{ fontSize: "0.82rem", color: "#33527A", fontWeight: 600, lineHeight: 1.55 }}>
-          Staff accounts can manage members and daily operations, while owner accounts retain access to settings and user management.
-        </Typography>
-      </Paper>
-
       {error ? <ErrorState message={error} onRetry={fetchUsers} /> : null}
 
       <Paper
         elevation={0}
         sx={{
-          borderRadius: "16px",
-          border: `1px solid ${C.border}`,
-          boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+          ...MODULE_CARD_SX,
           overflow: "hidden",
         }}
       >
@@ -623,13 +558,7 @@ export default function UsersPage() {
                     <TableCell
                       key={h}
                       sx={{
-                        fontWeight: 800,
-                        fontSize: "0.72rem",
-                        color: C.slate,
-                        py: 1.45,
-                        borderBottom: `1px solid ${C.border}`,
-                        letterSpacing: 0.5,
-                        textTransform: "uppercase",
+                        ...MODULE_TABLE_HEAD_CELL_SX,
                       }}
                     >
                       {h}
@@ -668,8 +597,8 @@ export default function UsersPage() {
                     <TableRow
                       key={u._id}
                       sx={{
+                        ...MODULE_TABLE_ROW_SX,
                         "&:last-child td": { border: 0 },
-                        "&:hover": { backgroundColor: "#F8FAFF" },
                         opacity: u.isActive ? 1 : 0.6,
                       }}
                     >
@@ -684,11 +613,11 @@ export default function UsersPage() {
                           <Avatar
                             sx={{
                               width: 34,
-                              height: 34,
-                              fontSize: "0.78rem",
-                              fontWeight: 700,
-                              backgroundColor: isOwner ? "#1E3A5F" : "#2E75B6",
-                            }}
+                            height: 34,
+                            fontSize: "0.78rem",
+                            fontWeight: 700,
+                            backgroundColor: isOwner ? MODULE_COLORS.ink : MODULE_COLORS.accent,
+                          }}
                           >
                             {getInitials(u.name)}
                           </Avatar>
@@ -731,14 +660,7 @@ export default function UsersPage() {
                         <Chip
                           label={isOwner ? "Owner" : "Staff"}
                           size="small"
-                          sx={{
-                            height: 26,
-                            fontSize: "0.72rem",
-                            fontWeight: 800,
-                            backgroundColor: isOwner ? "#EFF6FF" : "#F5F3FF",
-                            color: isOwner ? "#1D4ED8" : "#6D28D9",
-                            border: `1px solid ${isOwner ? "#BFDBFE" : "#DDD6FE"}`,
-                          }}
+                          sx={MODULE_NEUTRAL_CHIP_SX}
                         />
                       </TableCell>
 
@@ -746,14 +668,7 @@ export default function UsersPage() {
                         <Chip
                           label={u.isActive ? "Active" : "Inactive"}
                           size="small"
-                          sx={{
-                            height: 26,
-                            fontSize: "0.72rem",
-                            fontWeight: 800,
-                            backgroundColor: u.isActive ? "#F0FDF4" : "#F9FAFB",
-                            color: u.isActive ? C.green : "#6B7280",
-                            border: `1px solid ${u.isActive ? "#BBF7D0" : "#E5E7EB"}`,
-                          }}
+                          sx={u.isActive ? MODULE_SUCCESS_CHIP_SX : MODULE_NEUTRAL_CHIP_SX}
                         />
                       </TableCell>
 
@@ -778,13 +693,7 @@ export default function UsersPage() {
                                 setEditingUser(u);
                                 setEditOpen(true);
                               }}
-                              sx={{
-                                color: "#6B7280",
-                                "&:hover": {
-                                  color: "#1D4ED8",
-                                  backgroundColor: "#EFF6FF",
-                                },
-                              }}
+                              sx={MODULE_ACTION_ICON_SX}
                             >
                               <EditOutlined sx={{ fontSize: 17 }} />
                             </IconButton>
@@ -800,15 +709,7 @@ export default function UsersPage() {
                                   setSelectedUser(u);
                                   setConfirmOpen(true);
                                 }}
-                                sx={{
-                                  color: "#6B7280",
-                                  "&:hover": {
-                                    color: u.isActive ? "#B45309" : "#15803D",
-                                    backgroundColor: u.isActive
-                                      ? "#FFFBEB"
-                                      : "#F0FDF4",
-                                  },
-                                }}
+                                sx={MODULE_ACTION_ICON_SX}
                               >
                                 <PowerSettingsNewOutlined sx={{ fontSize: 17 }} />
                               </IconButton>

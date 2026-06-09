@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, type WheelEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -26,11 +26,21 @@ import { slotsApi } from "@/lib/api/slots.api";
 import { pricingApi } from "@/lib/api/pricing.api";
 import { membersApi } from "@/lib/api/members.api";
 import { useToast } from "@/context/ToastContext";
-import PageHeader from "@/components/layout/PageHeader";
+import {
+  MODULE_CARD_SX,
+  MODULE_COLORS,
+  MODULE_FIELD_SX,
+  ModuleInfoStrip,
+  MODULE_PAGE_SX,
+} from "@/components/ui/moduleStyles";
 
 // Helper - client side only
 function getTodayString() {
   return new Date().toISOString().split("T")[0];
+}
+
+function preventNumberScroll(event: WheelEvent<HTMLInputElement>) {
+  event.currentTarget.blur();
 }
 
 const createMemberSchema = z.object({
@@ -149,6 +159,7 @@ export default function AddMemberPage() {
   };
 
   const selectedPlan = plans.find((p) => p._id === selectedPlanId);
+  const selectedSlot = slots.find((s) => s._id === selectedSlotId);
 
   if (isLoadingOptions) {
     return (
@@ -159,7 +170,7 @@ export default function AddMemberPage() {
   }
 
   return (
-    <Box>
+    <Box sx={MODULE_PAGE_SX}>
       <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
         <Button
           startIcon={<ArrowBackOutlined />}
@@ -171,37 +182,53 @@ export default function AddMemberPage() {
         </Button>
       </Box>
 
-      <PageHeader title="Add Member" subtitle="Create a new membership record" />
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 0.45 }}>
+        <Typography sx={{ fontSize: "2rem", fontWeight: 800, color: "#111827", lineHeight: 1.15 }}>
+          Add Member
+        </Typography>
+        <Typography sx={{ fontSize: "0.9rem", color: MODULE_COLORS.slate, fontWeight: 600 }}>
+          Create a new membership record
+        </Typography>
+      </Box>
 
       {apiError && (
         <Alert severity="error" sx={{ mb: 3 }}>{apiError}</Alert>
       )}
 
-      <Paper
-        elevation={0}
-        sx={{
-          p: { xs: 2.5, sm: 4 },
-          border: "1px solid #E2E8F0",
-          boxShadow: "none",
-          borderRadius: "12px",
-          maxWidth: 800,
-        }}
-      >
+      <Paper elevation={0} sx={{ ...MODULE_CARD_SX, p: { xs: 2.25, sm: 3 }, borderRadius: "14px" }}>
         <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
+          {(selectedPlan || selectedSlot) && (
+            <Box sx={{ mb: 2.25 }}>
+              <ModuleInfoStrip
+                title="Selection Snapshot"
+                message={[
+                  selectedPlan ? `${selectedPlan.name} | ${selectedPlan.durationDays} days | Rs.${selectedPlan.basePrice.toLocaleString("en-IN")}` : null,
+                  selectedSlot ? `${selectedSlot.label} | ${selectedSlot.startTime} - ${selectedSlot.endTime}` : null,
+                  calculatedPrice && selectedPlan && calculatedPrice !== selectedPlan.basePrice
+                    ? `Pricing rule applied: Rs.${calculatedPrice.toLocaleString("en-IN")}`
+                    : null,
+                ]
+                  .filter(Boolean)
+                  .join(" | ")}
+              />
+            </Box>
+          )}
 
           {/* Personal Details */}
-          <Typography sx={{ fontSize: "0.72rem", fontWeight: 700, color: "#64748B", textTransform: "uppercase", letterSpacing: 0.5, mb: 2 }}>
+          <Typography sx={{ fontSize: "0.72rem", fontWeight: 700, color: MODULE_COLORS.muted, textTransform: "uppercase", letterSpacing: 0.5, mb: 1.5 }}>
             Personal Details
           </Typography>
 
-          <Grid container spacing={2.5} sx={{ mb: 4 }}>
+          <Grid container spacing={2} sx={{ mb: 2.5 }}>
             <Grid item xs={12} sm={6}>
               <TextField
                 {...register("name")}
                 label="Full Name"
                 fullWidth
+                autoFocus
                 error={!!errors.name}
                 helperText={errors.name?.message}
+                sx={MODULE_FIELD_SX}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -211,6 +238,7 @@ export default function AddMemberPage() {
                 fullWidth
                 error={!!errors.mobile}
                 helperText={errors.mobile?.message}
+                sx={MODULE_FIELD_SX}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -221,18 +249,19 @@ export default function AddMemberPage() {
                 fullWidth
                 error={!!errors.email}
                 helperText={errors.email?.message}
+                sx={MODULE_FIELD_SX}
               />
             </Grid>
           </Grid>
 
-          <Divider sx={{ mb: 3 }} />
+          <Divider sx={{ mb: 2.5 }} />
 
           {/* Membership Details */}
-          <Typography sx={{ fontSize: "0.72rem", fontWeight: 700, color: "#64748B", textTransform: "uppercase", letterSpacing: 0.5, mb: 2 }}>
+          <Typography sx={{ fontSize: "0.72rem", fontWeight: 700, color: MODULE_COLORS.muted, textTransform: "uppercase", letterSpacing: 0.5, mb: 1.5 }}>
             Membership Details
           </Typography>
 
-          <Grid container spacing={2.5} sx={{ mb: 4 }}>
+          <Grid container spacing={2} sx={{ mb: 2.5 }}>
             <Grid item xs={12} sm={6}>
               <Controller
                 name="planId"
@@ -246,6 +275,7 @@ export default function AddMemberPage() {
                     fullWidth
                     error={!!errors.planId}
                     helperText={errors.planId?.message}
+                    sx={MODULE_FIELD_SX}
                   >
                     {plans.length === 0 ? (
                       <MenuItem disabled>No active plans</MenuItem>
@@ -279,6 +309,7 @@ export default function AddMemberPage() {
                     fullWidth
                     error={!!errors.slotId}
                     helperText={errors.slotId?.message}
+                    sx={MODULE_FIELD_SX}
                   >
                     {slots.length === 0 ? (
                       <MenuItem disabled>No active slots</MenuItem>
@@ -309,30 +340,9 @@ export default function AddMemberPage() {
                 InputLabelProps={{ shrink: true }}
                 error={!!errors.startDate}
                 helperText={errors.startDate?.message || "Defaults to today"}
+                sx={MODULE_FIELD_SX}
               />
             </Grid>
-
-            {/* Price info banner */}
-            {selectedPlan && (
-              <Grid item xs={12}>
-                <Box
-                  sx={{
-                    p: 2,
-                    backgroundColor: "#EFF6FF",
-                    borderRadius: "8px",
-                    border: "1px solid #BFDBFE",
-                  }}
-                >
-                  <Typography sx={{ fontSize: "0.78rem", color: "#1D4ED8", fontWeight: 600 }}>
-                    Base price: Rs.{selectedPlan.basePrice.toLocaleString("en-IN")} &nbsp;|&nbsp;
-                    Duration: {selectedPlan.durationDays} days
-                    {calculatedPrice && calculatedPrice !== selectedPlan.basePrice && (
-                      <span> &nbsp;|&nbsp; Pricing rule applied: Rs.{calculatedPrice.toLocaleString("en-IN")}</span>
-                    )}
-                  </Typography>
-                </Box>
-              </Grid>
-            )}
 
             <Grid item xs={12} sm={6}>
               <Controller
@@ -346,6 +356,7 @@ export default function AddMemberPage() {
                     fullWidth
                     error={!!errors.finalPrice}
                     helperText={errors.finalPrice?.message || "Auto-calculated. Override if needed."}
+                    sx={MODULE_FIELD_SX}
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">Rs.</InputAdornment>
@@ -356,6 +367,7 @@ export default function AddMemberPage() {
                         </InputAdornment>
                       ) : null,
                     }}
+                    inputProps={{ onWheel: preventNumberScroll }}
                     onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                   />
                 )}
@@ -373,11 +385,13 @@ export default function AddMemberPage() {
                     type="number"
                     fullWidth
                     helperText="Amount paid at registration"
+                    sx={MODULE_FIELD_SX}
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">Rs.</InputAdornment>
                       ),
                     }}
+                    inputProps={{ onWheel: preventNumberScroll }}
                     onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                   />
                 )}
@@ -385,10 +399,10 @@ export default function AddMemberPage() {
             </Grid>
           </Grid>
 
-          <Divider sx={{ mb: 3 }} />
+          <Divider sx={{ mb: 2.5 }} />
 
           {/* Notes */}
-          <Typography sx={{ fontSize: "0.72rem", fontWeight: 700, color: "#64748B", textTransform: "uppercase", letterSpacing: 0.5, mb: 2 }}>
+          <Typography sx={{ fontSize: "0.72rem", fontWeight: 700, color: MODULE_COLORS.muted, textTransform: "uppercase", letterSpacing: 0.5, mb: 1.5 }}>
             Additional Notes
           </Typography>
 
@@ -398,7 +412,7 @@ export default function AddMemberPage() {
             multiline
             rows={3}
             fullWidth
-            sx={{ mb: 4 }}
+            sx={{ ...MODULE_FIELD_SX, mb: 2.75 }}
             error={!!errors.notes}
             helperText={errors.notes?.message}
           />
@@ -409,7 +423,7 @@ export default function AddMemberPage() {
               variant="outlined"
               onClick={() => router.push("/members")}
               disabled={isSubmitting}
-              sx={{ borderRadius: "8px" }}
+              sx={{ borderRadius: "10px" }}
             >
               Cancel
             </Button>
@@ -417,7 +431,7 @@ export default function AddMemberPage() {
               type="submit"
               variant="contained"
               disabled={isSubmitting}
-              sx={{ minWidth: 140, borderRadius: "8px" }}
+              sx={{ minWidth: 140, borderRadius: "10px" }}
             >
               {isSubmitting ? (
                 <CircularProgress size={22} color="inherit" />

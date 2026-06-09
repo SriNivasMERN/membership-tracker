@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, type WheelEvent } from "react";
 import {
   Box,
   Paper,
@@ -41,6 +41,23 @@ import { Slot } from "@/types/slot.types";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
+import {
+  MODULE_ACTION_ICON_SX,
+  MODULE_CARD_SX,
+  MODULE_COLORS,
+  MODULE_DIALOG_ACTIONS_SX,
+  MODULE_DIALOG_CONTENT_SX,
+  MODULE_DIALOG_PAPER_SX,
+  MODULE_DIALOG_TITLE_SX,
+  MODULE_FIELD_SX,
+  MODULE_INLINE_PANEL_SX,
+  MODULE_NEUTRAL_CHIP_SX,
+  MODULE_PAGE_SX,
+  MODULE_SUCCESS_CHIP_SX,
+  MODULE_TABLE_HEAD_CELL_SX,
+  MODULE_TABLE_ROW_SX,
+  ModuleSummaryStat,
+} from "@/components/ui/moduleStyles";
 
 // ─── Types for populated pricing rule from backend ────────────────────────────
 
@@ -69,50 +86,17 @@ interface PricingRule {
 }
 
 const C = {
-  navy: "#1E3A5F",
-  slate: "#334155",
-  muted: "#64748B",
-  border: "#E2E8F0",
-  surface: "#F8FAFC",
-  green: "#15803D",
-  amber: "#92400E",
+  navy: MODULE_COLORS.ink,
+  slate: MODULE_COLORS.slate,
+  muted: MODULE_COLORS.muted,
+  border: MODULE_COLORS.border,
+  surface: MODULE_COLORS.surface,
+  green: MODULE_COLORS.green,
+  amber: MODULE_COLORS.amber,
 };
 
-function SummaryStat({
-  label,
-  value,
-  tone = "default",
-}: {
-  label: string;
-  value: string;
-  tone?: "default" | "success" | "warning";
-}) {
-  const styles =
-    tone === "success"
-      ? { backgroundColor: "#F0FDF4", borderColor: "#BBF7D0", valueColor: C.green }
-      : tone === "warning"
-        ? { backgroundColor: "#FFFBEB", borderColor: "#FDE68A", valueColor: C.amber }
-        : { backgroundColor: "#EFF6FF", borderColor: "#BFDBFE", valueColor: C.navy };
-
-  return (
-    <Paper
-      elevation={0}
-      sx={{
-        p: 1.4,
-        borderRadius: "14px",
-        border: `1px solid ${styles.borderColor}`,
-        backgroundColor: styles.backgroundColor,
-        minWidth: 132,
-      }}
-    >
-      <Typography sx={{ fontSize: "0.72rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>
-        {label}
-      </Typography>
-      <Typography sx={{ mt: 0.45, fontSize: "1.08rem", fontWeight: 900, color: styles.valueColor }}>
-        {value}
-      </Typography>
-    </Paper>
-  );
+function preventNumberScroll(event: WheelEvent<HTMLInputElement>) {
+  event.currentTarget.blur();
 }
 
 // ─── Pricing Rule Form Dialog ─────────────────────────────────────────────────
@@ -215,25 +199,25 @@ function PricingFormDialog({
       onClose={onClose}
       maxWidth="xs"
       fullWidth
-      PaperProps={{ elevation: 0, sx: { borderRadius: "16px", border: "1px solid #E2E8F0" } }}
+      PaperProps={{ elevation: 0, sx: MODULE_DIALOG_PAPER_SX }}
     >
-      <DialogTitle sx={{ pb: 1, pt: 2.5, px: 3, fontWeight: 700, fontSize: "1rem", color: "#111827" }}>
+      <DialogTitle sx={MODULE_DIALOG_TITLE_SX}>
         {isEdit ? "Edit Pricing Rule" : "Add Pricing Rule"}
       </DialogTitle>
 
-      <DialogContent sx={{ px: 3, pb: 1 }}>
+      <DialogContent sx={MODULE_DIALOG_CONTENT_SX}>
         {apiError && <Alert severity="error" sx={{ mb: 2, mt: 1 }}>{apiError}</Alert>}
 
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5, mt: 1 }}>
-
-          {/* Plan and Slot locked when editing */}
           {isEdit ? (
-            <Box sx={{ p: 2, backgroundColor: "#F8FAFC", borderRadius: "10px", border: "1px solid #E2E8F0" }}>
-              <Typography sx={{ fontSize: "0.75rem", fontWeight: 600, color: "#6B7280", mb: 0.5 }}>Plan / Slot</Typography>
-              <Typography sx={{ fontSize: "0.88rem", fontWeight: 600, color: "#111827" }}>
+            <Box sx={MODULE_INLINE_PANEL_SX}>
+              <Typography sx={{ fontSize: "0.75rem", fontWeight: 800, color: C.muted, mb: 0.5, textTransform: "uppercase", letterSpacing: 0.35 }}>
+                Plan / Slot
+              </Typography>
+              <Typography sx={{ fontSize: "0.9rem", fontWeight: 700, color: C.navy }}>
                 {rule?.planId.name} - {rule?.slotId.label}
               </Typography>
-              <Typography sx={{ fontSize: "0.75rem", color: "#9CA3AF", mt: 0.25 }}>
+              <Typography sx={{ fontSize: "0.78rem", color: C.slate, mt: 0.35, fontWeight: 600, lineHeight: 1.45 }}>
                 Plan and slot cannot be changed after creation
               </Typography>
             </Box>
@@ -244,9 +228,11 @@ function PricingFormDialog({
                 label="Plan"
                 value={planId}
                 onChange={(e) => { setPlanId(e.target.value); if (errors.planId) setErrors((p) => ({ ...p, planId: "" })); }}
+                autoFocus
                 error={!!errors.planId}
                 helperText={errors.planId}
                 fullWidth
+                sx={MODULE_FIELD_SX}
               >
                 <MenuItem value="">Select a plan</MenuItem>
                 {plans.map((p) => (
@@ -264,6 +250,7 @@ function PricingFormDialog({
                 error={!!errors.slotId}
                 helperText={errors.slotId}
                 fullWidth
+                sx={MODULE_FIELD_SX}
               >
                 <MenuItem value="">Select a slot</MenuItem>
                 {slots.map((s) => (
@@ -280,20 +267,24 @@ function PricingFormDialog({
             type="number"
             value={multiplier}
             onChange={(e) => { setMultiplier(e.target.value); if (errors.multiplier) setErrors((p) => ({ ...p, multiplier: "" })); }}
+            autoFocus={isEdit}
             error={!!errors.multiplier}
             helperText={errors.multiplier || "Final price = Base price x Multiplier"}
             fullWidth
+            sx={MODULE_FIELD_SX}
             InputProps={{
               endAdornment: <InputAdornment position="end">x</InputAdornment>,
             }}
-            inputProps={{ step: 0.1, min: 0.1, max: 10 }}
+            inputProps={{ step: 0.1, min: 0.1, max: 10, onWheel: preventNumberScroll }}
           />
 
-          {/* Live price preview */}
           {previewPrice !== null && selectedPlan && (
-            <Box sx={{ p: 1.5, backgroundColor: "#EFF6FF", borderRadius: "10px", border: "1px solid #BFDBFE" }}>
-              <Typography sx={{ fontSize: "0.75rem", fontWeight: 600, color: "#1D4ED8" }}>
-                Preview - Rs.{selectedPlan.basePrice.toLocaleString("en-IN")} x {multiplier} = Rs.{previewPrice.toLocaleString("en-IN")}
+            <Box sx={MODULE_INLINE_PANEL_SX}>
+              <Typography sx={{ fontSize: "0.75rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.35, mb: 0.45 }}>
+                Price Preview
+              </Typography>
+              <Typography sx={{ fontSize: "0.84rem", fontWeight: 700, color: C.navy, lineHeight: 1.45 }}>
+                Rs.{selectedPlan.basePrice.toLocaleString("en-IN")} x {multiplier} = Rs.{previewPrice.toLocaleString("en-IN")}
               </Typography>
             </Box>
           )}
@@ -307,15 +298,16 @@ function PricingFormDialog({
               />
             }
             label={
-              <Typography sx={{ fontSize: "0.85rem", fontWeight: 500, color: "#374151" }}>
+              <Typography sx={{ fontSize: "0.85rem", fontWeight: 700, color: C.slate }}>
                 Active
               </Typography>
             }
+            sx={{ m: 0, color: C.slate }}
           />
         </Box>
       </DialogContent>
 
-      <DialogActions sx={{ px: 3, pb: 3, pt: 2, gap: 1 }}>
+      <DialogActions sx={MODULE_DIALOG_ACTIONS_SX}>
         <Button onClick={onClose} disabled={isSubmitting} color="inherit">Cancel</Button>
         <Button variant="contained" onClick={handleSubmit} disabled={isSubmitting}>
           {isSubmitting ? "Saving..." : isEdit ? "Save Changes" : "Create Rule"}
@@ -382,16 +374,16 @@ export default function PricingPage() {
   const boostedRules = rules.filter((rule) => rule.multiplier > 1).length;
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 2.25 }}>
+    <Box sx={MODULE_PAGE_SX}>
       <Box sx={{ display: "flex", alignItems: { xs: "flex-start", lg: "center" }, justifyContent: "space-between", flexDirection: { xs: "column", lg: "row" }, gap: 1.5 }}>
         <Box sx={{ flex: 1, display: "flex", justifyContent: { xs: "flex-start", lg: "center" } }}>
           <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
             {!isLoading ? (
               <>
-                <SummaryStat label="Overall Rules" value={String(rules.length)} />
-                <SummaryStat label="Active" value={String(activeRules)} tone="success" />
-                <SummaryStat label="Inactive" value={String(inactiveRules)} tone="warning" />
-                <SummaryStat label="Boosted Prices" value={String(boostedRules)} />
+                <ModuleSummaryStat label="Overall Rules" value={String(rules.length)} />
+                <ModuleSummaryStat label="Active" value={String(activeRules)} tone="success" />
+                <ModuleSummaryStat label="Inactive" value={String(inactiveRules)} tone="warning" />
+                <ModuleSummaryStat label="Boosted Prices" value={String(boostedRules)} />
               </>
             ) : (
               <>
@@ -418,18 +410,52 @@ export default function PricingPage() {
       <Paper
         elevation={0}
         sx={{
-          p: 1.5,
-          borderRadius: "14px",
-          border: "1px solid #BFDBFE",
-          backgroundColor: "#F8FBFF",
+          ...MODULE_CARD_SX,
+          px: 2,
+          py: 1.6,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 1,
+          flexWrap: "wrap",
         }}
       >
-        <Typography sx={{ fontSize: "0.76rem", color: "#1D4ED8", fontWeight: 800, letterSpacing: 0.45, textTransform: "uppercase", mb: 0.4 }}>
-          Pricing Logic
-        </Typography>
-        <Typography sx={{ fontSize: "0.82rem", color: "#33527A", fontWeight: 600, lineHeight: 1.55 }}>
-          Final price = base plan price x multiplier. If no rule exists for a plan and slot combination, the base price is used as-is.
-        </Typography>
+        {[
+          { label: "Base Price", tone: "default" as const },
+          { label: "x", tone: "operator" as const },
+          { label: "Multiplier", tone: "default" as const },
+          { label: "=", tone: "operator" as const },
+          { label: "Final Price", tone: "result" as const },
+        ].map((item, index) => (
+          <Box
+            key={`${item.label}-${index}`}
+            sx={{
+              px: item.tone === "operator" ? 0.4 : 1.25,
+              py: item.tone === "operator" ? 0.2 : 0.8,
+              borderRadius: item.tone === "operator" ? 0 : "12px",
+              border: item.tone === "operator" ? "none" : `1px solid ${item.tone === "result" ? "#D9CCBB" : C.border}`,
+              background:
+                item.tone === "operator"
+                  ? "transparent"
+                  : item.tone === "result"
+                    ? "linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(250,245,239,0.98) 100%)"
+                    : "linear-gradient(180deg, rgba(255,255,255,0.995) 0%, rgba(253,250,246,0.985) 100%)",
+              boxShadow: item.tone === "operator" ? "none" : "0 8px 18px rgba(36,58,87,0.05)",
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: item.tone === "operator" ? "1rem" : "0.82rem",
+                fontWeight: item.tone === "operator" ? 900 : item.tone === "result" ? 800 : 700,
+                color: item.tone === "result" ? C.navy : C.slate,
+                letterSpacing: item.tone === "operator" ? 0 : 0.15,
+                lineHeight: 1.2,
+              }}
+            >
+              {item.label}
+            </Typography>
+          </Box>
+        ))}
       </Paper>
 
       {error ? <ErrorState message={error} onRetry={fetchAll} /> : null}
@@ -437,9 +463,7 @@ export default function PricingPage() {
       <Paper
         elevation={0}
         sx={{
-          borderRadius: "16px",
-          border: `1px solid ${C.border}`,
-          boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+          ...MODULE_CARD_SX,
           overflow: "hidden",
         }}
       >
@@ -451,13 +475,7 @@ export default function PricingPage() {
                   <TableCell
                     key={h}
                     sx={{
-                      fontWeight: 800,
-                      fontSize: "0.72rem",
-                      color: C.slate,
-                      py: 1.45,
-                      borderBottom: `1px solid ${C.border}`,
-                      letterSpacing: 0.5,
-                      textTransform: "uppercase",
+                      ...MODULE_TABLE_HEAD_CELL_SX,
                     }}
                   >
                     {h}
@@ -495,9 +513,9 @@ export default function PricingPage() {
                     <TableRow
                       key={rule._id}
                       sx={{
+                        ...MODULE_TABLE_ROW_SX,
                         "&:last-child td": { border: 0 },
-                        "&:hover": { backgroundColor: "#F8FAFF" },
-                        opacity: rule.isActive ? 1 : 0.6,
+                        opacity: rule.isActive ? 1 : 0.72,
                       }}
                     >
                       <TableCell sx={{ py: 1.6 }}>
@@ -522,7 +540,7 @@ export default function PricingPage() {
                         <Chip
                           label={`${rule.multiplier}x`}
                           size="small"
-                          sx={{ height: 26, fontSize: "0.74rem", fontWeight: 800, backgroundColor: "#EFF6FF", color: "#1D4ED8", border: "1px solid #BFDBFE" }}
+                          sx={MODULE_NEUTRAL_CHIP_SX}
                         />
                       </TableCell>
                       <TableCell sx={{ py: 1.6 }}>
@@ -534,12 +552,7 @@ export default function PricingPage() {
                         <Chip
                           label={rule.isActive ? "Active" : "Inactive"}
                           size="small"
-                          sx={{
-                            height: 26, fontSize: "0.72rem", fontWeight: 800,
-                            backgroundColor: rule.isActive ? "#F0FDF4" : "#F9FAFB",
-                            color: rule.isActive ? C.green : "#6B7280",
-                            border: `1px solid ${rule.isActive ? "#BBF7D0" : "#E5E7EB"}`,
-                          }}
+                          sx={rule.isActive ? MODULE_SUCCESS_CHIP_SX : MODULE_NEUTRAL_CHIP_SX}
                         />
                       </TableCell>
                       <TableCell sx={{ py: 1.6 }}>
@@ -548,7 +561,7 @@ export default function PricingPage() {
                             <IconButton
                               size="small"
                               onClick={() => { setEditingRule(rule); setFormOpen(true); }}
-                              sx={{ color: "#6B7280", "&:hover": { color: "#1D4ED8", backgroundColor: "#EFF6FF" } }}
+                              sx={MODULE_ACTION_ICON_SX}
                             >
                               <EditOutlined sx={{ fontSize: 17 }} />
                             </IconButton>
@@ -557,7 +570,7 @@ export default function PricingPage() {
                             <IconButton
                               size="small"
                               onClick={() => { setSelectedRule(rule); setConfirmOpen(true); }}
-                              sx={{ color: "#6B7280", "&:hover": { color: "#DC2626", backgroundColor: "#FEF2F2" } }}
+                              sx={MODULE_ACTION_ICON_SX}
                             >
                               <DeleteOutlined sx={{ fontSize: 17 }} />
                             </IconButton>

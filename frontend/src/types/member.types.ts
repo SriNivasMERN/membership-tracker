@@ -1,4 +1,4 @@
-export type MemberStatus = "active" | "expiring_soon" | "expired";
+export type MemberStatus = "active" | "expiring_soon" | "expired" | "ended";
 
 export interface PlanSnapshot {
   planId: string;
@@ -22,6 +22,16 @@ export interface PaymentEntry {
   recordedBy: string;
 }
 
+export interface MembershipClosure {
+  endedOn: string;
+  usedValue: number;
+  settlementDeduction: number;
+  refundableBalance: number;
+  payableBalance: number;
+  note?: string;
+  closedBy: string;
+}
+
 export interface Member {
   _id: string;
   businessId: string;
@@ -34,7 +44,9 @@ export interface Member {
   startDate: string;
   endDate: string;
   finalPrice: number;
+  creditBalance?: number;
   payments: PaymentEntry[];
+  membershipClosure?: MembershipClosure;
   notes?: string;
   isDeleted: boolean;
   status: MemberStatus;

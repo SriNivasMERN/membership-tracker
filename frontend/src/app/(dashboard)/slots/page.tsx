@@ -35,6 +35,22 @@ import { Slot, SlotFormData } from "@/types/slot.types";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
+import {
+  MODULE_ACTION_ICON_SX,
+  MODULE_CARD_SX,
+  MODULE_COLORS,
+  MODULE_DIALOG_ACTIONS_SX,
+  MODULE_DIALOG_CONTENT_SX,
+  MODULE_DIALOG_PAPER_SX,
+  MODULE_DIALOG_TITLE_SX,
+  MODULE_FIELD_SX,
+  MODULE_NEUTRAL_CHIP_SX,
+  MODULE_PAGE_SX,
+  MODULE_SUCCESS_CHIP_SX,
+  MODULE_TABLE_HEAD_CELL_SX,
+  MODULE_TABLE_ROW_SX,
+  ModuleSummaryStat,
+} from "@/components/ui/moduleStyles";
 
 const EMPTY_FORM: SlotFormData = {
   label: "",
@@ -43,51 +59,14 @@ const EMPTY_FORM: SlotFormData = {
 };
 
 const C = {
-  navy: "#1E3A5F",
-  slate: "#334155",
-  muted: "#64748B",
-  border: "#E2E8F0",
-  surface: "#F8FAFC",
-  green: "#15803D",
-  amber: "#92400E",
+  navy: MODULE_COLORS.ink,
+  slate: MODULE_COLORS.slate,
+  muted: MODULE_COLORS.muted,
+  border: MODULE_COLORS.border,
+  surface: MODULE_COLORS.surface,
+  green: MODULE_COLORS.green,
+  amber: MODULE_COLORS.amber,
 };
-
-function SummaryStat({
-  label,
-  value,
-  tone = "default",
-}: {
-  label: string;
-  value: string;
-  tone?: "default" | "success" | "warning";
-}) {
-  const styles =
-    tone === "success"
-      ? { backgroundColor: "#F0FDF4", borderColor: "#BBF7D0", valueColor: C.green }
-      : tone === "warning"
-        ? { backgroundColor: "#FFFBEB", borderColor: "#FDE68A", valueColor: C.amber }
-        : { backgroundColor: "#EFF6FF", borderColor: "#BFDBFE", valueColor: C.navy };
-
-  return (
-    <Paper
-      elevation={0}
-      sx={{
-        p: 1.4,
-        borderRadius: "14px",
-        border: `1px solid ${styles.borderColor}`,
-        backgroundColor: styles.backgroundColor,
-        minWidth: 132,
-      }}
-    >
-      <Typography sx={{ fontSize: "0.72rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>
-        {label}
-      </Typography>
-      <Typography sx={{ mt: 0.45, fontSize: "1.08rem", fontWeight: 900, color: styles.valueColor }}>
-        {value}
-      </Typography>
-    </Paper>
-  );
-}
 
 function SlotFormDialog({
   open,
@@ -168,13 +147,13 @@ function SlotFormDialog({
       onClose={onClose}
       maxWidth="xs"
       fullWidth
-      PaperProps={{ elevation: 0, sx: { borderRadius: "16px", border: "1px solid #E2E8F0" } }}
+      PaperProps={{ elevation: 0, sx: MODULE_DIALOG_PAPER_SX }}
     >
-      <DialogTitle sx={{ pb: 1, pt: 2.5, px: 3, fontWeight: 700, fontSize: "1rem", color: "#111827" }}>
+      <DialogTitle sx={MODULE_DIALOG_TITLE_SX}>
         {isEdit ? "Edit Slot" : "Add New Slot"}
       </DialogTitle>
 
-      <DialogContent sx={{ px: 3, pb: 1 }}>
+      <DialogContent sx={MODULE_DIALOG_CONTENT_SX}>
         {apiError ? <Alert severity="error" sx={{ mb: 2, mt: 1 }}>{apiError}</Alert> : null}
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5, mt: 1 }}>
           <TextField
@@ -185,6 +164,7 @@ function SlotFormDialog({
             helperText={errors.label || "e.g. Morning Batch, Evening Batch"}
             fullWidth
             autoFocus
+            sx={MODULE_FIELD_SX}
           />
           <TextField
             label="Start Time"
@@ -194,6 +174,7 @@ function SlotFormDialog({
             helperText={errors.startTime || "24-hour format - e.g. 06:00"}
             fullWidth
             placeholder="06:00"
+            sx={MODULE_FIELD_SX}
           />
           <TextField
             label="End Time"
@@ -203,11 +184,12 @@ function SlotFormDialog({
             helperText={errors.endTime || "24-hour format - e.g. 08:00"}
             fullWidth
             placeholder="08:00"
+            sx={MODULE_FIELD_SX}
           />
         </Box>
       </DialogContent>
 
-      <DialogActions sx={{ px: 3, pb: 3, pt: 2, gap: 1 }}>
+      <DialogActions sx={MODULE_DIALOG_ACTIONS_SX}>
         <Button onClick={onClose} disabled={isSubmitting} color="inherit">
           Cancel
         </Button>
@@ -273,16 +255,16 @@ export default function SlotsPage() {
   const earlySlots = slots.filter((slot) => slot.startTime < "12:00").length;
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 2.25 }}>
+    <Box sx={MODULE_PAGE_SX}>
       <Box sx={{ display: "flex", alignItems: { xs: "flex-start", lg: "center" }, justifyContent: "space-between", flexDirection: { xs: "column", lg: "row" }, gap: 1.5 }}>
         <Box sx={{ flex: 1, display: "flex", justifyContent: { xs: "flex-start", lg: "center" } }}>
           <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
             {!isLoading ? (
               <>
-                <SummaryStat label="Overall Slots" value={String(slots.length)} />
-                <SummaryStat label="Active" value={String(activeSlots)} tone="success" />
-                <SummaryStat label="Inactive" value={String(inactiveSlots)} tone="warning" />
-                <SummaryStat label="Morning Slots" value={String(earlySlots)} />
+                <ModuleSummaryStat label="Overall Slots" value={String(slots.length)} />
+                <ModuleSummaryStat label="Active" value={String(activeSlots)} tone="success" />
+                <ModuleSummaryStat label="Inactive" value={String(inactiveSlots)} tone="warning" />
+                <ModuleSummaryStat label="Morning Slots" value={String(earlySlots)} />
               </>
             ) : (
               <>
@@ -311,9 +293,7 @@ export default function SlotsPage() {
       <Paper
         elevation={0}
         sx={{
-          borderRadius: "16px",
-          border: `1px solid ${C.border}`,
-          boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+          ...MODULE_CARD_SX,
           overflow: "hidden",
         }}
       >
@@ -325,13 +305,7 @@ export default function SlotsPage() {
                   <TableCell
                     key={heading}
                     sx={{
-                      fontWeight: 800,
-                      fontSize: "0.72rem",
-                      color: C.slate,
-                      py: 1.45,
-                      borderBottom: `1px solid ${C.border}`,
-                      letterSpacing: 0.5,
-                      textTransform: "uppercase",
+                      ...MODULE_TABLE_HEAD_CELL_SX,
                     }}
                   >
                     {heading}
@@ -372,8 +346,8 @@ export default function SlotsPage() {
                     <TableRow
                       key={slot._id}
                       sx={{
+                        ...MODULE_TABLE_ROW_SX,
                         "&:last-child td": { border: 0 },
-                        "&:hover": { backgroundColor: "#F8FAFF" },
                         opacity: slot.isActive ? 1 : 0.6,
                       }}
                     >
@@ -405,14 +379,7 @@ export default function SlotsPage() {
                         <Chip
                           label={slot.isActive ? "Active" : "Inactive"}
                           size="small"
-                          sx={{
-                            height: 26,
-                            fontSize: "0.72rem",
-                            fontWeight: 800,
-                            backgroundColor: slot.isActive ? "#F0FDF4" : "#F9FAFB",
-                            color: slot.isActive ? C.green : "#6B7280",
-                            border: `1px solid ${slot.isActive ? "#BBF7D0" : "#E5E7EB"}`,
-                          }}
+                          sx={slot.isActive ? MODULE_SUCCESS_CHIP_SX : MODULE_NEUTRAL_CHIP_SX}
                         />
                       </TableCell>
 
@@ -425,7 +392,7 @@ export default function SlotsPage() {
                                 setEditingSlot(slot);
                                 setFormOpen(true);
                               }}
-                              sx={{ color: "#6B7280", "&:hover": { color: "#1D4ED8", backgroundColor: "#EFF6FF" } }}
+                              sx={MODULE_ACTION_ICON_SX}
                             >
                               <EditOutlined sx={{ fontSize: 17 }} />
                             </IconButton>
@@ -439,13 +406,7 @@ export default function SlotsPage() {
                                 setConfirmAction("toggle");
                                 setConfirmOpen(true);
                               }}
-                              sx={{
-                                color: "#6B7280",
-                                "&:hover": {
-                                  color: slot.isActive ? "#B45309" : "#15803D",
-                                  backgroundColor: slot.isActive ? "#FFFBEB" : "#F0FDF4",
-                                },
-                              }}
+                              sx={MODULE_ACTION_ICON_SX}
                             >
                               <PowerSettingsNewOutlined sx={{ fontSize: 17 }} />
                             </IconButton>
@@ -459,7 +420,7 @@ export default function SlotsPage() {
                                 setConfirmAction("delete");
                                 setConfirmOpen(true);
                               }}
-                              sx={{ color: "#6B7280", "&:hover": { color: "#DC2626", backgroundColor: "#FEF2F2" } }}
+                              sx={MODULE_ACTION_ICON_SX}
                             >
                               <DeleteOutlined sx={{ fontSize: 17 }} />
                             </IconButton>
