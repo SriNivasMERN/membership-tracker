@@ -73,12 +73,30 @@ export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
   const drawerContent = (
     <Box
       sx={{
-        width: SIDEBAR_WIDTH,
+        width: `calc(${SIDEBAR_WIDTH}px - 6px)`,
+        ml: "6px",
+        mb: "6px",
         backgroundColor: "primary.main",
         borderTop: "1px solid rgba(255,255,255,0.12)",
-        minHeight: "100vh",
+        borderTopRightRadius: "18px",
+        borderBottomRightRadius: "18px",
+        minHeight: "calc(100vh - 6px)",
         display: "flex",
         flexDirection: "column",
+        position: "relative",
+        boxShadow: "0 16px 28px rgba(15,23,42,0.12)",
+        overflow: "hidden",
+        "&::before": {
+          content: '""',
+          position: "absolute",
+          inset: 0,
+          pointerEvents: "none",
+          borderLeft: "1px solid rgba(255,255,255,0.12)",
+          borderBottom: "1px solid rgba(255,255,255,0.12)",
+          borderTopRightRadius: "18px",
+          borderBottomRightRadius: "18px",
+          boxShadow: "inset 1px 0 0 rgba(15,23,42,0.2), inset 0 -1px 0 rgba(15,23,42,0.2)",
+        },
       }}
     >
       <Box>
@@ -124,30 +142,52 @@ export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
       <Box>
         <Divider sx={{ borderColor: "rgba(255,255,255,0.1)" }} />
         {/* Navigation */}
-        <List sx={{ px: 1.5, py: 2 }}>
+        <List
+          sx={{
+            px: 1.1,
+            py: 2,
+            display: "flex",
+            flexDirection: "column",
+            gap: 0.3,
+          }}
+        >
           {visibleItems.map((item) => (
-            <ListItem key={item.path} disablePadding sx={{ mb: 0.5 }}>
+            <ListItem key={item.path} disablePadding>
               <ListItemButton
                 onClick={() => handleNavigate(item.path)}
                 sx={{
-                  borderRadius: 1.5,
-                  py: 1.05,
-                  backgroundColor: isActive(item.path)
-                    ? "rgba(255,255,255,0.15)"
+                  borderRadius: "18px",
+                  px: 1.75,
+                  py: 1.08,
+                  background: isActive(item.path)
+                    ? "linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(214,228,245,0.12) 100%)"
                     : "transparent",
-                  transition: "background-color 0.15s ease, transform 0.15s ease",
+                  border: isActive(item.path)
+                    ? "1px solid rgba(255,255,255,0.1)"
+                    : "1px solid transparent",
+                  boxShadow: isActive(item.path)
+                    ? "inset 0 1px 0 rgba(255,255,255,0.08), 0 10px 24px rgba(15,23,42,0.14)"
+                    : "none",
+                  transition: "background 0.18s ease, transform 0.15s ease, border-color 0.18s ease, box-shadow 0.18s ease",
                   "&:hover": {
-                    backgroundColor: isActive(item.path)
-                      ? "rgba(255,255,255,0.2)"
-                      : "rgba(255,255,255,0.08)",
-                    transform: "translateX(1px)",
+                    background: isActive(item.path)
+                      ? "linear-gradient(135deg, rgba(255,255,255,0.22) 0%, rgba(214,228,245,0.15) 100%)"
+                      : "linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.025) 100%)",
+                    borderColor: isActive(item.path)
+                      ? "rgba(255,255,255,0.085)"
+                      : "rgba(255,255,255,0.05)",
+                    boxShadow: isActive(item.path)
+                      ? "inset 0 1px 0 rgba(255,255,255,0.08), 0 12px 26px rgba(15,23,42,0.16)"
+                      : "none",
+                    transform: "translateX(2px)",
                   },
                 }}
               >
                 <ListItemIcon
                   sx={{
-                    color: isActive(item.path) ? "white" : "rgba(255,255,255,0.6)",
-                    minWidth: 36,
+                    color: isActive(item.path) ? "#F8FAFC" : "rgba(241,245,249,0.72)",
+                    minWidth: 38,
+                    transition: "color 0.18s ease",
                   }}
                 >
                   {item.icon}
@@ -156,8 +196,9 @@ export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
                   primary={item.label}
                   primaryTypographyProps={{
                     fontSize: "0.875rem",
-                    fontWeight: isActive(item.path) ? 600 : 400,
-                    color: isActive(item.path) ? "white" : "rgba(255,255,255,0.7)",
+                    fontWeight: isActive(item.path) ? 700 : 500,
+                    letterSpacing: -0.12,
+                    color: isActive(item.path) ? "#F8FAFC" : "rgba(241,245,249,0.8)",
                   }}
                 />
               </ListItemButton>
@@ -205,6 +246,9 @@ export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
           "& .MuiDrawer-paper": {
             width: SIDEBAR_WIDTH,
             border: "none",
+            backgroundColor: "transparent",
+            boxShadow: "none",
+            overflow: "hidden",
           },
         }}
       >
@@ -219,6 +263,9 @@ export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
           "& .MuiDrawer-paper": {
             width: SIDEBAR_WIDTH,
             border: "none",
+            backgroundColor: "transparent",
+            boxShadow: "none",
+            overflow: "hidden",
           },
         }}
         open
