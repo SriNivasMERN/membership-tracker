@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   Box,
+  Button,
   Chip,
   CircularProgress,
   Dialog,
@@ -26,6 +27,8 @@ import {
   CheckCircleOutlined,
   CloseOutlined,
   Groups2Outlined,
+  KeyboardArrowDownRounded,
+  KeyboardArrowUpRounded,
   NorthEastOutlined,
   RemoveCircleOutlined,
   ScheduleOutlined,
@@ -197,15 +200,17 @@ function SectionCard({
   title,
   subtitle,
   action,
+  sectionId,
   children,
 }: {
   title: string;
   subtitle?: string;
   action?: React.ReactNode;
+  sectionId?: string;
   children: React.ReactNode;
 }) {
   return (
-    <Paper elevation={0} sx={{ ...MODULE_CARD_SX, borderRadius: "16px", overflow: "hidden" }}>
+    <Paper id={sectionId} elevation={0} sx={{ ...MODULE_CARD_SX, borderRadius: "16px", overflow: "hidden", scrollMarginTop: "92px" }}>
       <Box
         sx={{
           px: 2,
@@ -231,6 +236,54 @@ function SectionCard({
       </Box>
       <Box sx={{ p: 2 }}>{children}</Box>
     </Paper>
+  );
+}
+
+function SectionJumpLink({
+  label,
+  onClick,
+  direction = "down",
+}: {
+  label: string;
+  onClick: () => void;
+  direction?: "up" | "down";
+}) {
+  return (
+    <Button
+      size="small"
+      onClick={onClick}
+      endIcon={
+        direction === "down" ? (
+          <KeyboardArrowDownRounded sx={{ fontSize: 18 }} />
+        ) : (
+          <KeyboardArrowUpRounded sx={{ fontSize: 18 }} />
+        )
+      }
+      sx={{
+        minWidth: "auto",
+        px: 0.4,
+        py: 0.2,
+        color: C.slate,
+        fontSize: "0.78rem",
+        fontWeight: 800,
+        textTransform: "none",
+        borderRadius: "8px",
+        whiteSpace: "nowrap",
+        textDecoration: "underline",
+        textUnderlineOffset: "0.18em",
+        textDecorationColor: "rgba(30,58,95,0.32)",
+        "&:hover": {
+          backgroundColor: "rgba(255,255,255,0.5)",
+          color: C.blue,
+          textDecorationColor: C.blue,
+        },
+        "& .MuiButton-endIcon": {
+          ml: 0.15,
+        },
+      }}
+    >
+      {label}
+    </Button>
   );
 }
 
@@ -980,13 +1033,21 @@ export default function DashboardPage() {
   const totalSlotMembers = data?.slotActivity.reduce((sum, slot) => sum + slot.count, 0) ?? 0;
   const totalPlanMembers = plans.reduce((sum, plan) => sum + plan.memberCount, 0);
 
+  const jumpToSection = (sectionId: string) => {
+    const target = document.getElementById(sectionId);
+    if (!target) return;
+    const headerOffset = 78;
+    const targetTop = target.getBoundingClientRect().top + window.scrollY - headerOffset;
+    window.scrollTo({ top: targetTop, behavior: "smooth" });
+  };
+
   if (error) {
     return <ErrorState message={error} onRetry={() => window.location.reload()} />;
   }
 
   return (
     <Box sx={MODULE_PAGE_SX}>
-      <Grid container spacing={1.5}>
+      <Grid id="dashboard-overview" container spacing={1.5} sx={{ scrollMarginTop: "20px" }}>
         {[
           {
             label: "Total Members",
@@ -1029,7 +1090,12 @@ export default function DashboardPage() {
 
       <Grid container spacing={2}>
         <Grid item xs={12} xl={8}>
-          <SectionCard title="Business Pulse" subtitle="Collections, pending dues, and renewal activity.">
+          <SectionCard
+            sectionId="business-pulse"
+            title="Business Pulse"
+            subtitle="Collections, pending dues, and renewal activity."
+            action={<SectionJumpLink label="Collections Trend" direction="down" onClick={() => jumpToSection("collections-trend")} />}
+          >
             <Grid container spacing={1.5}>
               <Grid item xs={12} sm={6} lg={3}>
                 {isLoading ? <Skeleton variant="rounded" height={94} sx={{ borderRadius: "14px" }} /> : <PulseMetric label="Collections" value={fmt(data?.revenue.totalRevenue ?? 0)} helper="Recorded payments so far" tone="success" />}
@@ -1153,20 +1219,24 @@ export default function DashboardPage() {
       <Grid container spacing={2}>
         <Grid item xs={12} lg={7}>
           <SectionCard
+            sectionId="collections-trend"
             title="Collections Trend"
             subtitle="Monthly payment totals with quick context."
             action={
-              trend ? (
-                <Chip
-                  icon={trend.up ? <TrendingUpOutlined /> : <TrendingDownOutlined />}
-                  label={`${trend.up ? "+" : ""}${trend.pct}% vs previous`}
-                  size="small"
-                  sx={{
-                    ...(trend.up ? MODULE_SUCCESS_CHIP_SX : MODULE_WARNING_CHIP_SX),
-                    "& .MuiChip-icon": { color: "inherit" },
-                  }}
-                />
-              ) : null
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                <SectionJumpLink label="Business Pulse" direction="up" onClick={() => jumpToSection("dashboard-overview")} />
+                {trend ? (
+                  <Chip
+                    icon={trend.up ? <TrendingUpOutlined /> : <TrendingDownOutlined />}
+                    label={`${trend.up ? "+" : ""}${trend.pct}% vs previous`}
+                    size="small"
+                    sx={{
+                      ...(trend.up ? MODULE_SUCCESS_CHIP_SX : MODULE_WARNING_CHIP_SX),
+                      "& .MuiChip-icon": { color: "inherit" },
+                    }}
+                  />
+                ) : null}
+              </Box>
             }
           >
             <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
