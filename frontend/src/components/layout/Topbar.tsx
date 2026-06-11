@@ -15,6 +15,7 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { settingsApi } from "@/lib/api/settings.api";
 import { SIDEBAR_WIDTH } from "./Sidebar";
+import { MODULE_COLORS } from "@/components/ui/moduleStyles";
 
 interface TopbarProps {
   title: string;
@@ -54,15 +55,24 @@ export default function Topbar({ title, onMenuClick }: TopbarProps) {
         right: 0,
         height: 64,
         background:
-          "linear-gradient(90deg, rgba(255,255,255,0.96) 0%, rgba(248,250,252,0.95) 40%, rgba(239,246,255,0.94) 100%)",
+          "linear-gradient(90deg, rgba(255,255,255,0.995) 0%, rgba(253,250,246,0.988) 46%, rgba(248,242,234,0.975) 100%)",
         backdropFilter: "blur(18px)",
-        borderBottom: "1px solid rgba(191,219,254,0.75)",
+        borderTop: `1px solid ${MODULE_COLORS.border}`,
+        borderBottom: `1px solid ${MODULE_COLORS.border}`,
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
         px: { xs: 2, sm: 3 },
         zIndex: 99,
-        boxShadow: "0 8px 22px rgba(15,23,42,0.06)",
+        boxShadow: "0 12px 26px rgba(36,58,87,0.08)",
+        "&::before": {
+          content: '""',
+          position: "absolute",
+          inset: 0,
+          background:
+            "linear-gradient(180deg, rgba(255,255,255,0.72) 0%, rgba(255,255,255,0.18) 100%)",
+          pointerEvents: "none",
+        },
       }}
     >
       {/* Left - hamburger on mobile + page title */}
@@ -72,10 +82,10 @@ export default function Topbar({ title, onMenuClick }: TopbarProps) {
           size="small"
           sx={{
             display: { xs: "flex", md: "none" },
-            color: "#475569",
-            border: "1px solid rgba(191,219,254,0.65)",
-            background: "linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(239,246,255,0.88) 100%)",
-            boxShadow: "0 8px 18px rgba(30,58,95,0.08)",
+            color: MODULE_COLORS.slate,
+            border: `1px solid ${MODULE_COLORS.border}`,
+            background: "linear-gradient(180deg, rgba(255,255,255,0.99) 0%, rgba(251,246,240,0.96) 100%)",
+            boxShadow: "0 8px 18px rgba(36,58,87,0.08)",
           }}
         >
           <MenuOutlined />
@@ -87,8 +97,8 @@ export default function Topbar({ title, onMenuClick }: TopbarProps) {
           sx={{
             fontSize: { xs: "1rem", sm: "1.15rem" },
             letterSpacing: -0.2,
-            color: "#0F172A",
-            textShadow: "0 1px 0 rgba(255,255,255,0.55)",
+            color: "#111827",
+            textShadow: "0 1px 0 rgba(255,255,255,0.78)",
           }}
         >
           {title}
@@ -112,15 +122,15 @@ export default function Topbar({ title, onMenuClick }: TopbarProps) {
       >
         <Typography
           sx={{
-            fontSize: "1rem",
+            fontSize: "1.01rem",
             fontWeight: 800,
-            letterSpacing: 0.04,
-            color: "#334155",
+            letterSpacing: -0.01,
+            color: MODULE_COLORS.slate,
             whiteSpace: "nowrap",
             overflow: "hidden",
             textOverflow: "ellipsis",
-            textShadow: "0 1px 0 rgba(255,255,255,0.7)",
-            opacity: 0.96,
+            textShadow: "0 1px 0 rgba(255,255,255,0.88)",
+            opacity: 0.99,
           }}
         >
           {businessName}
@@ -138,29 +148,23 @@ export default function Topbar({ title, onMenuClick }: TopbarProps) {
               height: 40,
               borderRadius: "14px",
               color: "#B91C1C",
-              border: "1px solid rgba(252,165,165,0.7)",
+              border: "1px solid rgba(244,180,173,0.82)",
               background:
-                "linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(254,242,242,0.94) 100%)",
+                "linear-gradient(180deg, rgba(255,255,255,0.99) 0%, rgba(252,243,240,0.96) 100%)",
               boxShadow:
-                "0 10px 22px rgba(185,28,28,0.12), inset 0 1px 0 rgba(255,255,255,0.95)",
-              animation: "powerFloat 3.4s ease-in-out infinite",
+                "0 10px 22px rgba(185,28,28,0.10), inset 0 1px 0 rgba(255,255,255,0.96)",
               "&:hover": {
                 background:
-                  "linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(254,226,226,0.98) 100%)",
+                  "linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(251,233,229,0.98) 100%)",
                 boxShadow:
-                  "0 12px 24px rgba(185,28,28,0.16), inset 0 1px 0 rgba(255,255,255,0.98)",
-              },
-              "@keyframes powerFloat": {
-                "0%": { transform: "translateY(0px)", boxShadow: "0 10px 22px rgba(185,28,28,0.12), inset 0 1px 0 rgba(255,255,255,0.95)" },
-                "50%": { transform: "translateY(-1.5px)", boxShadow: "0 14px 24px rgba(185,28,28,0.15), inset 0 1px 0 rgba(255,255,255,0.95)" },
-                "100%": { transform: "translateY(0px)", boxShadow: "0 10px 22px rgba(185,28,28,0.12), inset 0 1px 0 rgba(255,255,255,0.95)" },
+                  "0 12px 24px rgba(185,28,28,0.14), inset 0 1px 0 rgba(255,255,255,0.98)",
               },
             }}
           >
             <PowerSettingsNewRounded
               sx={{
                 fontSize: 20,
-                filter: "drop-shadow(0 0 8px rgba(239,68,68,0.18))",
+                filter: "drop-shadow(0 0 6px rgba(239,68,68,0.12))",
               }}
             />
           </IconButton>

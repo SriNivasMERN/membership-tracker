@@ -84,7 +84,8 @@ export default function DashboardLayout({
           sx={{
             flex: 1,
             mt: "64px",
-            p: { xs: 2, sm: 3 },
+            p: { xs: 1.5, sm: 2 },
+            pt: { xs: 1, sm: 1.25 },
           }}
         >
           {children}

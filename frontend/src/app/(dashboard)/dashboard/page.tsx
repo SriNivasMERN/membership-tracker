@@ -728,7 +728,7 @@ function UtilizationBar({
 }) {
   return (
     <Box>
-      <Box sx={{ display: "flex", justifyContent: "space-between", gap: 1, mb: 0.45 }}>
+      <Box sx={{ display: "flex", justifyContent: "space-between", gap: 1, mb: 0.28 }}>
         <Typography sx={{ fontSize: "0.82rem", fontWeight: 700, color: C.slate }} noWrap>
           {label}
         </Typography>
@@ -739,7 +739,7 @@ function UtilizationBar({
       <Box sx={{ height: 8, borderRadius: "999px", backgroundColor: "#E2E8F0", overflow: "hidden" }}>
         <Box sx={{ height: "100%", width: `${percent}%`, borderRadius: "999px", backgroundColor: color }} />
       </Box>
-      <Typography sx={{ mt: 0.4, fontSize: "0.72rem", color: C.muted, fontWeight: 600 }}>
+      <Typography sx={{ mt: 0.22, fontSize: "0.7rem", color: C.muted, fontWeight: 600, lineHeight: 1.25 }}>
         {helper}
       </Typography>
     </Box>
@@ -1089,7 +1089,7 @@ export default function DashboardPage() {
         </Grid>
 
         <Grid item xs={12} xl={4}>
-          <SectionCard title="Utilization" subtitle="Member distribution across plans and slots.">
+          <SectionCard title="Utilization">
             {isLoading ? (
               <Box sx={{ display: "flex", flexDirection: "column", gap: 1.1 }}>
                 {[1, 2, 3, 4].map((item) => (
@@ -1099,12 +1099,12 @@ export default function DashboardPage() {
             ) : !plans.length && !data?.slotActivity.length ? (
               <EmptyState title="No usage data yet" subtitle="Plan and slot usage appears once members are assigned." />
             ) : (
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1.15 }}>
                 <Box>
                   <Typography sx={{ fontSize: "0.76rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.55 }}>
                     Plans
                   </Typography>
-                  <Box sx={{ mt: 1, display: "flex", flexDirection: "column", gap: 1.1 }}>
+                  <Box sx={{ mt: 0.8, display: "flex", flexDirection: "column", gap: 0.85 }}>
                     {plans.slice(0, 4).map((plan, index) => {
                       const percent = totalPlanMembers > 0 ? Math.round((plan.memberCount / totalPlanMembers) * 100) : 0;
                       return (
@@ -1121,11 +1121,11 @@ export default function DashboardPage() {
                   </Box>
                 </Box>
 
-                <Box sx={{ pt: 1.25, borderTop: `1px solid ${C.border}` }}>
+                <Box sx={{ pt: 1, borderTop: `1px solid ${C.border}` }}>
                   <Typography sx={{ fontSize: "0.76rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.55 }}>
                     Slots
                   </Typography>
-                  <Box sx={{ mt: 1, display: "flex", flexDirection: "column", gap: 1.1 }}>
+                  <Box sx={{ mt: 0.8, display: "flex", flexDirection: "column", gap: 0.85 }}>
                     {[...(data?.slotActivity || [])]
                       .sort((a, b) => b.count - a.count)
                       .slice(0, 4)

@@ -75,6 +75,7 @@ export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
       sx={{
         width: SIDEBAR_WIDTH,
         backgroundColor: "primary.main",
+        borderTop: "1px solid rgba(255,255,255,0.12)",
         minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
