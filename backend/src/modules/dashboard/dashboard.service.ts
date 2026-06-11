@@ -38,17 +38,18 @@ export const dashboardService = {
 
     // Process each member
     for (const member of members) {
-      const status = deriveMemberStatus(
-        member.startDate,
-        member.endDate,
-        expiryAlertDays
-      );
+      const status = member.membershipClosure
+        ? "ended"
+        : deriveMemberStatus(
+            member.startDate,
+            member.endDate,
+            expiryAlertDays
+          );
 
       const paidAmount = calculatePaidAmount(member.payments);
-      const pendingAmount = calculatePendingAmount(
-        member.finalPrice,
-        member.payments
-      );
+      const pendingAmount = member.membershipClosure
+        ? member.membershipClosure.payableBalance
+        : calculatePendingAmount(member.finalPrice, member.payments);
 
       // Member counts by status
       if (status === "active") activeCount++;

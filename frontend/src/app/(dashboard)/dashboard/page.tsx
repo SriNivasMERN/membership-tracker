@@ -826,7 +826,9 @@ function MemberTable({ members }: { members: Member[] }) {
                 <Typography sx={{ mt: 0.15, fontSize: "0.72rem", color: C.muted, fontWeight: 600 }}>{m.slotSnapshot.label}</Typography>
               </TableCell>
               <TableCell sx={{ py: 1.2, px: 2 }}>
-                <Typography sx={{ fontSize: "0.82rem", color: C.slate, fontWeight: 600 }}>{fmtDate(m.endDate)}</Typography>
+                <Typography sx={{ fontSize: "0.82rem", color: C.slate, fontWeight: 600 }}>
+                  {m.status === "ended" ? "Not Applicable" : fmtDate(m.endDate)}
+                </Typography>
               </TableCell>
               <TableCell sx={{ py: 1.2, px: 2 }}>
                 <Typography sx={{ fontSize: "0.84rem", fontWeight: 800, color: m.pendingAmount > 0 ? C.red : C.green }}>
@@ -863,11 +865,17 @@ function DetailModal({
     const fetch = async () => {
       setIsLoadingMembers(true);
       try {
-        const response = await membersApi.getAll({ page: 1, limit: 500 });
-        const all: Member[] = response.data || [];
-        if (type === "total") setMembers(all);
-        else if (type === "active") setMembers(all.filter((m) => m.status === "active"));
-        else if (type === "expired") setMembers(all.filter((m) => m.status === "expired"));
+        if (type === "total") {
+          const response = await membersApi.getAll({ page: 1, limit: 500 });
+          setMembers(response.data || []);
+        } else if (type === "active" || type === "expired") {
+          const response = await membersApi.getAll({
+            page: 1,
+            limit: 500,
+            status: type,
+          });
+          setMembers(response.data || []);
+        }
       } catch {
         setMembers([]);
       } finally {

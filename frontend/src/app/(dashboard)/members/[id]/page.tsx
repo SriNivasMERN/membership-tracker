@@ -440,6 +440,31 @@ export default function MemberDetailPage() {
   const closurePaidAndCredit = member.paidAmount + (member.creditBalance || 0);
   const closureRefundableBalance = Math.max(0, closurePaidAndCredit - closureUsedValue - closureDeductionValue);
   const closurePayableBalance = Math.max(0, closureUsedValue + closureDeductionValue - closurePaidAndCredit);
+  const endedSettlementLabel = member.membershipClosure
+    ? member.membershipClosure.refundableBalance > 0
+      ? "Refund Due"
+      : member.membershipClosure.payableBalance > 0
+        ? "Balance Due"
+        : "Settlement"
+    : "Payment Due";
+  const endedSettlementValue = member.membershipClosure
+    ? member.membershipClosure.refundableBalance > 0
+      ? fmt(member.membershipClosure.refundableBalance)
+      : member.membershipClosure.payableBalance > 0
+        ? fmt(member.membershipClosure.payableBalance)
+        : "Settled"
+    : member.pendingAmount > 0
+      ? fmt(member.pendingAmount)
+      : "Fully Paid";
+  const endedSettlementTone = member.membershipClosure
+    ? member.membershipClosure.refundableBalance > 0
+      ? "success"
+      : member.membershipClosure.payableBalance > 0
+        ? "danger"
+        : "success"
+    : member.pendingAmount > 0
+      ? "danger"
+      : "success";
 
   return (
     <Box sx={MODULE_PAGE_SX}>
@@ -463,10 +488,17 @@ export default function MemberDetailPage() {
           <SummaryMetric label="Plan" value={member.planSnapshot.name} />
         </Grid>
         <Grid item xs={12} sm={4}>
-          <SummaryMetric label="Payment Due" value={member.pendingAmount > 0 ? fmt(member.pendingAmount) : "Fully Paid"} tone={member.pendingAmount > 0 ? "danger" : "success"} />
+          <SummaryMetric
+            label={endedSettlementLabel}
+            value={endedSettlementValue}
+            tone={endedSettlementTone}
+          />
         </Grid>
         <Grid item xs={12} sm={4}>
-          <SummaryMetric label="Renewal Date" value={fmtDate(member.endDate)} />
+          <SummaryMetric
+            label="Renewal Date"
+            value={member.status === "ended" ? "Not Applicable" : fmtDate(member.endDate)}
+          />
         </Grid>
       </Grid>
 
@@ -572,9 +604,39 @@ export default function MemberDetailPage() {
               <Divider sx={{ my: 1.5 }} />
 
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <Typography sx={{ fontSize: "0.75rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>Pending</Typography>
-                <Typography sx={{ fontSize: "1.25rem", fontWeight: 900, color: member.pendingAmount > 0 ? "#B91C1C" : C.green }}>
-                  {member.pendingAmount > 0 ? fmt(member.pendingAmount) : "Fully Paid"}
+                <Typography sx={{ fontSize: "0.75rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                  {member.membershipClosure
+                    ? member.membershipClosure.refundableBalance > 0
+                      ? "Refund Due"
+                      : member.membershipClosure.payableBalance > 0
+                        ? "Balance Due"
+                        : "Settlement"
+                    : "Pending"}
+                </Typography>
+                <Typography
+                  sx={{
+                    fontSize: "1.25rem",
+                    fontWeight: 900,
+                    color: member.membershipClosure
+                      ? member.membershipClosure.refundableBalance > 0
+                        ? C.green
+                        : member.membershipClosure.payableBalance > 0
+                          ? "#B91C1C"
+                          : C.green
+                      : member.pendingAmount > 0
+                        ? "#B91C1C"
+                        : C.green,
+                  }}
+                >
+                  {member.membershipClosure
+                    ? member.membershipClosure.refundableBalance > 0
+                      ? fmt(member.membershipClosure.refundableBalance)
+                      : member.membershipClosure.payableBalance > 0
+                        ? fmt(member.membershipClosure.payableBalance)
+                        : "Settled"
+                    : member.pendingAmount > 0
+                      ? fmt(member.pendingAmount)
+                      : "Fully Paid"}
                 </Typography>
               </Box>
               <Box sx={{ display: "flex", flexDirection: "column", gap: 1.25, mt: 2 }}>
@@ -620,7 +682,7 @@ export default function MemberDetailPage() {
                 <InfoRow label="Used Value" value={fmt(member.membershipClosure.usedValue)} />
                 <InfoRow label="Settlement Deduction" value={fmt(member.membershipClosure.settlementDeduction)} />
                 <InfoRow
-                  label={member.membershipClosure.refundableBalance > 0 ? "Refundable Balance" : "Balance Due"}
+                  label={member.membershipClosure.refundableBalance > 0 ? "Refund Due" : "Balance Due"}
                   value={fmt(member.membershipClosure.refundableBalance > 0 ? member.membershipClosure.refundableBalance : member.membershipClosure.payableBalance)}
                 />
               </Paper>
@@ -819,7 +881,7 @@ export default function MemberDetailPage() {
                 <Divider sx={{ my: 0.5 }} />
                 <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
                   <Typography sx={{ fontSize: "0.82rem", color: C.slate, fontWeight: 800 }}>
-                    {closureRefundableBalance > 0 ? "Refundable Balance" : "Balance Due"}
+                    {closureRefundableBalance > 0 ? "Refund Due" : "Balance Due"}
                   </Typography>
                   <Typography
                     sx={{

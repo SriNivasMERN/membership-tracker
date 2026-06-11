@@ -382,7 +382,9 @@ export default function MembersPage() {
                         </Typography>
                       </TableCell>
                       <TableCell sx={{ py: 1.6 }}>
-                        <Typography sx={{ fontSize: "0.85rem", color: C.slate, fontWeight: 600 }}>{formatDate(member.endDate)}</Typography>
+                        <Typography sx={{ fontSize: "0.85rem", color: C.slate, fontWeight: 600 }}>
+                          {member.status === "ended" ? "Not Applicable" : formatDate(member.endDate)}
+                        </Typography>
                       </TableCell>
                       <TableCell sx={{ py: 1.6 }}>
                         <Typography sx={{ fontSize: "0.88rem", fontWeight: 800, color: member.pendingAmount > 0 ? C.red : C.green }}>
