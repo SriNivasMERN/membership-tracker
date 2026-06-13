@@ -1,7 +1,8 @@
 "use client";
 
-import { Paper, Typography } from "@mui/material";
+import { Box, Paper, Typography } from "@mui/material";
 import type { SxProps, Theme } from "@mui/material/styles";
+import type { ReactNode } from "react";
 
 export const MODULE_COLORS = {
   ink: "#243A57",
@@ -145,6 +146,114 @@ export const MODULE_WARNING_CHIP_SX: SxProps<Theme> = {
   color: MODULE_COLORS.amber,
   border: "1px solid #E2CCAF",
 };
+
+export function ModuleDashboardStat({
+  label,
+  value,
+  helper,
+  icon,
+  tone = "default",
+  compact = false,
+}: {
+  label: string;
+  value: string;
+  helper: string;
+  icon: ReactNode;
+  tone?: "default" | "success" | "warning" | "danger";
+  compact?: boolean;
+}) {
+  const styles =
+    tone === "success"
+      ? {
+          valueColor: MODULE_COLORS.green,
+          iconColor: MODULE_COLORS.green,
+          iconBackground: "#EEF8F1",
+        }
+      : tone === "warning"
+        ? {
+            valueColor: MODULE_COLORS.amber,
+            iconColor: MODULE_COLORS.amber,
+            iconBackground: "#FCF4E9",
+          }
+        : tone === "danger"
+          ? {
+              valueColor: MODULE_COLORS.red,
+              iconColor: MODULE_COLORS.red,
+              iconBackground: "#FBEFEA",
+            }
+          : {
+              valueColor: MODULE_COLORS.ink,
+              iconColor: MODULE_COLORS.ink,
+              iconBackground: "#F7F2EB",
+            };
+
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        p: compact ? 1.45 : 1.8,
+        ...MODULE_CARD_SX,
+        borderRadius: "14px",
+        height: "100%",
+      }}
+    >
+      <Box sx={{ display: "flex", justifyContent: "space-between", gap: 1.25 }}>
+        <Box sx={{ minWidth: 0 }}>
+          <Typography
+            sx={{
+              fontSize: "0.72rem",
+              fontWeight: 800,
+              color: MODULE_COLORS.muted,
+              textTransform: "uppercase",
+              letterSpacing: 0.65,
+            }}
+          >
+            {label}
+          </Typography>
+          <Typography
+            sx={{
+              mt: 0.5,
+              fontSize: compact ? "1.5rem" : "1.8rem",
+              fontWeight: 900,
+              color: styles.valueColor,
+              lineHeight: 1,
+            }}
+          >
+            {value}
+          </Typography>
+          <Typography
+            sx={{
+              mt: compact ? 0.55 : 0.75,
+              fontSize: compact ? "0.74rem" : "0.78rem",
+              color: MODULE_COLORS.muted,
+              fontWeight: 600,
+              lineHeight: 1.4,
+            }}
+          >
+            {helper}
+          </Typography>
+        </Box>
+        <Box
+          sx={{
+            width: compact ? 38 : 42,
+            height: compact ? 38 : 42,
+            borderRadius: "13px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: styles.iconColor,
+            background: `linear-gradient(180deg, rgba(255,255,255,0.98) 0%, ${styles.iconBackground} 100%)`,
+            border: `1px solid ${MODULE_COLORS.border}`,
+            flexShrink: 0,
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.92)",
+          }}
+        >
+          {icon}
+        </Box>
+      </Box>
+    </Paper>
+  );
+}
 
 export function ModuleSummaryStat({
   label,

@@ -23,12 +23,16 @@ import {
   Typography,
 } from "@mui/material";
 import {
+  CheckCircleOutlined,
   AddOutlined,
+  CreditCardOutlined,
   ClearOutlined,
   DeleteOutlined,
   EditOutlined,
   FilterListOutlined,
+  Groups2Outlined,
   SearchOutlined,
+  ScheduleOutlined,
   VisibilityOutlined,
 } from "@mui/icons-material";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
@@ -39,13 +43,12 @@ import {
   MODULE_CARD_SX,
   MODULE_COLORS,
   MODULE_FIELD_SX,
+  ModuleDashboardStat,
   MODULE_NEUTRAL_CHIP_SX,
   MODULE_PAGE_SX,
-  ModuleSummaryStat,
   MODULE_TABLE_HEAD_CELL_SX,
   MODULE_TABLE_ROW_SX,
 } from "@/components/ui/moduleStyles";
-import StatusBadge from "@/components/ui/StatusBadge";
 import { useToast } from "@/context/ToastContext";
 import { membersApi } from "@/lib/api/members.api";
 import { plansApi } from "@/lib/api/plans.api";
@@ -129,6 +132,16 @@ export default function MembersPage() {
   };
 
   const hasActiveFilters = Boolean(search || statusFilter || planFilter || paymentFilter);
+  const columns = [
+    { key: "member", label: "Member", width: "20%" },
+    { key: "mobile", label: "Mobile", width: "12%" },
+    { key: "plan", label: "Plan", width: "12%" },
+    { key: "slot", label: "Slot", width: "16%" },
+    { key: "renewal", label: "Renewal Date", width: "13%" },
+    { key: "payment", label: "Payment Due", width: "10%" },
+    { key: "status", label: "Status", width: "9%" },
+    { key: "actions", label: "Actions", width: "8%", align: "center" as const },
+  ];
 
   const counts = useMemo(() => {
     const active = members.filter((member) => member.status === "active").length;
@@ -145,37 +158,116 @@ export default function MembersPage() {
     });
 
   const formatCurrency = (amount: number) => `Rs.${amount.toLocaleString("en-IN")}`;
+  const getStatusTextStyle = (status: Member["status"]) => {
+    switch (status) {
+      case "active":
+        return { label: "Active", color: "#15803D" };
+      case "expiring_soon":
+        return { label: "Expiring Soon", color: "#B45309" };
+      case "expired":
+        return { label: "Expired", color: "#B91C1C" };
+      case "ended":
+        return { label: "Ended", color: "#475569" };
+      default:
+        return { label: status, color: C.slate };
+    }
+  };
+  const getActionIconSx = (tone: "primary" | "danger") => ({
+    color: tone === "danger" ? "#8A6B65" : "#667085",
+    transition: "color 0.16s ease, background-color 0.16s ease, transform 0.16s ease",
+    "&:hover": {
+      color: tone === "danger" ? C.red : C.navy,
+      backgroundColor:
+        tone === "danger" ? "rgba(251,239,234,0.95)" : "rgba(248,242,235,0.96)",
+      transform: "translateY(-1px)",
+    },
+  });
 
   return (
     <Box sx={MODULE_PAGE_SX}>
-      <Box sx={{ display: "flex", alignItems: { xs: "flex-start", lg: "center" }, justifyContent: "space-between", flexDirection: { xs: "column", lg: "row" }, gap: 1.5 }}>
-        <Box sx={{ flex: 1, display: "flex", justifyContent: { xs: "flex-start", lg: "center" } }}>
-          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-          {!isLoading ? (
-            <>
-                <ModuleSummaryStat label="Overall Members" value={String(total)} />
-              <ModuleSummaryStat label="Active" value={String(counts.active)} tone="success" />
-              <ModuleSummaryStat label="Renewal Due" value={String(counts.expiring)} tone="warning" />
-              <ModuleSummaryStat label="Payment Due" value={String(counts.pending)} />
-            </>
-          ) : (
-            <>
-              {[1, 2, 3, 4].map((item) => (
-                <Skeleton key={item} variant="rounded" width={132} height={74} sx={{ borderRadius: "14px" }} />
-              ))}
-            </>
-          )}
-          </Box>
-        </Box>
-        <Button
-          variant="contained"
-          startIcon={<AddOutlined />}
-          onClick={() => router.push("/members/new")}
-          sx={{ px: 1.75, alignSelf: { xs: "flex-start", lg: "center" } }}
+      <Paper
+        elevation={0}
+        sx={{
+          ...MODULE_CARD_SX,
+          p: { xs: 1.2, sm: 1.35 },
+          background:
+            "radial-gradient(circle at top left, rgba(240,230,217,0.5) 0%, rgba(255,255,255,0) 30%), linear-gradient(180deg, rgba(255,255,255,0.995) 0%, rgba(252,247,241,0.985) 100%)",
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "stretch",
+            justifyContent: "space-between",
+            flexDirection: { xs: "column", xl: "row" },
+            gap: 1.1,
+          }}
         >
-          Add Member
-        </Button>
-      </Box>
+          <Box
+            sx={{
+              flex: 1,
+              minWidth: 0,
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "1fr",
+                sm: "repeat(2, minmax(0, 1fr))",
+                lg: "repeat(4, minmax(0, 1fr))",
+              },
+              gap: 1.1,
+            }}
+          >
+            {isLoading
+              ? [1, 2, 3, 4].map((item) => (
+                  <Skeleton key={item} variant="rounded" height={96} sx={{ borderRadius: "14px" }} />
+                ))
+              : [
+                  {
+                    label: "Overall Members",
+                    value: String(total),
+                    helper: "All registered members",
+                    icon: <Groups2Outlined sx={{ fontSize: 18 }} />,
+                    tone: "default" as const,
+                  },
+                  {
+                    label: "Active",
+                    value: String(counts.active),
+                    helper: "Membership valid today",
+                    icon: <CheckCircleOutlined sx={{ fontSize: 18 }} />,
+                    tone: "success" as const,
+                  },
+                  {
+                    label: "Renewal Due",
+                    value: String(counts.expiring),
+                    helper: "Need follow-up soon",
+                    icon: <ScheduleOutlined sx={{ fontSize: 18 }} />,
+                    tone: "warning" as const,
+                  },
+                  {
+                    label: "Payment Due",
+                    value: String(counts.pending),
+                    helper: "Members with dues pending",
+                    icon: <CreditCardOutlined sx={{ fontSize: 18 }} />,
+                    tone: "danger" as const,
+                  },
+                ].map((card) => (
+                  <ModuleDashboardStat key={card.label} {...card} compact />
+                ))}
+          </Box>
+          <Button
+            variant="contained"
+            startIcon={<AddOutlined />}
+            onClick={() => router.push("/members/new")}
+            sx={{
+              px: 1.8,
+              minWidth: { xs: "auto", xl: 158 },
+              alignSelf: { xs: "flex-start", xl: "center" },
+              mt: { xs: 0.2, xl: 0 },
+            }}
+          >
+            Add Member
+          </Button>
+        </Box>
+      </Paper>
 
       <Paper elevation={0} sx={{ ...MODULE_CARD_SX, p: 2 }}>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -313,13 +405,31 @@ export default function MembersPage() {
         {error ? (
           <ErrorState message={error} onRetry={fetchMembers} />
         ) : (
-          <TableContainer>
-            <Table>
+          <TableContainer sx={{ overflowX: "hidden" }}>
+            <Table sx={{ tableLayout: "fixed", width: "100%" }}>
+              <colgroup>
+                {columns.map((column) => (
+                  <col key={column.key} style={{ width: column.width }} />
+                ))}
+              </colgroup>
               <TableHead>
-                <TableRow sx={{ backgroundColor: C.surface }}>
-                  {["Member", "Mobile", "Plan", "Slot", "Renewal Date", "Payment Due", "Status", "Actions"].map((heading) => (
-                    <TableCell key={heading} sx={MODULE_TABLE_HEAD_CELL_SX}>
-                      {heading}
+                <TableRow
+                  sx={{
+                    background:
+                      "linear-gradient(180deg, rgba(252,247,241,0.98) 0%, rgba(247,240,231,0.96) 100%)",
+                  }}
+                >
+                  {columns.map((column) => (
+                    <TableCell
+                      key={column.key}
+                      sx={{
+                        ...MODULE_TABLE_HEAD_CELL_SX,
+                        px: 1,
+                        textAlign: column.align || "left",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {column.label}
                     </TableCell>
                   ))}
                 </TableRow>
@@ -361,7 +471,7 @@ export default function MembersPage() {
                         cursor: "pointer",
                       }}
                     >
-                      <TableCell sx={{ py: 1.6 }}>
+                      <TableCell sx={{ py: 1.45, px: 1, verticalAlign: "top" }}>
                         <Box>
                           <Typography sx={{ fontWeight: 800, fontSize: "0.88rem", color: "#0F172A" }}>{member.name}</Typography>
                           <Typography sx={{ mt: 0.3, fontSize: "0.74rem", color: C.muted, fontWeight: 600 }}>
@@ -369,45 +479,77 @@ export default function MembersPage() {
                           </Typography>
                         </Box>
                       </TableCell>
-                      <TableCell sx={{ py: 1.6 }}>
-                        <Typography sx={{ fontSize: "0.85rem", color: C.slate, fontWeight: 600 }}>{member.mobile}</Typography>
+                      <TableCell sx={{ py: 1.45, px: 1, verticalAlign: "top" }}>
+                        <Typography
+                          sx={{
+                            mt: 0.08,
+                            fontSize: "0.84rem",
+                            color: C.navy,
+                            fontWeight: 700,
+                            fontVariantNumeric: "tabular-nums",
+                            letterSpacing: 0.04,
+                            lineHeight: 1.2,
+                          }}
+                        >
+                          {member.mobile}
+                        </Typography>
                       </TableCell>
-                      <TableCell sx={{ py: 1.6 }}>
-                        <Typography sx={{ fontSize: "0.85rem", color: C.slate, fontWeight: 700 }}>{member.planSnapshot.name}</Typography>
+                      <TableCell sx={{ py: 1.45, px: 1, verticalAlign: "top" }}>
+                        <Typography sx={{ mt: 0.08, fontSize: "0.85rem", color: C.slate, fontWeight: 700 }}>{member.planSnapshot.name}</Typography>
                       </TableCell>
-                      <TableCell sx={{ py: 1.6 }}>
-                        <Typography sx={{ fontSize: "0.82rem", color: C.slate, fontWeight: 600 }}>{member.slotSnapshot.label}</Typography>
-                        <Typography sx={{ fontSize: "0.72rem", color: C.muted, fontWeight: 600 }}>
+                      <TableCell sx={{ py: 1.45, px: 1, verticalAlign: "top" }}>
+                        <Typography sx={{ mt: 0.08, fontSize: "0.85rem", color: C.slate, fontWeight: 700 }}>{member.slotSnapshot.label}</Typography>
+                        <Typography sx={{ mt: 0.25, fontSize: "0.72rem", color: C.muted, fontWeight: 600 }}>
                           {member.slotSnapshot.startTime} - {member.slotSnapshot.endTime}
                         </Typography>
                       </TableCell>
-                      <TableCell sx={{ py: 1.6 }}>
-                        <Typography sx={{ fontSize: "0.85rem", color: C.slate, fontWeight: 600 }}>
+                      <TableCell sx={{ py: 1.45, px: 1, verticalAlign: "top" }}>
+                        <Typography
+                          sx={{
+                            mt: 0.08,
+                            fontSize: "0.85rem",
+                            color: member.status === "ended" ? "#64748B" : C.slate,
+                            fontWeight: member.status === "ended" ? 800 : 700,
+                            letterSpacing: member.status === "ended" ? 0.08 : 0,
+                            lineHeight: 1.2,
+                          }}
+                        >
                           {member.status === "ended" ? "Not Applicable" : formatDate(member.endDate)}
                         </Typography>
                       </TableCell>
-                      <TableCell sx={{ py: 1.6 }}>
-                        <Typography sx={{ fontSize: "0.88rem", fontWeight: 800, color: member.pendingAmount > 0 ? C.red : C.green }}>
+                      <TableCell sx={{ py: 1.45, px: 1, verticalAlign: "top" }}>
+                        <Typography sx={{ mt: 0.08, fontSize: "0.88rem", fontWeight: 800, color: member.pendingAmount > 0 ? C.red : C.green }}>
                           {member.pendingAmount > 0 ? formatCurrency(member.pendingAmount) : "Paid"}
                         </Typography>
                       </TableCell>
-                      <TableCell sx={{ py: 1.6 }}>
-                        <StatusBadge status={member.status} />
+                      <TableCell sx={{ py: 1.45, px: 1, verticalAlign: "top" }}>
+                        <Typography
+                          sx={{
+                            mt: 0.08,
+                            fontSize: "0.84rem",
+                            fontWeight: 800,
+                            color: getStatusTextStyle(member.status).color,
+                            lineHeight: 1.2,
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {getStatusTextStyle(member.status).label}
+                        </Typography>
                       </TableCell>
-                      <TableCell sx={{ py: 1.6 }} onClick={(e) => e.stopPropagation()}>
-                        <Box sx={{ display: "flex", gap: 0.4 }}>
+                      <TableCell sx={{ py: 1.45, px: 0.7, verticalAlign: "top", textAlign: "center" }} onClick={(e) => e.stopPropagation()}>
+                        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 0.08, minWidth: 88, mt: -0.02, mx: "auto" }}>
                           <Tooltip title="View">
-                            <IconButton size="small" onClick={() => router.push(`/members/${member._id}`)} sx={MODULE_ACTION_ICON_SX}>
+                            <IconButton size="small" onClick={() => router.push(`/members/${member._id}`)} sx={{ p: 0.38, ...getActionIconSx("primary") }}>
                               <VisibilityOutlined sx={{ fontSize: 16 }} />
                             </IconButton>
                           </Tooltip>
                           <Tooltip title="Edit">
-                            <IconButton size="small" onClick={() => router.push(`/members/${member._id}?action=edit`)} sx={MODULE_ACTION_ICON_SX}>
+                            <IconButton size="small" onClick={() => router.push(`/members/${member._id}?action=edit`)} sx={{ p: 0.38, ...getActionIconSx("primary") }}>
                               <EditOutlined sx={{ fontSize: 16 }} />
                             </IconButton>
                           </Tooltip>
                           <Tooltip title="Delete">
-                            <IconButton size="small" onClick={() => { setDeletingMember(member); setDeleteOpen(true); }} sx={MODULE_ACTION_ICON_SX}>
+                            <IconButton size="small" onClick={() => { setDeletingMember(member); setDeleteOpen(true); }} sx={{ p: 0.38, ...getActionIconSx("danger") }}>
                               <DeleteOutlined sx={{ fontSize: 16 }} />
                             </IconButton>
                           </Tooltip>

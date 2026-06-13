@@ -39,13 +39,13 @@ export default function StatusBadge({ status }: StatusBadgeProps) {
       label={config.label}
       size="small"
       sx={{
-        height: 26,
-        fontSize: "0.72rem",
+        height: 28,
+        fontSize: "0.76rem",
         fontWeight: 800,
         backgroundColor: config.backgroundColor,
         color: config.color,
         border: config.border,
-        px: 0.25,
+        px: 0.45,
       }}
     />
   );
