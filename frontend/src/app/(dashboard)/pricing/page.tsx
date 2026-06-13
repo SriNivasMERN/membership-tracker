@@ -424,6 +424,8 @@ export default function PricingPage() {
         sx={{
           ...MODULE_CARD_SX,
           p: { xs: 1.2, sm: 1.35 },
+          background:
+            "linear-gradient(180deg, rgba(255,255,255,0.998) 0%, rgba(252,247,240,0.994) 100%)",
         }}
       >
         <Box
@@ -515,12 +517,16 @@ export default function PricingPage() {
         sx={{
           ...MODULE_CARD_SX,
           px: { xs: 1.4, sm: 1.8 },
-          py: 1.35,
+          py: 1.5,
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          gap: 0.85,
+          gap: 1,
+          borderColor: "#E5D7C5",
+          background:
+            "linear-gradient(180deg, rgba(255,255,255,0.999) 0%, rgba(250,243,234,0.996) 100%)",
+          boxShadow: "0 16px 30px rgba(36,58,87,0.07), inset 0 1px 0 rgba(255,255,255,0.92)",
         }}
       >
         <Typography
@@ -539,11 +545,19 @@ export default function PricingPage() {
         <Box
           sx={{
             width: "100%",
+            maxWidth: 760,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             gap: 0.9,
             flexWrap: "wrap",
+            px: { xs: 1.1, sm: 1.35 },
+            py: 1.1,
+            borderRadius: "16px",
+            border: "1px solid #E7D9C8",
+            background:
+              "linear-gradient(180deg, rgba(255,255,255,0.998) 0%, rgba(252,247,241,0.994) 100%)",
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.92)",
           }}
         >
           {[
@@ -564,27 +578,27 @@ export default function PricingPage() {
                     ? "none"
                     : `1px solid ${
                         item.tone === "result"
-                          ? "#BFD9C7"
+                          ? "#B6D5C0"
                           : item.tone === "accent"
-                            ? "#E5C79B"
-                            : "#DDD1C1"
+                            ? "#E2BE87"
+                            : "#D7C7B4"
                       }`,
                 background:
                   item.tone === "operator"
                     ? "transparent"
                     : item.tone === "result"
-                      ? "linear-gradient(180deg, rgba(255,255,255,0.998) 0%, rgba(244,250,246,0.992) 100%)"
+                      ? "linear-gradient(180deg, rgba(255,255,255,0.999) 0%, rgba(236,248,240,0.995) 100%)"
                       : item.tone === "accent"
-                        ? "linear-gradient(180deg, rgba(255,255,255,0.998) 0%, rgba(253,247,237,0.992) 100%)"
-                        : "linear-gradient(180deg, rgba(255,255,255,0.998) 0%, rgba(251,247,241,0.992) 100%)",
+                        ? "linear-gradient(180deg, rgba(255,255,255,0.999) 0%, rgba(253,242,223,0.995) 100%)"
+                        : "linear-gradient(180deg, rgba(255,255,255,0.999) 0%, rgba(250,244,236,0.995) 100%)",
                 boxShadow:
                   item.tone === "operator"
                     ? "none"
                     : item.tone === "result"
-                      ? "0 8px 16px rgba(53,101,72,0.05)"
+                      ? "0 10px 18px rgba(53,101,72,0.06)"
                       : item.tone === "accent"
-                        ? "0 8px 16px rgba(163,106,44,0.05)"
-                        : "0 8px 16px rgba(36,58,87,0.04)",
+                        ? "0 10px 18px rgba(163,106,44,0.06)"
+                        : "0 10px 18px rgba(36,58,87,0.045)",
               }}
             >
               <Typography

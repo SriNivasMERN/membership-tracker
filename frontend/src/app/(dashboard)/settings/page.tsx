@@ -22,6 +22,14 @@ import {
 import { settingsApi, SettingsFormData } from "@/lib/api/settings.api";
 import { useToast } from "@/context/ToastContext";
 import ErrorState from "@/components/ui/ErrorState";
+import {
+  MODULE_CARD_SX,
+  MODULE_COLORS,
+  MODULE_FIELD_SX,
+  MODULE_INLINE_PANEL_SX,
+  MODULE_PAGE_SX,
+  ModuleDashboardStat,
+} from "@/components/ui/moduleStyles";
 
 const BUSINESS_TYPES = [
   { value: "gym",             label: "Gym" },
@@ -48,99 +56,21 @@ const DEFAULT_FORM: SettingsFormData = {
 };
 
 const C = {
-  ink: "#243A57",
-  slate: "#27405E",
-  muted: "#2F4764",
-  border: "#EEE6DB",
-  surface: "#FDFBF8",
-  green: "#356548",
-  amber: "#A36A2C",
-  accent: "#355072",
+  ink: MODULE_COLORS.ink,
+  slate: MODULE_COLORS.slate,
+  muted: MODULE_COLORS.muted,
+  border: MODULE_COLORS.border,
+  surface: MODULE_COLORS.surface,
+  green: MODULE_COLORS.green,
+  amber: MODULE_COLORS.amber,
+  accent: MODULE_COLORS.accent,
 };
 
 function preventNumberScroll(event: WheelEvent<HTMLInputElement>) {
   event.currentTarget.blur();
 }
 
-const FIELD_SX = {
-  "& .MuiOutlinedInput-root": {
-    borderRadius: "14px",
-    background: "linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(254,252,249,0.985) 100%)",
-    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.9)",
-    border: "1px solid rgba(221,211,197,0.78)",
-  },
-  "& .MuiInputLabel-root": {
-    fontWeight: 700,
-    color: "#27405E",
-  },
-  "& .MuiInputBase-input": {
-    fontWeight: 600,
-    color: C.ink,
-  },
-  "& .MuiFormHelperText-root": {
-    fontWeight: 600,
-    color: "#27405E",
-    opacity: 1,
-    letterSpacing: 0,
-    fontSize: "0.83rem",
-  },
-} as const;
-
-function SummaryStat({
-  label,
-  value,
-  tone = "default",
-}: {
-  label: string;
-  value: string;
-  tone?: "default" | "success" | "warning";
-}) {
-  const styles =
-    tone === "success"
-      ? {
-          backgroundColor: "#F4FAF5",
-          borderColor: "#C9DFCF",
-          valueColor: C.green,
-          labelColor: "#4A5A6E",
-          shadow: "0 14px 28px rgba(53,101,72,0.08)",
-        }
-      : tone === "warning"
-        ? {
-            backgroundColor: "#FCF4E9",
-            borderColor: "#E2CCAF",
-            valueColor: C.amber,
-            labelColor: "#4A5A6E",
-            shadow: "0 14px 28px rgba(163,106,44,0.08)",
-          }
-        : {
-            backgroundColor: "#FCF8F3",
-            borderColor: "#DDD1C1",
-            valueColor: C.ink,
-            labelColor: "#4A5A6E",
-            shadow: "0 14px 28px rgba(36,58,87,0.08)",
-          };
-
-  return (
-    <Paper
-      elevation={0}
-      sx={{
-        p: 1.4,
-        borderRadius: "14px",
-        border: `1px solid ${styles.borderColor}`,
-        background: `linear-gradient(180deg, rgba(255,255,255,0.96) 0%, ${styles.backgroundColor} 100%)`,
-        minWidth: 132,
-        boxShadow: styles.shadow,
-      }}
-    >
-      <Typography sx={{ fontSize: "0.71rem", fontWeight: 700, color: styles.labelColor, textTransform: "uppercase", letterSpacing: 0.3 }}>
-        {label}
-      </Typography>
-      <Typography sx={{ mt: 0.5, fontSize: "1.08rem", fontWeight: 800, color: styles.valueColor, lineHeight: 1.15 }}>
-        {value}
-      </Typography>
-    </Paper>
-  );
-}
+const FIELD_SX = MODULE_FIELD_SX;
 
 // ─── Section wrapper ──────────────────────────────────────────────────────────
 
@@ -161,10 +91,8 @@ function Section({
     <Paper
       elevation={0}
       sx={{
+        ...MODULE_CARD_SX,
         borderRadius: "16px",
-        border: "1px solid rgba(228,216,200,0.92)",
-        boxShadow: "0 16px 32px rgba(36,58,87,0.08)",
-        background: "linear-gradient(180deg, rgba(255,255,255,0.995) 0%, rgba(253,250,246,0.985) 100%)",
         overflow: "hidden",
         ...sx,
       }}
@@ -172,8 +100,9 @@ function Section({
       <Box
         sx={{
           px: 2.3,
-          py: 1.45,
-          background: "linear-gradient(90deg, rgba(253,249,244,0.96) 0%, rgba(255,254,252,0.97) 100%)",
+          py: 1.2,
+          background:
+            "linear-gradient(90deg, rgba(252,247,241,0.98) 0%, rgba(255,254,252,0.985) 100%)",
           borderBottom: "1px solid rgba(228,216,200,0.85)",
           display: "flex",
           alignItems: "center",
@@ -189,7 +118,8 @@ function Section({
             alignItems: "center",
             justifyContent: "center",
             color: C.accent,
-            background: "linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(243,233,220,0.94) 100%)",
+            background:
+              "linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(247,241,233,0.96) 100%)",
             border: "1px solid rgba(221,205,184,0.76)",
             boxShadow: "0 8px 18px rgba(53,80,114,0.12)",
           }}
@@ -205,7 +135,7 @@ function Section({
           </Typography>
         </Box>
       </Box>
-      <Box sx={{ p: 2.15 }}>{children}</Box>
+      <Box sx={{ p: 1.75 }}>{children}</Box>
     </Paper>
   );
 }
@@ -219,8 +149,18 @@ export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isConfigured, setIsConfigured] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  const formatLastSaved = (value: string) =>
+    new Date(value).toLocaleString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
 
   useEffect(() => {
     const load = async () => {
@@ -243,6 +183,7 @@ export default function SettingsPage() {
             },
           });
           setIsConfigured(s.isConfigured || false);
+          setLastSavedAt(s.updatedAt || null);
         }
       } catch {
         setError("Failed to load settings.");
@@ -289,10 +230,12 @@ export default function SettingsPage() {
         expiryAlertDays: Number(form.expiryAlertDays),
       };
       if (isConfigured) {
-        await settingsApi.update(payload);
+        const response = await settingsApi.update(payload);
+        setLastSavedAt(response.data?.updatedAt || null);
       } else {
-        await settingsApi.save(payload);
+        const response = await settingsApi.save(payload);
         setIsConfigured(true);
+        setLastSavedAt(response.data?.updatedAt || null);
       }
       showToast("Settings saved successfully");
     } catch (err: unknown) {
@@ -344,24 +287,76 @@ export default function SettingsPage() {
     <Box
       ref={pageTopRef}
       sx={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 1.4,
-        p: { xs: 0, md: 0.5 },
-        mt: { xs: -1, sm: -1.5 },
-        borderRadius: "24px",
-        background:
-          "radial-gradient(circle at top left, rgba(236,228,218,0.18) 0%, rgba(255,255,255,0) 34%), linear-gradient(180deg, rgba(254,251,248,0.995) 0%, rgba(250,246,241,0.96) 100%)",
+        ...MODULE_PAGE_SX,
+        gap: 1.15,
+        mt: { xs: -1, sm: -1.3 },
       }}
     >
-      <Box sx={{ display: "flex", justifyContent: { xs: "flex-start", lg: "center" } }}>
-        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-          <SummaryStat label="Business Type" value={businessTypeLabel} />
-          <SummaryStat label="Expiry Alert" value={`${form.expiryAlertDays} days`} />
-          <SummaryStat label="Custom Labels" value={String(customLabelsCount)} tone="warning" />
-          <SummaryStat label="Configured" value={isConfigured ? "Ready" : "Pending"} tone="success" />
+      <Paper
+        elevation={0}
+        sx={{
+          ...MODULE_CARD_SX,
+          p: { xs: 1, sm: 1.1 },
+          background:
+            "radial-gradient(circle at top left, rgba(240,230,217,0.44) 0%, rgba(255,255,255,0) 30%), linear-gradient(180deg, rgba(255,255,255,0.995) 0%, rgba(252,247,241,0.985) 100%)",
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "stretch",
+            justifyContent: "space-between",
+            gap: 0.9,
+          }}
+        >
+          <Box
+            sx={{
+              flex: 1,
+              minWidth: 0,
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "1fr",
+                sm: "repeat(2, minmax(0, 1fr))",
+                lg: "repeat(4, minmax(0, 1fr))",
+              },
+              gap: 0.9,
+            }}
+          >
+            <ModuleDashboardStat
+              label="Business Type"
+              value={businessTypeLabel}
+              helper="Current operating category"
+              icon={<BusinessOutlined sx={{ fontSize: 18 }} />}
+              compact
+            />
+            <ModuleDashboardStat
+              label="Expiry Alert"
+              value={`${form.expiryAlertDays} days`}
+              helper="Renewal follow-up window"
+              icon={<AccessTimeOutlined sx={{ fontSize: 18 }} />}
+              tone="warning"
+              compact
+            />
+            <ModuleDashboardStat
+              label="Custom Labels"
+              value={String(customLabelsCount)}
+              helper="Terms renamed from defaults"
+              icon={<LabelOutlined sx={{ fontSize: 18 }} />}
+              compact
+            />
+            <ModuleDashboardStat
+              label="Configured"
+              value={isConfigured ? "Ready" : "Pending"}
+              helper={
+                isConfigured ? "Settings already saved" : "Initial setup pending"
+              }
+              icon={<CheckCircleOutlined sx={{ fontSize: 18 }} />}
+              tone="success"
+              compact
+            />
+          </Box>
         </Box>
-      </Box>
+      </Paper>
 
       {error ? <ErrorState message={error} /> : null}
 
@@ -369,7 +364,7 @@ export default function SettingsPage() {
         sx={{
           display: "grid",
           gridTemplateColumns: { xs: "1fr", lg: "minmax(0, 9fr) minmax(0, 3fr)" },
-          gap: 1.5,
+          gap: 1.15,
           alignItems: "stretch",
         }}
       >
@@ -377,10 +372,10 @@ export default function SettingsPage() {
           <Section
             icon={<BusinessOutlined sx={{ fontSize: 20 }} />}
             title="Business Profile"
-            subtitle="Basic business details used across the app"
+            subtitle="Business details used across the app"
             sx={{ height: "100%" }}
           >
-            <Grid container spacing={2}>
+            <Grid container spacing={1.5}>
               <Grid item xs={12} sm={6}>
                 <TextField
                   label="Business Name"
@@ -447,10 +442,10 @@ export default function SettingsPage() {
           <Section
             icon={<AccessTimeOutlined sx={{ fontSize: 20 }} />}
             title="Expiry Alerts"
-            subtitle="Choose when members start appearing in the renewal alert list"
+            subtitle="Days before members appear in renewal follow-up"
             sx={{ height: "100%" }}
           >
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.6, height: "100%" }}>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.35, height: "100%" }}>
               <TextField
                 label="Alert Days Before Expiry"
                 type="number"
@@ -479,21 +474,18 @@ export default function SettingsPage() {
               <Paper
                 elevation={0}
                 sx={{
-                  p: 1.6,
-                  borderRadius: "14px",
-                  border: "1px solid rgba(228,216,200,0.86)",
-                  background: "linear-gradient(135deg, rgba(255,253,250,0.99) 0%, rgba(251,246,240,0.975) 100%)",
+                  ...MODULE_INLINE_PANEL_SX,
+                  p: 1.15,
                   display: "flex",
                   alignItems: "flex-start",
                   gap: 1.1,
-                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.9)",
-                  mt: 0.4,
+                  mt: 0.2,
                 }}
               >
                 <CheckCircleOutlined sx={{ fontSize: 18, color: C.accent, mt: 0.15 }} />
-              <Typography sx={{ fontSize: "0.8rem", color: C.slate, fontWeight: 600, lineHeight: 1.55 }}>
-                Members expiring in the next {form.expiryAlertDays} day{form.expiryAlertDays === 1 ? "" : "s"} will appear in the dashboard follow-up list.
-              </Typography>
+                <Typography sx={{ fontSize: "0.8rem", color: C.slate, fontWeight: 600, lineHeight: 1.55 }}>
+                  Members expiring in the next {form.expiryAlertDays} day{form.expiryAlertDays === 1 ? "" : "s"} appear in the dashboard follow-up list.
+                </Typography>
               </Paper>
             </Box>
           </Section>
@@ -503,25 +495,22 @@ export default function SettingsPage() {
           <Section
             icon={<LabelOutlined sx={{ fontSize: 20 }} />}
             title="Terminology"
-            subtitle="Customize labels to match your business language throughout the app"
+            subtitle="Rename core terms used across the app"
             sx={{ height: "100%" }}
           >
             <Box
               sx={{
+                ...MODULE_INLINE_PANEL_SX,
                 px: 1.5,
-                py: 1.2,
-                mb: 2,
-                background: "linear-gradient(135deg, rgba(255,253,249,0.99) 0%, rgba(255,255,255,0.995) 48%, rgba(249,244,238,0.95) 100%)",
-                borderRadius: "14px",
-                border: "1px solid #D8DFE8",
-                boxShadow: "0 10px 18px rgba(36,58,87,0.07), inset 0 1px 0 rgba(255,255,255,0.86)",
+                py: 1.05,
+                mb: 1.35,
               }}
             >
               <Typography sx={{ fontSize: "0.8rem", color: C.ink, fontWeight: 600, lineHeight: 1.55 }}>
                 Example: A library might use "Membership" instead of "Plan" and "Timing" instead of "Slot".
               </Typography>
             </Box>
-            <Grid container spacing={2}>
+            <Grid container spacing={1.5}>
               <Grid item xs={12} sm={4}>
                 <TextField
                   label="Plan Label"
@@ -563,34 +552,86 @@ export default function SettingsPage() {
           <Paper
             elevation={0}
             sx={{
+              ...MODULE_CARD_SX,
               p: 1.4,
               borderRadius: "16px",
-              border: "1px solid rgba(228,216,200,0.92)",
-              boxShadow: "0 16px 32px rgba(36,58,87,0.08)",
-              background: "linear-gradient(180deg, rgba(255,255,255,0.995) 0%, rgba(253,250,246,0.985) 100%)",
               height: "100%",
               display: "flex",
               alignItems: "flex-start",
             }}
           >
-            <Button
-              variant="contained"
-              startIcon={<SaveOutlined />}
-              onClick={handleSave}
-              disabled={isSaving}
-              fullWidth
-              sx={{
-                py: 0.95,
-                borderRadius: "14px",
-                backgroundColor: C.ink,
-                boxShadow: "0 14px 28px rgba(36,58,87,0.18)",
-                "&:hover": {
-                  backgroundColor: "#2E4867",
-                },
-              }}
-            >
-              {isSaving ? "Saving..." : "Save Settings"}
-            </Button>
+            <Box sx={{ width: "100%", display: "flex", flexDirection: "column", gap: 1.15 }}>
+              <Button
+                variant="contained"
+                startIcon={<SaveOutlined />}
+                onClick={handleSave}
+                disabled={isSaving}
+                fullWidth
+                sx={{
+                  mt: 0.6,
+                  py: 0.95,
+                  borderRadius: "14px",
+                  backgroundColor: C.ink,
+                  boxShadow: "0 14px 28px rgba(36,58,87,0.18)",
+                  "&:hover": {
+                    backgroundColor: "#2E4867",
+                  },
+                }}
+              >
+                {isSaving ? "Saving..." : "Save Settings"}
+              </Button>
+
+              <Box
+                sx={{
+                  ...MODULE_INLINE_PANEL_SX,
+                  p: 1.15,
+                  mt: 0.45,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: "0.76rem",
+                    fontWeight: 900,
+                    color: C.slate,
+                    textTransform: "uppercase",
+                    letterSpacing: 0.6,
+                    textAlign: "center",
+                  }}
+                >
+                  Last saved
+                </Typography>
+                <Box
+                  sx={{
+                    mt: 0.7,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    px: 1.05,
+                    py: 0.55,
+                    borderRadius: "999px",
+                    border: "1px solid rgba(210,196,176,0.92)",
+                    background:
+                      "linear-gradient(180deg, rgba(255,255,255,0.995) 0%, rgba(251,245,237,0.985) 100%)",
+                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.92)",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontSize: "0.84rem",
+                      fontWeight: 800,
+                      color: lastSavedAt ? C.accent : C.muted,
+                      lineHeight: 1.35,
+                      textAlign: "center",
+                    }}
+                  >
+                    {lastSavedAt ? formatLastSaved(lastSavedAt) : "Not saved yet"}
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
           </Paper>
         </Box>
       </Box>

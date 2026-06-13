@@ -27,7 +27,10 @@ import {
 import {
   AddOutlined,
   EditOutlined,
-  PowerSettingsNewOutlined,
+  GroupOutlined,
+  PersonOutlineOutlined,
+  TaskAltOutlined,
+  BlockOutlined,
 } from "@mui/icons-material";
 import { useToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
@@ -48,7 +51,7 @@ import {
   MODULE_NEUTRAL_CHIP_SX,
   MODULE_PAGE_SX,
   MODULE_SUCCESS_CHIP_SX,
-  ModuleSummaryStat,
+  ModuleDashboardStat,
   MODULE_TABLE_HEAD_CELL_SX,
   MODULE_TABLE_ROW_SX,
 } from "@/components/ui/moduleStyles";
@@ -517,42 +520,102 @@ export default function UsersPage() {
       .slice(0, 2);
 
   const staffCount = users.filter((u) => u.role === "staff").length;
-  const activeStaff = users.filter(
-    (u) => u.role === "staff" && u.isActive
-  ).length;
   const totalActiveUsers = users.filter((u) => u.isActive).length;
   const ownerCount = users.filter((u) => u.role === "owner").length;
+  const inactiveUsers = users.filter((u) => !u.isActive).length;
+  const getActionIconSx = (tone: "primary" | "toggle") => ({
+    ...MODULE_ACTION_ICON_SX,
+    color: tone === "toggle" ? "#8F5D26" : "#667085",
+    "&:hover": {
+      color: tone === "toggle" ? C.amber : C.navy,
+      backgroundColor:
+        tone === "toggle" ? "rgba(252,244,233,0.96)" : "rgba(248,242,235,0.96)",
+      transform: "translateY(-1px)",
+    },
+  });
 
   return (
     <Box sx={MODULE_PAGE_SX}>
-      <Box sx={{ display: "flex", alignItems: { xs: "flex-start", lg: "center" }, justifyContent: "space-between", flexDirection: { xs: "column", lg: "row" }, gap: 1.5 }}>
-        <Box sx={{ flex: 1, display: "flex", justifyContent: { xs: "flex-start", lg: "center" } }}>
-          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+      <Paper
+        elevation={0}
+        sx={{
+          ...MODULE_CARD_SX,
+          p: { xs: 1.2, sm: 1.35 },
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "stretch",
+            justifyContent: "space-between",
+            flexDirection: { xs: "column", xl: "row" },
+            gap: 1.1,
+          }}
+        >
+          <Box
+            sx={{
+              flex: 1,
+              minWidth: 0,
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "1fr",
+                sm: "repeat(2, minmax(0, 1fr))",
+                lg: "repeat(4, minmax(0, 1fr))",
+              },
+              gap: 1.1,
+            }}
+          >
             {!isLoading ? (
               <>
-                <ModuleSummaryStat label="Overall Users" value={String(users.length)} />
-                <ModuleSummaryStat label="Active" value={String(totalActiveUsers)} tone="success" />
-                <ModuleSummaryStat label="Staff" value={String(staffCount)} />
-                <ModuleSummaryStat label="Owners" value={String(ownerCount)} tone="warning" />
+                <ModuleDashboardStat
+                  label="Overall Users"
+                  value={String(users.length)}
+                  helper="All staff and owner accounts"
+                  icon={<GroupOutlined sx={{ fontSize: 18 }} />}
+                  compact
+                />
+                <ModuleDashboardStat
+                  label="Active"
+                  value={String(totalActiveUsers)}
+                  helper="Accounts that can sign in"
+                  icon={<TaskAltOutlined sx={{ fontSize: 18 }} />}
+                  tone="success"
+                  compact
+                />
+                <ModuleDashboardStat
+                  label="Staff"
+                  value={String(staffCount)}
+                  helper="Operational team accounts"
+                  icon={<PersonOutlineOutlined sx={{ fontSize: 18 }} />}
+                  compact
+                />
+                <ModuleDashboardStat
+                  label="Owners"
+                  value={String(ownerCount)}
+                  helper={inactiveUsers > 0 ? `${inactiveUsers} inactive users` : "Primary access holders"}
+                  icon={<BlockOutlined sx={{ fontSize: 18 }} />}
+                  tone="warning"
+                  compact
+                />
               </>
             ) : (
               <>
                 {[1, 2, 3, 4].map((item) => (
-                  <Skeleton key={item} variant="rounded" width={132} height={74} sx={{ borderRadius: "14px" }} />
+                  <Skeleton key={item} variant="rounded" height={96} sx={{ borderRadius: "14px" }} />
                 ))}
               </>
             )}
           </Box>
+          <Button
+            variant="contained"
+            startIcon={<AddOutlined />}
+            onClick={() => setAddOpen(true)}
+            sx={{ px: 1.75, minWidth: { xs: "auto", xl: 148 }, alignSelf: { xs: "flex-start", xl: "center" } }}
+          >
+            Add Staff
+          </Button>
         </Box>
-        <Button
-          variant="contained"
-          startIcon={<AddOutlined />}
-          onClick={() => setAddOpen(true)}
-          sx={{ px: 1.75, alignSelf: { xs: "flex-start", lg: "center" } }}
-        >
-          Add Staff
-        </Button>
-      </Box>
+      </Paper>
 
       {error ? <ErrorState message={error} onRetry={fetchUsers} /> : null}
 
@@ -566,13 +629,20 @@ export default function UsersPage() {
         <TableContainer>
           <Table>
             <TableHead>
-              <TableRow sx={{ backgroundColor: C.surface }}>
+              <TableRow
+                sx={{
+                  background:
+                    "linear-gradient(180deg, rgba(252,247,241,0.98) 0%, rgba(247,240,231,0.96) 100%)",
+                }}
+              >
                 {["User", "Email", "Role", "Status", "Joined", "Actions"].map(
                   (h) => (
                     <TableCell
                       key={h}
                       sx={{
                         ...MODULE_TABLE_HEAD_CELL_SX,
+                        whiteSpace: "nowrap",
+                        textAlign: h === "Actions" ? "center" : "left",
                       }}
                     >
                       {h}
@@ -626,12 +696,16 @@ export default function UsersPage() {
                         >
                           <Avatar
                             sx={{
-                              width: 34,
-                            height: 34,
-                            fontSize: "0.78rem",
-                            fontWeight: 700,
-                            backgroundColor: isOwner ? MODULE_COLORS.ink : MODULE_COLORS.accent,
-                          }}
+                              width: 36,
+                              height: 36,
+                              fontSize: "0.8rem",
+                              fontWeight: 800,
+                              color: "#FFFFFF",
+                              background: isOwner
+                                ? "linear-gradient(180deg, #243A57 0%, #314B70 100%)"
+                                : "linear-gradient(180deg, #355072 0%, #45648C 100%)",
+                              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.16)",
+                            }}
                           >
                             {getInitials(u.name)}
                           </Avatar>
@@ -674,7 +748,23 @@ export default function UsersPage() {
                         <Chip
                           label={isOwner ? "Owner" : "Staff"}
                           size="small"
-                          sx={MODULE_NEUTRAL_CHIP_SX}
+                          sx={
+                            isOwner
+                              ? {
+                                  ...MODULE_NEUTRAL_CHIP_SX,
+                                  background:
+                                    "linear-gradient(180deg, rgba(255,255,255,0.998) 0%, rgba(249,244,237,0.992) 100%)",
+                                  border: "1px solid #D8CCBC",
+                                  color: C.navy,
+                                }
+                              : {
+                                  ...MODULE_NEUTRAL_CHIP_SX,
+                                  background:
+                                    "linear-gradient(180deg, rgba(255,255,255,0.998) 0%, rgba(243,247,252,0.992) 100%)",
+                                  border: "1px solid #CAD8E6",
+                                  color: "#355072",
+                                }
+                          }
                         />
                       </TableCell>
 
@@ -689,17 +779,26 @@ export default function UsersPage() {
                       <TableCell sx={{ py: 1.6 }}>
                         <Typography
                           sx={{
-                            fontSize: "0.82rem",
-                            color: C.muted,
-                            fontWeight: 600,
+                            fontSize: "0.84rem",
+                            color: C.slate,
+                            fontWeight: 700,
                           }}
                         >
                           {formatDate(u.createdAt)}
                         </Typography>
                       </TableCell>
 
-                      <TableCell sx={{ py: 1.6 }}>
-                        <Box sx={{ display: "flex", gap: 0.5 }}>
+                      <TableCell sx={{ py: 1.6, textAlign: "center" }}>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            gap: 0.45,
+                            justifyContent: "flex-start",
+                            alignItems: "center",
+                            width: 58,
+                            mx: "auto",
+                          }}
+                        >
                           <Tooltip title="Edit user">
                             <IconButton
                               size="small"
@@ -707,11 +806,11 @@ export default function UsersPage() {
                                 setEditingUser(u);
                                 setEditOpen(true);
                               }}
-                              sx={MODULE_ACTION_ICON_SX}
+                              sx={getActionIconSx("primary")}
                             >
                               <EditOutlined sx={{ fontSize: 17 }} />
-                            </IconButton>
-                          </Tooltip>
+                              </IconButton>
+                            </Tooltip>
 
                           {!isOwner && !isCurrentUser && (
                             <Tooltip
@@ -723,9 +822,13 @@ export default function UsersPage() {
                                   setSelectedUser(u);
                                   setConfirmOpen(true);
                                 }}
-                                sx={MODULE_ACTION_ICON_SX}
+                                sx={getActionIconSx("toggle")}
                               >
-                                <PowerSettingsNewOutlined sx={{ fontSize: 17 }} />
+                                {u.isActive ? (
+                                  <BlockOutlined sx={{ fontSize: 17 }} />
+                                ) : (
+                                  <TaskAltOutlined sx={{ fontSize: 17 }} />
+                                )}
                               </IconButton>
                             </Tooltip>
                           )}
