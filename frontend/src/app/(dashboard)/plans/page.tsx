@@ -26,9 +26,12 @@ import {
 } from "@mui/material";
 import {
   AddOutlined,
+  TaskAltOutlined,
   EditOutlined,
   DeleteOutlined,
-  PowerSettingsNewOutlined,
+  SellOutlined,
+  TimerOutlined,
+  BlockOutlined,
 } from "@mui/icons-material";
 import { useToast } from "@/context/ToastContext";
 import { plansApi } from "@/lib/api/plans.api";
@@ -51,7 +54,7 @@ import {
   MODULE_TABLE_HEAD_CELL_SX,
   MODULE_TABLE_ROW_SX,
   MODULE_WARNING_CHIP_SX,
-  ModuleSummaryStat,
+  ModuleDashboardStat,
 } from "@/components/ui/moduleStyles";
 
 // ─── Empty form state ─────────────────────────────────────────────────────────
@@ -353,37 +356,115 @@ export default function PlansPage() {
   const activePlans = plans.filter((p) => p.isActive).length;
   const inactivePlans = plans.filter((p) => !p.isActive).length;
   const pricedPlans = plans.filter((p) => p.basePrice > 0).length;
+  const getActionIconSx = (tone: "primary" | "toggle" | "danger") => ({
+    ...MODULE_ACTION_ICON_SX,
+    color:
+      tone === "danger"
+        ? "#8A6B65"
+        : tone === "toggle"
+          ? "#8F5D26"
+          : "#667085",
+    "&:hover": {
+      color:
+        tone === "danger"
+          ? C.red
+          : tone === "toggle"
+            ? C.amber
+            : C.navy,
+      backgroundColor:
+        tone === "danger"
+          ? "rgba(251,239,234,0.95)"
+          : tone === "toggle"
+            ? "rgba(252,244,233,0.96)"
+            : "rgba(248,242,235,0.96)",
+      transform: "translateY(-1px)",
+    },
+  });
 
   return (
     <Box sx={MODULE_PAGE_SX}>
-      <Box sx={{ display: "flex", alignItems: { xs: "flex-start", lg: "center" }, justifyContent: "space-between", flexDirection: { xs: "column", lg: "row" }, gap: 1.5 }}>
-        <Box sx={{ flex: 1, display: "flex", justifyContent: { xs: "flex-start", lg: "center" } }}>
-          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+      <Paper
+        elevation={0}
+        sx={{
+          ...MODULE_CARD_SX,
+          p: { xs: 1.2, sm: 1.35 },
+          background:
+            "radial-gradient(circle at top left, rgba(240,230,217,0.5) 0%, rgba(255,255,255,0) 30%), linear-gradient(180deg, rgba(255,255,255,0.995) 0%, rgba(252,247,241,0.985) 100%)",
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "stretch",
+            justifyContent: "space-between",
+            flexDirection: { xs: "column", xl: "row" },
+            gap: 1.1,
+          }}
+        >
+          <Box
+            sx={{
+              flex: 1,
+              minWidth: 0,
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "1fr",
+                sm: "repeat(2, minmax(0, 1fr))",
+                lg: "repeat(4, minmax(0, 1fr))",
+              },
+              gap: 1.1,
+            }}
+          >
             {!isLoading ? (
               <>
-                <ModuleSummaryStat label="Overall Plans" value={String(plans.length)} />
-                <ModuleSummaryStat label="Active" value={String(activePlans)} tone="success" />
-                <ModuleSummaryStat label="Inactive" value={String(inactivePlans)} tone="warning" />
-                <ModuleSummaryStat label="Priced Plans" value={String(pricedPlans)} />
+                <ModuleDashboardStat
+                  label="Overall Plans"
+                  value={String(plans.length)}
+                  helper="All configured plans"
+                  icon={<SellOutlined sx={{ fontSize: 18 }} />}
+                  compact
+                />
+                <ModuleDashboardStat
+                  label="Active"
+                  value={String(activePlans)}
+                  helper="Currently bookable plans"
+                  icon={<TaskAltOutlined sx={{ fontSize: 18 }} />}
+                  tone="success"
+                  compact
+                />
+                <ModuleDashboardStat
+                  label="Inactive"
+                  value={String(inactivePlans)}
+                  helper="Hidden from new entries"
+                  icon={<BlockOutlined sx={{ fontSize: 18 }} />}
+                  tone="warning"
+                  compact
+                />
+                <ModuleDashboardStat
+                  label="Priced Plans"
+                  value={String(pricedPlans)}
+                  helper="Plans with base pricing"
+                  icon={<TimerOutlined sx={{ fontSize: 18 }} />}
+                  compact
+                />
               </>
             ) : (
               <>
                 {[1, 2, 3, 4].map((item) => (
-                  <Skeleton key={item} variant="rounded" width={132} height={74} sx={{ borderRadius: "14px" }} />
+                  <Skeleton key={item} variant="rounded" height={96} sx={{ borderRadius: "14px" }} />
                 ))}
               </>
             )}
           </Box>
+          <Button
+            variant="contained"
+            startIcon={<AddOutlined />}
+            onClick={handleAdd}
+            sx={{ px: 1.75, minWidth: { xs: "auto", xl: 148 }, alignSelf: { xs: "flex-start", xl: "center" } }}
+          >
+            Add Plan
+          </Button>
         </Box>
-        <Button
-          variant="contained"
-          startIcon={<AddOutlined />}
-          onClick={handleAdd}
-          sx={{ px: 1.75, alignSelf: { xs: "flex-start", lg: "center" } }}
-        >
-          Add Plan
-        </Button>
-      </Box>
+      </Paper>
 
       {error ? <ErrorState message={error} onRetry={fetchPlans} /> : null}
 
@@ -397,12 +478,19 @@ export default function PlansPage() {
         <TableContainer>
           <Table>
             <TableHead>
-              <TableRow sx={{ backgroundColor: C.surface }}>
+              <TableRow
+                sx={{
+                  background:
+                    "linear-gradient(180deg, rgba(252,247,241,0.98) 0%, rgba(247,240,231,0.96) 100%)",
+                }}
+              >
                 {["Plan", "Duration", "Base Price", "Status", "Actions"].map((h) => (
                   <TableCell
                     key={h}
                     sx={{
                       ...MODULE_TABLE_HEAD_CELL_SX,
+                      whiteSpace: "nowrap",
+                      textAlign: h === "Actions" ? "center" : "left",
                     }}
                   >
                     {h}
@@ -474,13 +562,13 @@ export default function PlansPage() {
                       />
                     </TableCell>
 
-                    <TableCell sx={{ py: 1.6 }}>
-                      <Box sx={{ display: "flex", gap: 0.5 }}>
+                    <TableCell sx={{ py: 1.6, textAlign: "center" }}>
+                      <Box sx={{ display: "flex", gap: 0.45, justifyContent: "center" }}>
                         <Tooltip title="Edit plan">
                           <IconButton
                             size="small"
                             onClick={() => handleEdit(plan)}
-                            sx={MODULE_ACTION_ICON_SX}
+                            sx={getActionIconSx("primary")}
                           >
                             <EditOutlined sx={{ fontSize: 17 }} />
                           </IconButton>
@@ -490,9 +578,13 @@ export default function PlansPage() {
                           <IconButton
                             size="small"
                             onClick={() => handleToggleConfirm(plan)}
-                            sx={MODULE_ACTION_ICON_SX}
+                            sx={getActionIconSx("toggle")}
                           >
-                            <PowerSettingsNewOutlined sx={{ fontSize: 17 }} />
+                            {plan.isActive ? (
+                              <BlockOutlined sx={{ fontSize: 17 }} />
+                            ) : (
+                              <TaskAltOutlined sx={{ fontSize: 17 }} />
+                            )}
                           </IconButton>
                         </Tooltip>
 
@@ -500,7 +592,7 @@ export default function PlansPage() {
                           <IconButton
                             size="small"
                             onClick={() => handleDeleteConfirm(plan)}
-                            sx={MODULE_ACTION_ICON_SX}
+                            sx={getActionIconSx("danger")}
                           >
                             <DeleteOutlined sx={{ fontSize: 17 }} />
                           </IconButton>

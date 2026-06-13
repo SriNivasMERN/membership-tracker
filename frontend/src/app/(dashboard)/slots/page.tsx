@@ -25,9 +25,12 @@ import {
 } from "@mui/material";
 import {
   AddOutlined,
+  TaskAltOutlined,
   EditOutlined,
   DeleteOutlined,
-  PowerSettingsNewOutlined,
+  ScheduleOutlined,
+  BlockOutlined,
+  WbSunnyOutlined,
 } from "@mui/icons-material";
 import { useToast } from "@/context/ToastContext";
 import { slotsApi } from "@/lib/api/slots.api";
@@ -49,7 +52,7 @@ import {
   MODULE_SUCCESS_CHIP_SX,
   MODULE_TABLE_HEAD_CELL_SX,
   MODULE_TABLE_ROW_SX,
-  ModuleSummaryStat,
+  ModuleDashboardStat,
 } from "@/components/ui/moduleStyles";
 
 const EMPTY_FORM: SlotFormData = {
@@ -67,6 +70,40 @@ const C = {
   green: MODULE_COLORS.green,
   amber: MODULE_COLORS.amber,
 };
+
+function getSessionTone(session: string) {
+  const key = session.trim().toLowerCase();
+
+  if (key.includes("morning")) {
+    return {
+      color: "#9A611E",
+      border: "#E8CFA8",
+      background: "linear-gradient(180deg, rgba(255,255,255,0.99) 0%, rgba(252,244,233,0.97) 100%)",
+    };
+  }
+
+  if (key.includes("afternoon")) {
+    return {
+      color: "#5E5347",
+      border: "#E2D6C8",
+      background: "linear-gradient(180deg, rgba(255,255,255,0.99) 0%, rgba(249,244,237,0.97) 100%)",
+    };
+  }
+
+  if (key.includes("evening") || key.includes("night")) {
+    return {
+      color: "#355072",
+      border: "#C9D5E2",
+      background: "linear-gradient(180deg, rgba(255,255,255,0.99) 0%, rgba(239,245,251,0.97) 100%)",
+    };
+  }
+
+  return {
+    color: C.slate,
+    border: C.border,
+    background: "linear-gradient(180deg, rgba(255,255,255,0.99) 0%, rgba(249,244,237,0.97) 100%)",
+  };
+}
 
 function SlotFormDialog({
   open,
@@ -260,40 +297,118 @@ export default function SlotsPage() {
   const activeSlots = slots.filter((slot) => slot.isActive).length;
   const inactiveSlots = slots.filter((slot) => !slot.isActive).length;
   const earlySlots = slots.filter((slot) => slot.startTime < "12:00").length;
+  const getActionIconSx = (tone: "primary" | "toggle" | "danger") => ({
+    ...MODULE_ACTION_ICON_SX,
+    color:
+      tone === "danger"
+        ? "#8A6B65"
+        : tone === "toggle"
+          ? "#8F5D26"
+          : "#667085",
+    "&:hover": {
+      color:
+        tone === "danger"
+          ? "#A13C32"
+          : tone === "toggle"
+            ? C.amber
+            : C.navy,
+      backgroundColor:
+        tone === "danger"
+          ? "rgba(251,239,234,0.95)"
+          : tone === "toggle"
+            ? "rgba(252,244,233,0.96)"
+            : "rgba(248,242,235,0.96)",
+      transform: "translateY(-1px)",
+    },
+  });
 
   return (
     <Box sx={MODULE_PAGE_SX}>
-      <Box sx={{ display: "flex", alignItems: { xs: "flex-start", lg: "center" }, justifyContent: "space-between", flexDirection: { xs: "column", lg: "row" }, gap: 1.5 }}>
-        <Box sx={{ flex: 1, display: "flex", justifyContent: { xs: "flex-start", lg: "center" } }}>
-          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+      <Paper
+        elevation={0}
+        sx={{
+          ...MODULE_CARD_SX,
+          p: { xs: 1.2, sm: 1.35 },
+          background:
+            "radial-gradient(circle at top left, rgba(240,230,217,0.5) 0%, rgba(255,255,255,0) 30%), linear-gradient(180deg, rgba(255,255,255,0.995) 0%, rgba(252,247,241,0.985) 100%)",
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "stretch",
+            justifyContent: "space-between",
+            flexDirection: { xs: "column", xl: "row" },
+            gap: 1.1,
+          }}
+        >
+          <Box
+            sx={{
+              flex: 1,
+              minWidth: 0,
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "1fr",
+                sm: "repeat(2, minmax(0, 1fr))",
+                lg: "repeat(4, minmax(0, 1fr))",
+              },
+              gap: 1.1,
+            }}
+          >
             {!isLoading ? (
               <>
-                <ModuleSummaryStat label="Overall Slots" value={String(slots.length)} />
-                <ModuleSummaryStat label="Active" value={String(activeSlots)} tone="success" />
-                <ModuleSummaryStat label="Inactive" value={String(inactiveSlots)} tone="warning" />
-                <ModuleSummaryStat label="Morning Slots" value={String(earlySlots)} />
+                <ModuleDashboardStat
+                  label="Overall Slots"
+                  value={String(slots.length)}
+                  helper="All configured time slots"
+                  icon={<ScheduleOutlined sx={{ fontSize: 18 }} />}
+                  compact
+                />
+                <ModuleDashboardStat
+                  label="Active"
+                  value={String(activeSlots)}
+                  helper="Available for new assignments"
+                  icon={<TaskAltOutlined sx={{ fontSize: 18 }} />}
+                  tone="success"
+                  compact
+                />
+                <ModuleDashboardStat
+                  label="Inactive"
+                  value={String(inactiveSlots)}
+                  helper="Currently hidden from new entries"
+                  icon={<BlockOutlined sx={{ fontSize: 18 }} />}
+                  tone="warning"
+                  compact
+                />
+                <ModuleDashboardStat
+                  label="Morning Slots"
+                  value={String(earlySlots)}
+                  helper="Start before noon"
+                  icon={<WbSunnyOutlined sx={{ fontSize: 18 }} />}
+                  compact
+                />
               </>
             ) : (
               <>
                 {[1, 2, 3, 4].map((item) => (
-                  <Skeleton key={item} variant="rounded" width={132} height={74} sx={{ borderRadius: "14px" }} />
+                  <Skeleton key={item} variant="rounded" height={96} sx={{ borderRadius: "14px" }} />
                 ))}
               </>
             )}
           </Box>
+          <Button
+            variant="contained"
+            startIcon={<AddOutlined />}
+            onClick={() => {
+              setEditingSlot(null);
+              setFormOpen(true);
+            }}
+            sx={{ px: 1.75, minWidth: { xs: "auto", xl: 148 }, alignSelf: { xs: "flex-start", xl: "center" } }}
+          >
+            Add Slot
+          </Button>
         </Box>
-        <Button
-          variant="contained"
-          startIcon={<AddOutlined />}
-          onClick={() => {
-            setEditingSlot(null);
-            setFormOpen(true);
-          }}
-          sx={{ px: 1.75, alignSelf: { xs: "flex-start", lg: "center" } }}
-        >
-          Add Slot
-        </Button>
-      </Box>
+      </Paper>
 
       {error ? <ErrorState message={error} onRetry={fetchSlots} /> : null}
 
@@ -307,12 +422,19 @@ export default function SlotsPage() {
         <TableContainer>
           <Table>
             <TableHead>
-              <TableRow sx={{ backgroundColor: C.surface }}>
+              <TableRow
+                sx={{
+                  background:
+                    "linear-gradient(180deg, rgba(252,247,241,0.98) 0%, rgba(247,240,231,0.96) 100%)",
+                }}
+              >
                 {["Slot", "Start Time", "End Time", "Session", "Status", "Actions"].map((heading) => (
                   <TableCell
                     key={heading}
                     sx={{
                       ...MODULE_TABLE_HEAD_CELL_SX,
+                      whiteSpace: "nowrap",
+                      textAlign: heading === "Actions" ? "center" : "left",
                     }}
                   >
                     {heading}
@@ -349,6 +471,7 @@ export default function SlotsPage() {
               ) : (
                 slots.map((slot) => {
                   const session = slot.startTime < "12:00" ? "Morning" : slot.startTime < "17:00" ? "Afternoon" : "Evening";
+                  const sessionTone = getSessionTone(session);
                   return (
                     <TableRow
                       key={slot._id}
@@ -365,19 +488,49 @@ export default function SlotsPage() {
                       </TableCell>
 
                       <TableCell sx={{ py: 1.6 }}>
-                        <Typography sx={{ fontSize: "0.85rem", color: C.slate, fontWeight: 600 }}>
+                        <Typography
+                          sx={{
+                            fontSize: "0.88rem",
+                            color: C.navy,
+                            fontWeight: 700,
+                            fontVariantNumeric: "tabular-nums",
+                            letterSpacing: 0.04,
+                          }}
+                        >
                           {slot.startTime}
                         </Typography>
                       </TableCell>
 
                       <TableCell sx={{ py: 1.6 }}>
-                        <Typography sx={{ fontSize: "0.85rem", color: C.slate, fontWeight: 600 }}>
+                        <Typography
+                          sx={{
+                            fontSize: "0.88rem",
+                            color: C.slate,
+                            fontWeight: 700,
+                            fontVariantNumeric: "tabular-nums",
+                            letterSpacing: 0.04,
+                          }}
+                        >
                           {slot.endTime}
                         </Typography>
                       </TableCell>
 
                       <TableCell sx={{ py: 1.6 }}>
-                        <Typography sx={{ fontSize: "0.82rem", color: C.slate, fontWeight: 700 }}>
+                        <Typography
+                          sx={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            px: 0.85,
+                            py: 0.25,
+                            borderRadius: "999px",
+                            border: `1px solid ${sessionTone.border}`,
+                            background: sessionTone.background,
+                            fontSize: "0.76rem",
+                            color: sessionTone.color,
+                            fontWeight: 700,
+                            lineHeight: 1.1,
+                          }}
+                        >
                           {session}
                         </Typography>
                       </TableCell>
@@ -390,8 +543,8 @@ export default function SlotsPage() {
                         />
                       </TableCell>
 
-                      <TableCell sx={{ py: 1.6 }}>
-                        <Box sx={{ display: "flex", gap: 0.5 }}>
+                      <TableCell sx={{ py: 1.6, textAlign: "center" }}>
+                        <Box sx={{ display: "flex", gap: 0.45, justifyContent: "center" }}>
                           <Tooltip title="Edit slot">
                             <IconButton
                               size="small"
@@ -399,7 +552,7 @@ export default function SlotsPage() {
                                 setEditingSlot(slot);
                                 setFormOpen(true);
                               }}
-                              sx={MODULE_ACTION_ICON_SX}
+                              sx={getActionIconSx("primary")}
                             >
                               <EditOutlined sx={{ fontSize: 17 }} />
                             </IconButton>
@@ -413,9 +566,13 @@ export default function SlotsPage() {
                                 setConfirmAction("toggle");
                                 setConfirmOpen(true);
                               }}
-                              sx={MODULE_ACTION_ICON_SX}
+                              sx={getActionIconSx("toggle")}
                             >
-                              <PowerSettingsNewOutlined sx={{ fontSize: 17 }} />
+                              {slot.isActive ? (
+                                <BlockOutlined sx={{ fontSize: 17 }} />
+                              ) : (
+                                <TaskAltOutlined sx={{ fontSize: 17 }} />
+                              )}
                             </IconButton>
                           </Tooltip>
 
@@ -427,7 +584,7 @@ export default function SlotsPage() {
                                 setConfirmAction("delete");
                                 setConfirmOpen(true);
                               }}
-                              sx={MODULE_ACTION_ICON_SX}
+                              sx={getActionIconSx("danger")}
                             >
                               <DeleteOutlined sx={{ fontSize: 17 }} />
                             </IconButton>

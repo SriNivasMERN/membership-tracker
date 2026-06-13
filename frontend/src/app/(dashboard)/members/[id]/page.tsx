@@ -51,7 +51,7 @@ import {
   MODULE_COLORS,
   MODULE_FIELD_SX,
   MODULE_PAGE_SX,
-  ModuleSummaryStat,
+  ModuleDashboardStat,
   MODULE_TABLE_HEAD_CELL_SX,
 } from "@/components/ui/moduleStyles";
 
@@ -111,11 +111,6 @@ function InfoRow({ label, value }: { label: string; value: string }) {
       </Typography>
     </Box>
   );
-}
-
-function SummaryMetric({ label, value, tone = "default" }: { label: string; value: string; tone?: "default" | "success" | "warning" | "danger" }) {
-  const mappedTone = tone === "danger" ? "warning" : tone === "success" ? "success" : tone === "warning" ? "warning" : "default";
-  return <ModuleSummaryStat label={label} value={value} tone={mappedTone} />;
 }
 
 export default function MemberDetailPage() {
@@ -465,10 +460,45 @@ export default function MemberDetailPage() {
     : member.pendingAmount > 0
       ? "danger"
       : "success";
+  const topSummaryCards = [
+    {
+      label: "Plan",
+      value: member.planSnapshot.name,
+      helper: "Current membership plan",
+      icon: <PersonOutlined sx={{ fontSize: 18 }} />,
+      tone: "default" as const,
+    },
+    {
+      label: endedSettlementLabel,
+      value: endedSettlementValue,
+      helper:
+        endedSettlementLabel === "Refund Due"
+          ? "Amount to return"
+          : endedSettlementLabel === "Balance Due"
+            ? "Amount to collect"
+            : endedSettlementLabel === "Settlement"
+              ? "Membership settled"
+              : "Current payment state",
+      icon: <CreditCardOutlined sx={{ fontSize: 18 }} />,
+      tone:
+        endedSettlementTone === "danger"
+          ? ("danger" as const)
+          : endedSettlementTone === "success"
+            ? ("success" as const)
+            : ("default" as const),
+    },
+    {
+      label: "Renewal Date",
+      value: member.status === "ended" ? "Not Applicable" : fmtDate(member.endDate),
+      helper: member.status === "ended" ? "Membership ended" : "Current validity end",
+      icon: <CalendarTodayOutlined sx={{ fontSize: 18 }} />,
+      tone: member.status === "ended" ? ("warning" as const) : ("default" as const),
+    },
+  ];
 
   return (
     <Box sx={MODULE_PAGE_SX}>
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 0.45 }}>
         <Typography sx={{ fontSize: "2rem", fontWeight: 800, color: "#111827", lineHeight: 1.15 }}>
           {member.name}
         </Typography>
@@ -484,22 +514,11 @@ export default function MemberDetailPage() {
       </Box>
 
       <Grid container spacing={2}>
-        <Grid item xs={12} sm={4}>
-          <SummaryMetric label="Plan" value={member.planSnapshot.name} />
-        </Grid>
-        <Grid item xs={12} sm={4}>
-          <SummaryMetric
-            label={endedSettlementLabel}
-            value={endedSettlementValue}
-            tone={endedSettlementTone}
-          />
-        </Grid>
-        <Grid item xs={12} sm={4}>
-          <SummaryMetric
-            label="Renewal Date"
-            value={member.status === "ended" ? "Not Applicable" : fmtDate(member.endDate)}
-          />
-        </Grid>
+        {topSummaryCards.map((card) => (
+          <Grid key={card.label} item xs={12} sm={4}>
+            <ModuleDashboardStat {...card} compact />
+          </Grid>
+        ))}
       </Grid>
 
       <Grid container spacing={2}>
@@ -592,7 +611,10 @@ export default function MemberDetailPage() {
             {/* Payment summary */}
             <Paper elevation={0} sx={{ ...MODULE_CARD_SX, p: 2.1, borderRadius: "12px" }}>
               <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
-                <Typography sx={{ fontSize: "0.72rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.8 }}>Payment Summary</Typography>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <PaymentOutlined sx={{ fontSize: 16, color: C.muted }} />
+                  <Typography sx={{ fontSize: "0.72rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.8 }}>Payment Summary</Typography>
+                </Box>
                 <StatusBadge status={member.status} />
               </Box>
 
@@ -675,9 +697,12 @@ export default function MemberDetailPage() {
 
             {member.membershipClosure && (
               <Paper elevation={0} sx={{ ...MODULE_CARD_SX, p: 2.1, borderRadius: "12px" }}>
-                <Typography sx={{ fontSize: "0.72rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.8, mb: 1.5 }}>
-                  Closure Summary
-                </Typography>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1.5 }}>
+                  <PersonOffOutlined sx={{ fontSize: 16, color: C.muted }} />
+                  <Typography sx={{ fontSize: "0.72rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.8 }}>
+                    Closure Summary
+                  </Typography>
+                </Box>
                 <InfoRow label="Ended On" value={fmtDate(member.membershipClosure.endedOn)} />
                 <InfoRow label="Used Value" value={fmt(member.membershipClosure.usedValue)} />
                 <InfoRow label="Settlement Deduction" value={fmt(member.membershipClosure.settlementDeduction)} />
