@@ -31,6 +31,10 @@ import {
   AddOutlined,
   EditOutlined,
   DeleteOutlined,
+  CheckCircleOutlineOutlined,
+  SellOutlined,
+  TaskAltOutlined,
+  BlockOutlined,
 } from "@mui/icons-material";
 import { useToast } from "@/context/ToastContext";
 import { pricingApi, PricingRuleFormData } from "@/lib/api/pricing.api";
@@ -56,7 +60,7 @@ import {
   MODULE_SUCCESS_CHIP_SX,
   MODULE_TABLE_HEAD_CELL_SX,
   MODULE_TABLE_ROW_SX,
-  ModuleSummaryStat,
+  ModuleDashboardStat,
 } from "@/components/ui/moduleStyles";
 
 // ─── Types for populated pricing rule from backend ────────────────────────────
@@ -336,6 +340,7 @@ export default function PricingPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<PricingRule | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<"delete" | "toggle" | null>(null);
   const [selectedRule, setSelectedRule] = useState<PricingRule | null>(null);
   const [isActioning, setIsActioning] = useState(false);
 
@@ -360,16 +365,24 @@ export default function PricingPage() {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
-  const handleDelete = async () => {
-    if (!selectedRule) return;
+  const handleConfirm = async () => {
+    if (!selectedRule || !confirmAction) return;
     setIsActioning(true);
     try {
-      await pricingApi.delete(selectedRule._id);
-      showToast("Pricing rule deleted");
+      if (confirmAction === "toggle") {
+        await pricingApi.update(selectedRule._id, {
+          multiplier: selectedRule.multiplier,
+          isActive: !selectedRule.isActive,
+        });
+        showToast(selectedRule.isActive ? "Pricing rule deactivated" : "Pricing rule activated");
+      } else {
+        await pricingApi.delete(selectedRule._id);
+        showToast("Pricing rule deleted");
+      }
       setConfirmOpen(false);
       fetchAll();
     } catch {
-      showToast("Delete failed. Please try again.", "error");
+      showToast("Action failed. Please try again.", "error");
     } finally {
       setIsActioning(false);
     }
@@ -379,90 +392,223 @@ export default function PricingPage() {
   const activeRules = rules.filter((rule) => rule.isActive).length;
   const inactiveRules = rules.filter((rule) => !rule.isActive).length;
   const boostedRules = rules.filter((rule) => rule.multiplier > 1).length;
+  const getActionIconSx = (tone: "primary" | "toggle" | "danger") => ({
+    ...MODULE_ACTION_ICON_SX,
+    color:
+      tone === "danger"
+        ? "#8A6B65"
+        : tone === "toggle"
+          ? "#8F5D26"
+          : "#667085",
+    "&:hover": {
+      color:
+        tone === "danger"
+          ? "#A13C32"
+          : tone === "toggle"
+            ? C.amber
+            : C.navy,
+      backgroundColor:
+        tone === "danger"
+          ? "rgba(251,239,234,0.95)"
+          : tone === "toggle"
+            ? "rgba(252,244,233,0.96)"
+            : "rgba(248,242,235,0.96)",
+      transform: "translateY(-1px)",
+    },
+  });
 
   return (
     <Box sx={MODULE_PAGE_SX}>
-      <Box sx={{ display: "flex", alignItems: { xs: "flex-start", lg: "center" }, justifyContent: "space-between", flexDirection: { xs: "column", lg: "row" }, gap: 1.5 }}>
-        <Box sx={{ flex: 1, display: "flex", justifyContent: { xs: "flex-start", lg: "center" } }}>
-          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+      <Paper
+        elevation={0}
+        sx={{
+          ...MODULE_CARD_SX,
+          p: { xs: 1.2, sm: 1.35 },
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "stretch",
+            justifyContent: "space-between",
+            flexDirection: { xs: "column", xl: "row" },
+            gap: 1.1,
+          }}
+        >
+          <Box
+            sx={{
+              flex: 1,
+              minWidth: 0,
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "1fr",
+                sm: "repeat(2, minmax(0, 1fr))",
+                lg: "repeat(4, minmax(0, 1fr))",
+              },
+              gap: 1.1,
+            }}
+          >
             {!isLoading ? (
               <>
-                <ModuleSummaryStat label="Overall Rules" value={String(rules.length)} />
-                <ModuleSummaryStat label="Active" value={String(activeRules)} tone="success" />
-                <ModuleSummaryStat label="Inactive" value={String(inactiveRules)} tone="warning" />
-                <ModuleSummaryStat label="Boosted Prices" value={String(boostedRules)} />
+                <ModuleDashboardStat
+                  label="Overall Rules"
+                  value={String(rules.length)}
+                  helper="All pricing overrides"
+                  icon={<SellOutlined sx={{ fontSize: 18 }} />}
+                  compact
+                />
+                <ModuleDashboardStat
+                  label="Active"
+                  value={String(activeRules)}
+                  helper="Currently applied rules"
+                  icon={<TaskAltOutlined sx={{ fontSize: 18 }} />}
+                  tone="success"
+                  compact
+                />
+                <ModuleDashboardStat
+                  label="Inactive"
+                  value={String(inactiveRules)}
+                  helper="Rules kept off"
+                  icon={<BlockOutlined sx={{ fontSize: 18 }} />}
+                  tone="warning"
+                  compact
+                />
+                <ModuleDashboardStat
+                  label="Boosted Prices"
+                  value={String(boostedRules)}
+                  helper="Multipliers above 1x"
+                  icon={<CheckCircleOutlineOutlined sx={{ fontSize: 18 }} />}
+                  compact
+                />
               </>
             ) : (
               <>
                 {[1, 2, 3, 4].map((item) => (
-                  <Skeleton key={item} variant="rounded" width={132} height={74} sx={{ borderRadius: "14px" }} />
+                  <Skeleton key={item} variant="rounded" height={96} sx={{ borderRadius: "14px" }} />
                 ))}
               </>
             )}
           </Box>
+          <Box
+            sx={{
+              minWidth: { xs: "100%", xl: 148 },
+              alignSelf: { xs: "stretch", xl: "center" },
+            }}
+          >
+            <Button
+              variant="contained"
+              startIcon={<AddOutlined />}
+              onClick={() => {
+                setEditingRule(null);
+                setFormOpen(true);
+              }}
+              sx={{ px: 1.75, alignSelf: { xs: "flex-start", xl: "flex-end" } }}
+            >
+              Add Rule
+            </Button>
+          </Box>
         </Box>
-        <Button
-          variant="contained"
-          startIcon={<AddOutlined />}
-          onClick={() => {
-            setEditingRule(null);
-            setFormOpen(true);
-          }}
-          sx={{ px: 1.75, alignSelf: { xs: "flex-start", lg: "center" } }}
-        >
-          Add Rule
-        </Button>
-      </Box>
+      </Paper>
 
       <Paper
         elevation={0}
         sx={{
           ...MODULE_CARD_SX,
-          px: 2,
-          py: 1.6,
+          px: { xs: 1.4, sm: 1.8 },
+          py: 1.35,
           display: "flex",
+          flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          gap: 1,
-          flexWrap: "wrap",
+          gap: 0.85,
         }}
       >
-        {[
-          { label: "Base Price", tone: "default" as const },
-          { label: "x", tone: "operator" as const },
-          { label: "Multiplier", tone: "default" as const },
-          { label: "=", tone: "operator" as const },
-          { label: "Final Price", tone: "result" as const },
-        ].map((item, index) => (
-          <Box
-            key={`${item.label}-${index}`}
-            sx={{
-              px: item.tone === "operator" ? 0.4 : 1.25,
-              py: item.tone === "operator" ? 0.2 : 0.8,
-              borderRadius: item.tone === "operator" ? 0 : "12px",
-              border: item.tone === "operator" ? "none" : `1px solid ${item.tone === "result" ? "#D9CCBB" : C.border}`,
-              background:
-                item.tone === "operator"
-                  ? "transparent"
-                  : item.tone === "result"
-                    ? "linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(250,245,239,0.98) 100%)"
-                    : "linear-gradient(180deg, rgba(255,255,255,0.995) 0%, rgba(253,250,246,0.985) 100%)",
-              boxShadow: item.tone === "operator" ? "none" : "0 8px 18px rgba(36,58,87,0.05)",
-            }}
-          >
-            <Typography
+        <Typography
+          sx={{
+            fontSize: "0.72rem",
+            fontWeight: 800,
+            color: C.muted,
+            textTransform: "uppercase",
+            letterSpacing: 0.45,
+            textAlign: "center",
+          }}
+        >
+          Pricing Logic
+        </Typography>
+
+        <Box
+          sx={{
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 0.9,
+            flexWrap: "wrap",
+          }}
+        >
+          {[
+            { label: "Base Price", tone: "base" as const },
+            { label: "x", tone: "operator" as const },
+            { label: "Multiplier", tone: "accent" as const },
+            { label: "=", tone: "operator" as const },
+            { label: "Final Price", tone: "result" as const },
+          ].map((item, index) => (
+            <Box
+              key={`${item.label}-${index}`}
               sx={{
-                fontSize: item.tone === "operator" ? "1rem" : "0.82rem",
-                fontWeight: item.tone === "operator" ? 900 : item.tone === "result" ? 800 : 700,
-                color: item.tone === "result" ? C.navy : C.slate,
-                letterSpacing: item.tone === "operator" ? 0 : 0.15,
-                lineHeight: 1.2,
+                px: item.tone === "operator" ? 0.25 : 1.2,
+                py: item.tone === "operator" ? 0.1 : 0.78,
+                borderRadius: item.tone === "operator" ? 0 : "14px",
+                border:
+                  item.tone === "operator"
+                    ? "none"
+                    : `1px solid ${
+                        item.tone === "result"
+                          ? "#BFD9C7"
+                          : item.tone === "accent"
+                            ? "#E5C79B"
+                            : "#DDD1C1"
+                      }`,
+                background:
+                  item.tone === "operator"
+                    ? "transparent"
+                    : item.tone === "result"
+                      ? "linear-gradient(180deg, rgba(255,255,255,0.998) 0%, rgba(244,250,246,0.992) 100%)"
+                      : item.tone === "accent"
+                        ? "linear-gradient(180deg, rgba(255,255,255,0.998) 0%, rgba(253,247,237,0.992) 100%)"
+                        : "linear-gradient(180deg, rgba(255,255,255,0.998) 0%, rgba(251,247,241,0.992) 100%)",
+                boxShadow:
+                  item.tone === "operator"
+                    ? "none"
+                    : item.tone === "result"
+                      ? "0 8px 16px rgba(53,101,72,0.05)"
+                      : item.tone === "accent"
+                        ? "0 8px 16px rgba(163,106,44,0.05)"
+                        : "0 8px 16px rgba(36,58,87,0.04)",
               }}
             >
-              {item.label}
-            </Typography>
-          </Box>
-        ))}
+              <Typography
+                sx={{
+                  fontSize: item.tone === "operator" ? "1rem" : "0.82rem",
+                  fontWeight:
+                    item.tone === "operator" ? 900 : item.tone === "result" ? 800 : 700,
+                  color:
+                    item.tone === "result"
+                      ? C.green
+                      : item.tone === "accent"
+                        ? C.amber
+                        : item.tone === "base"
+                          ? C.navy
+                          : C.slate,
+                  letterSpacing: item.tone === "operator" ? 0 : 0.15,
+                  lineHeight: 1.2,
+                }}
+              >
+                {item.label}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
       </Paper>
 
       {error ? <ErrorState message={error} onRetry={fetchAll} /> : null}
@@ -477,12 +623,19 @@ export default function PricingPage() {
         <TableContainer>
           <Table>
             <TableHead>
-              <TableRow sx={{ backgroundColor: C.surface }}>
+              <TableRow
+                sx={{
+                  background:
+                    "linear-gradient(180deg, rgba(252,247,241,0.98) 0%, rgba(247,240,231,0.96) 100%)",
+                }}
+              >
                 {["Plan", "Slot", "Base Price", "Multiplier", "Final Price", "Status", "Actions"].map((h) => (
                   <TableCell
                     key={h}
                     sx={{
                       ...MODULE_TABLE_HEAD_CELL_SX,
+                      whiteSpace: "nowrap",
+                      textAlign: h === "Actions" ? "center" : "left",
                     }}
                   >
                     {h}
@@ -547,7 +700,15 @@ export default function PricingPage() {
                         <Chip
                           label={`${rule.multiplier}x`}
                           size="small"
-                          sx={MODULE_NEUTRAL_CHIP_SX}
+                          sx={{
+                            ...MODULE_NEUTRAL_CHIP_SX,
+                            background:
+                              "linear-gradient(180deg, rgba(255,255,255,0.995) 0%, rgba(239,245,251,0.985) 100%)",
+                            border: "1px solid #C6D6E7",
+                            color: C.navy,
+                            fontWeight: 800,
+                            boxShadow: "0 6px 14px rgba(36,58,87,0.06)",
+                          }}
                         />
                       </TableCell>
                       <TableCell sx={{ py: 1.6 }}>
@@ -562,22 +723,43 @@ export default function PricingPage() {
                           sx={rule.isActive ? MODULE_SUCCESS_CHIP_SX : MODULE_NEUTRAL_CHIP_SX}
                         />
                       </TableCell>
-                      <TableCell sx={{ py: 1.6 }}>
-                        <Box sx={{ display: "flex", gap: 0.5 }}>
+                      <TableCell sx={{ py: 1.6, textAlign: "center" }}>
+                        <Box sx={{ display: "flex", gap: 0.45, justifyContent: "center" }}>
                           <Tooltip title="Edit rule">
                             <IconButton
                               size="small"
                               onClick={() => { setEditingRule(rule); setFormOpen(true); }}
-                              sx={MODULE_ACTION_ICON_SX}
+                              sx={getActionIconSx("primary")}
                             >
                               <EditOutlined sx={{ fontSize: 17 }} />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title={rule.isActive ? "Deactivate" : "Activate"}>
+                            <IconButton
+                              size="small"
+                              onClick={() => {
+                                setSelectedRule(rule);
+                                setConfirmAction("toggle");
+                                setConfirmOpen(true);
+                              }}
+                              sx={getActionIconSx("toggle")}
+                            >
+                              {rule.isActive ? (
+                                <BlockOutlined sx={{ fontSize: 17 }} />
+                              ) : (
+                                <TaskAltOutlined sx={{ fontSize: 17 }} />
+                              )}
                             </IconButton>
                           </Tooltip>
                           <Tooltip title="Delete rule">
                             <IconButton
                               size="small"
-                              onClick={() => { setSelectedRule(rule); setConfirmOpen(true); }}
-                              sx={MODULE_ACTION_ICON_SX}
+                              onClick={() => {
+                                setSelectedRule(rule);
+                                setConfirmAction("delete");
+                                setConfirmOpen(true);
+                              }}
+                              sx={getActionIconSx("danger")}
                             >
                               <DeleteOutlined sx={{ fontSize: 17 }} />
                             </IconButton>
@@ -604,11 +786,29 @@ export default function PricingPage() {
 
       <ConfirmDialog
         open={confirmOpen}
-        title="Delete Pricing Rule"
-        message={`Delete the pricing rule for "${selectedRule?.planId.name} - ${selectedRule?.slotId.label}"? This cannot be undone.`}
-        confirmLabel="Delete"
-        confirmColor="error"
-        onConfirm={handleDelete}
+        title={
+          confirmAction === "delete"
+            ? "Delete Pricing Rule"
+            : selectedRule?.isActive
+              ? "Deactivate Pricing Rule"
+              : "Activate Pricing Rule"
+        }
+        message={
+          confirmAction === "delete"
+            ? `Delete the pricing rule for "${selectedRule?.planId.name} - ${selectedRule?.slotId.label}"? This cannot be undone.`
+            : selectedRule?.isActive
+              ? `Deactivating this pricing rule will stop applying the custom multiplier for new pricing checks.`
+              : `Activating this pricing rule will apply the custom multiplier again for this plan and slot combination.`
+        }
+        confirmLabel={
+          confirmAction === "delete"
+            ? "Delete"
+            : selectedRule?.isActive
+              ? "Deactivate"
+              : "Activate"
+        }
+        confirmColor={confirmAction === "delete" ? "error" : "primary"}
+        onConfirm={handleConfirm}
         onCancel={() => setConfirmOpen(false)}
         isLoading={isActioning}
       />
