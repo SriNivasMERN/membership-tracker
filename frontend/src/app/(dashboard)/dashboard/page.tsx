@@ -47,6 +47,7 @@ import {
   MODULE_NEUTRAL_CHIP_SX,
   MODULE_PAGE_SX,
   MODULE_SUCCESS_CHIP_SX,
+  MODULE_TABLE_CONTAINER_SX,
   MODULE_TABLE_HEAD_CELL_SX,
   MODULE_TABLE_ROW_SX,
   MODULE_WARNING_CHIP_SX,
@@ -801,8 +802,8 @@ function UtilizationBar({
 
 function MemberTable({ members }: { members: Member[] }) {
   return (
-    <TableContainer>
-      <Table size="small">
+    <TableContainer sx={MODULE_TABLE_CONTAINER_SX}>
+      <Table size="small" sx={{ minWidth: { xs: 760, md: 0 } }}>
         <TableHead>
           <TableRow sx={{ backgroundColor: C.surface }}>
             {["Member", "Mobile", "Plan / Slot", "Renewal Date", "Payment Due"].map((h) => (

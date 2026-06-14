@@ -82,6 +82,8 @@ export default function Topbar({ title, onMenuClick }: TopbarProps) {
           size="small"
           sx={{
             display: { xs: "flex", md: "none" },
+            width: 44,
+            height: 44,
             color: MODULE_COLORS.slate,
             border: `1px solid ${MODULE_COLORS.border}`,
             background: "linear-gradient(180deg, rgba(255,255,255,0.99) 0%, rgba(251,246,240,0.96) 100%)",
@@ -111,12 +113,12 @@ export default function Topbar({ title, onMenuClick }: TopbarProps) {
           position: "absolute",
           left: "50%",
           transform: "translateX(-50%)",
-          display: { xs: "none", md: "flex" },
+          display: { xs: "none", sm: "flex" },
           alignItems: "center",
           pointerEvents: "none",
           zIndex: 1,
           minWidth: 0,
-          width: "min(420px, 40%)",
+          width: { sm: "min(320px, 42%)", md: "min(420px, 40%)" },
           justifyContent: "center",
         }}
       >
@@ -144,8 +146,8 @@ export default function Topbar({ title, onMenuClick }: TopbarProps) {
             onClick={handleLogout}
             size="small"
             sx={{
-              width: 40,
-              height: 40,
+              width: 44,
+              height: 44,
               borderRadius: "14px",
               color: "#B91C1C",
               border: "1px solid rgba(244,180,173,0.82)",

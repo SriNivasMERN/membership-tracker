@@ -22,10 +22,11 @@ export const MODULE_COLORS = {
 export const MODULE_PAGE_SX: SxProps<Theme> = {
   display: "flex",
   flexDirection: "column",
-  gap: 2.25,
-  p: { xs: 0.25, md: 0.5 },
-  borderRadius: "24px",
+  gap: { xs: 1.5, sm: 2, md: 2.25 },
+  p: { xs: 0, sm: 0.15, md: 0.5 },
+  borderRadius: { xs: "20px", sm: "22px", md: "24px" },
   background: MODULE_COLORS.background,
+  minWidth: 0,
 };
 
 export const MODULE_FIELD_SX: SxProps<Theme> = {
@@ -53,40 +54,51 @@ export const MODULE_FIELD_SX: SxProps<Theme> = {
 };
 
 export const MODULE_CARD_SX: SxProps<Theme> = {
-  borderRadius: "16px",
+  borderRadius: { xs: "14px", sm: "16px" },
   border: `1px solid ${MODULE_COLORS.border}`,
   boxShadow: "0 16px 32px rgba(36,58,87,0.08)",
   background: "linear-gradient(180deg, rgba(255,255,255,0.995) 0%, rgba(253,250,246,0.985) 100%)",
+  minWidth: 0,
 };
 
 export const MODULE_DIALOG_PAPER_SX: SxProps<Theme> = {
-  borderRadius: "18px",
+  borderRadius: { xs: "20px", sm: "18px" },
   border: `1px solid ${MODULE_COLORS.border}`,
   boxShadow: "0 24px 44px rgba(36,58,87,0.14)",
   background: "linear-gradient(180deg, rgba(255,255,255,0.996) 0%, rgba(253,250,246,0.988) 100%)",
+  width: { xs: "calc(100vw - 16px)", sm: "min(680px, calc(100vw - 32px))" },
+  maxWidth: { xs: "calc(100vw - 16px)", sm: "min(680px, calc(100vw - 32px))" },
+  maxHeight: { xs: "calc(100dvh - 16px)", sm: "calc(100dvh - 32px)" },
+  m: { xs: 1, sm: 2 },
+  overflow: "hidden",
 };
 
 export const MODULE_DIALOG_TITLE_SX: SxProps<Theme> = {
-  px: 3,
-  pt: 2.5,
-  pb: 1.2,
+  px: { xs: 2, sm: 3 },
+  pt: { xs: 2, sm: 2.5 },
+  pb: { xs: 1, sm: 1.2 },
   fontWeight: 800,
-  fontSize: "1rem",
+  fontSize: { xs: "0.95rem", sm: "1rem" },
   color: MODULE_COLORS.ink,
   borderBottom: `1px solid ${MODULE_COLORS.border}`,
 };
 
 export const MODULE_DIALOG_CONTENT_SX: SxProps<Theme> = {
-  px: 3,
-  pb: 1.5,
+  px: { xs: 2, sm: 3 },
+  pb: { xs: 1.25, sm: 1.5 },
 };
 
 export const MODULE_DIALOG_ACTIONS_SX: SxProps<Theme> = {
-  px: 3,
-  pb: 3,
-  pt: 2,
+  px: { xs: 2, sm: 3 },
+  pb: { xs: 2, sm: 3 },
+  pt: { xs: 1.5, sm: 2 },
   gap: 1,
   borderTop: `1px solid ${MODULE_COLORS.border}`,
+  flexWrap: "wrap",
+  justifyContent: { xs: "stretch", sm: "flex-end" },
+  "& .MuiButton-root": {
+    minHeight: 44,
+  },
 };
 
 export const MODULE_INLINE_PANEL_SX: SxProps<Theme> = {
@@ -98,9 +110,9 @@ export const MODULE_INLINE_PANEL_SX: SxProps<Theme> = {
 
 export const MODULE_TABLE_HEAD_CELL_SX: SxProps<Theme> = {
   fontWeight: 800,
-  fontSize: "0.72rem",
+  fontSize: { xs: "0.68rem", sm: "0.72rem" },
   color: MODULE_COLORS.slate,
-  py: 1.45,
+  py: { xs: 1.15, sm: 1.45 },
   borderBottom: `1px solid ${MODULE_COLORS.border}`,
   letterSpacing: 0.4,
   textTransform: "uppercase",
@@ -114,9 +126,28 @@ export const MODULE_TABLE_ROW_SX: SxProps<Theme> = {
 
 export const MODULE_ACTION_ICON_SX: SxProps<Theme> = {
   color: "#667085",
+  width: 44,
+  height: 44,
+  borderRadius: "14px",
+  flexShrink: 0,
   "&:hover": {
     color: MODULE_COLORS.ink,
     backgroundColor: "rgba(255,251,246,0.95)",
+  },
+};
+
+export const MODULE_TABLE_CONTAINER_SX: SxProps<Theme> = {
+  width: "100%",
+  overflowX: "auto",
+  overflowY: "hidden",
+  WebkitOverflowScrolling: "touch",
+  overscrollBehaviorX: "contain",
+  "&::-webkit-scrollbar": {
+    height: 8,
+  },
+  "&::-webkit-scrollbar-thumb": {
+    backgroundColor: "rgba(122,138,159,0.35)",
+    borderRadius: 999,
   },
 };
 

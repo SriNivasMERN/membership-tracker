@@ -43,11 +43,12 @@ import {
   MODULE_CARD_SX,
   MODULE_COLORS,
   MODULE_FIELD_SX,
-  ModuleDashboardStat,
   MODULE_NEUTRAL_CHIP_SX,
   MODULE_PAGE_SX,
+  MODULE_TABLE_CONTAINER_SX,
   MODULE_TABLE_HEAD_CELL_SX,
   MODULE_TABLE_ROW_SX,
+  ModuleDashboardStat,
 } from "@/components/ui/moduleStyles";
 import { useToast } from "@/context/ToastContext";
 import { membersApi } from "@/lib/api/members.api";
@@ -428,8 +429,14 @@ export default function MembersPage() {
         {error ? (
           <ErrorState message={error} onRetry={fetchMembers} />
         ) : (
-          <TableContainer sx={{ overflowX: "hidden" }}>
-            <Table sx={{ tableLayout: "fixed", width: "100%" }}>
+          <TableContainer sx={MODULE_TABLE_CONTAINER_SX}>
+            <Table
+              sx={{
+                tableLayout: { xs: "auto", lg: "fixed" },
+                width: "100%",
+                minWidth: { xs: 1180, lg: 0 },
+              }}
+            >
               <colgroup>
                 {columns.map((column) => (
                   <col key={column.key} style={{ width: column.width }} />

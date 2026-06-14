@@ -51,6 +51,7 @@ import {
   MODULE_NEUTRAL_CHIP_SX,
   MODULE_PAGE_SX,
   MODULE_SUCCESS_CHIP_SX,
+  MODULE_TABLE_CONTAINER_SX,
   MODULE_TABLE_HEAD_CELL_SX,
   MODULE_TABLE_ROW_SX,
   MODULE_WARNING_CHIP_SX,
@@ -475,8 +476,8 @@ export default function PlansPage() {
           overflow: "hidden",
         }}
       >
-        <TableContainer>
-          <Table>
+        <TableContainer sx={MODULE_TABLE_CONTAINER_SX}>
+          <Table sx={{ minWidth: { xs: 720, md: 0 } }}>
             <TableHead>
               <TableRow
                 sx={{

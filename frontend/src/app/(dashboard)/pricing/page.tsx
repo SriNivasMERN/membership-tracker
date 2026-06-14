@@ -58,6 +58,7 @@ import {
   MODULE_NEUTRAL_CHIP_SX,
   MODULE_PAGE_SX,
   MODULE_SUCCESS_CHIP_SX,
+  MODULE_TABLE_CONTAINER_SX,
   MODULE_TABLE_HEAD_CELL_SX,
   MODULE_TABLE_ROW_SX,
   ModuleDashboardStat,
@@ -634,8 +635,8 @@ export default function PricingPage() {
           overflow: "hidden",
         }}
       >
-        <TableContainer>
-          <Table>
+        <TableContainer sx={MODULE_TABLE_CONTAINER_SX}>
+          <Table sx={{ minWidth: { xs: 980, lg: 0 } }}>
             <TableHead>
               <TableRow
                 sx={{

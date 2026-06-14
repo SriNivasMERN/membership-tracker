@@ -26,6 +26,7 @@ import { slotsApi } from "@/lib/api/slots.api";
 import { pricingApi } from "@/lib/api/pricing.api";
 import { membersApi } from "@/lib/api/members.api";
 import { useToast } from "@/context/ToastContext";
+import AppLoadingScreen from "@/components/ui/AppLoadingScreen";
 import {
   MODULE_CARD_SX,
   MODULE_COLORS,
@@ -171,11 +172,7 @@ export default function AddMemberPage() {
   const selectedSlot = slots.find((s) => s._id === selectedSlotId);
 
   if (isLoadingOptions) {
-    return (
-      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 300 }}>
-        <CircularProgress />
-      </Box>
-    );
+    return <AppLoadingScreen title="Add Member" subtitle="Loading plans and slots..." />;
   }
 
   return (
@@ -418,12 +415,20 @@ export default function AddMemberPage() {
           </Grid>
 
           {/* Actions */}
-          <Box ref={actionAreaRef} sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
+          <Box
+            ref={actionAreaRef}
+            sx={{
+              display: "flex",
+              gap: 1.25,
+              justifyContent: { xs: "stretch", sm: "flex-end" },
+              flexDirection: { xs: "column-reverse", sm: "row" },
+            }}
+          >
             <Button
               variant="outlined"
               onClick={() => router.push("/members")}
               disabled={isSubmitting}
-              sx={{ borderRadius: "10px" }}
+              sx={{ borderRadius: "10px", minHeight: 44 }}
             >
               Cancel
             </Button>
@@ -431,7 +436,7 @@ export default function AddMemberPage() {
               type="submit"
               variant="contained"
               disabled={isSubmitting}
-              sx={{ minWidth: 140, borderRadius: "10px" }}
+              sx={{ minWidth: { xs: "100%", sm: 140 }, borderRadius: "10px", minHeight: 44 }}
             >
               {isSubmitting ? (
                 <CircularProgress size={22} color="inherit" />

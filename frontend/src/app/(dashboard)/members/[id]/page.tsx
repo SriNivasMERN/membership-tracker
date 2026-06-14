@@ -49,10 +49,15 @@ import StatusBadge from "@/components/ui/StatusBadge";
 import {
   MODULE_CARD_SX,
   MODULE_COLORS,
+  MODULE_DIALOG_ACTIONS_SX,
+  MODULE_DIALOG_CONTENT_SX,
+  MODULE_DIALOG_PAPER_SX,
+  MODULE_DIALOG_TITLE_SX,
   MODULE_FIELD_SX,
   MODULE_PAGE_SX,
-  ModuleDashboardStat,
+  MODULE_TABLE_CONTAINER_SX,
   MODULE_TABLE_HEAD_CELL_SX,
+  ModuleDashboardStat,
 } from "@/components/ui/moduleStyles";
 
 const C = {
@@ -572,8 +577,8 @@ export default function MemberDetailPage() {
                     <Typography sx={{ fontSize: "0.85rem", color: C.muted, fontWeight: 600 }}>No payments recorded yet</Typography>
                   </Box>
                 ) : (
-                  <TableContainer>
-                    <Table size="small">
+                  <TableContainer sx={MODULE_TABLE_CONTAINER_SX}>
+                    <Table size="small" sx={{ minWidth: { xs: 520, md: 0 } }}>
                       <TableHead>
                         <TableRow sx={{ backgroundColor: C.surface }}>
                           {["Date", "Amount", "Note"].map(h => (
@@ -718,10 +723,10 @@ export default function MemberDetailPage() {
 
       {/* Payment Modal */}
       <Dialog open={activeModal === "payment"} onClose={closeModal} maxWidth="xs" fullWidth
-        PaperProps={{ elevation: 0, sx: { borderRadius: "16px", border: `1px solid ${C.border}` } }}
+        PaperProps={{ elevation: 0, sx: MODULE_DIALOG_PAPER_SX }}
       >
-        <DialogTitle sx={{ fontWeight: 800, fontSize: "1rem", pt: 2.5, pb: 1, px: 3 }}>Record Payment</DialogTitle>
-        <DialogContent ref={paymentDialogContentRef} sx={{ px: 3, pb: 1 }}>
+        <DialogTitle sx={MODULE_DIALOG_TITLE_SX}>Record Payment</DialogTitle>
+        <DialogContent ref={paymentDialogContentRef} sx={MODULE_DIALOG_CONTENT_SX}>
           {modalError && <Alert severity="error" sx={{ mb: 2, mt: 1 }}>{modalError}</Alert>}
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
             <TextField label="Amount" type="number" value={paymentAmount} onChange={(e) => setPaymentAmount(e.target.value)} fullWidth autoFocus sx={MODULE_FIELD_SX}
@@ -732,7 +737,7 @@ export default function MemberDetailPage() {
             <TextField label="Note (optional)" value={paymentNote} onChange={(e) => setPaymentNote(e.target.value)} fullWidth multiline rows={2} sx={MODULE_FIELD_SX} />
           </Box>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 3, pt: 2, gap: 1 }}>
+        <DialogActions sx={MODULE_DIALOG_ACTIONS_SX}>
           <Button onClick={closeModal} disabled={isSubmitting} color="inherit">Cancel</Button>
           <Button variant="contained" onClick={handlePayment} disabled={isSubmitting} sx={{ fontWeight: 700 }}>
             {isSubmitting ? <CircularProgress size={20} color="inherit" /> : "Record Payment"}
@@ -742,12 +747,12 @@ export default function MemberDetailPage() {
 
       {/* Renew Modal */}
       <Dialog open={activeModal === "renew"} onClose={closeModal} maxWidth="sm" fullWidth
-        PaperProps={{ elevation: 0, sx: { borderRadius: "16px", border: `1px solid ${C.border}` } }}
+        PaperProps={{ elevation: 0, sx: MODULE_DIALOG_PAPER_SX }}
       >
-        <DialogTitle sx={{ fontWeight: 800, fontSize: "1rem", pt: 2.5, pb: 1, px: 3 }}>
+        <DialogTitle sx={MODULE_DIALOG_TITLE_SX}>
           {isUpgrade ? "Change Plan" : "Renew Membership"}
         </DialogTitle>
-        <DialogContent ref={renewDialogContentRef} sx={{ px: 3, pb: 1 }}>
+        <DialogContent ref={renewDialogContentRef} sx={MODULE_DIALOG_CONTENT_SX}>
           {modalError && <Alert severity="error" sx={{ mb: 2, mt: 1 }}>{modalError}</Alert>}
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
             {isUpgrade && (
@@ -822,7 +827,7 @@ export default function MemberDetailPage() {
               helperText={isUpgrade ? `Payable after settlement: ${fmt(renewPayableAmount)}` : "Leave blank if no payment now"} />
           </Box>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 3, pt: 2, gap: 1 }}>
+        <DialogActions sx={MODULE_DIALOG_ACTIONS_SX}>
           <Button onClick={closeModal} disabled={isSubmitting} color="inherit">Cancel</Button>
           <Button variant="contained" onClick={handleRenew} disabled={isSubmitting} sx={{ fontWeight: 700 }}>
             {isSubmitting ? <CircularProgress size={20} color="inherit" /> : isUpgrade ? "Change Plan" : "Renew"}
@@ -832,10 +837,10 @@ export default function MemberDetailPage() {
 
       {/* Edit Modal */}
       <Dialog open={activeModal === "edit"} onClose={closeModal} maxWidth="xs" fullWidth
-        PaperProps={{ elevation: 0, sx: { borderRadius: "16px", border: `1px solid ${C.border}` } }}
+        PaperProps={{ elevation: 0, sx: MODULE_DIALOG_PAPER_SX }}
       >
-        <DialogTitle sx={{ fontWeight: 800, fontSize: "1rem", pt: 2.5, pb: 1, px: 3 }}>Edit Member</DialogTitle>
-        <DialogContent ref={editDialogContentRef} sx={{ px: 3, pb: 1 }}>
+        <DialogTitle sx={MODULE_DIALOG_TITLE_SX}>Edit Member</DialogTitle>
+        <DialogContent ref={editDialogContentRef} sx={MODULE_DIALOG_CONTENT_SX}>
           {modalError && <Alert severity="error" sx={{ mb: 2, mt: 1 }}>{modalError}</Alert>}
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
             <TextField label="Full Name" value={editName} onChange={(e) => setEditName(e.target.value)} fullWidth autoFocus sx={MODULE_FIELD_SX} />
@@ -844,7 +849,7 @@ export default function MemberDetailPage() {
             <TextField label="Notes (optional)" value={editNotes} onChange={(e) => setEditNotes(e.target.value)} fullWidth multiline rows={3} sx={MODULE_FIELD_SX} />
           </Box>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 3, pt: 2, gap: 1 }}>
+        <DialogActions sx={MODULE_DIALOG_ACTIONS_SX}>
           <Button onClick={closeModal} disabled={isSubmitting} color="inherit">Cancel</Button>
           <Button variant="contained" onClick={handleEdit} disabled={isSubmitting} sx={{ fontWeight: 700 }}>
             {isSubmitting ? <CircularProgress size={20} color="inherit" /> : "Save Changes"}
@@ -853,12 +858,12 @@ export default function MemberDetailPage() {
       </Dialog>
 
       <Dialog open={activeModal === "end"} onClose={closeModal} maxWidth="sm" fullWidth
-        PaperProps={{ elevation: 0, sx: { borderRadius: "16px", border: `1px solid ${C.border}` } }}
+        PaperProps={{ elevation: 0, sx: MODULE_DIALOG_PAPER_SX }}
       >
-        <DialogTitle sx={{ fontWeight: 800, fontSize: "1rem", pt: 2.5, pb: 1, px: 3 }}>
+        <DialogTitle sx={MODULE_DIALOG_TITLE_SX}>
           End Membership
         </DialogTitle>
-        <DialogContent ref={endDialogContentRef} sx={{ px: 3, pb: 1 }}>
+        <DialogContent ref={endDialogContentRef} sx={MODULE_DIALOG_CONTENT_SX}>
           {modalError && <Alert severity="error" sx={{ mb: 2, mt: 1 }}>{modalError}</Alert>}
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
             <TextField
@@ -931,7 +936,7 @@ export default function MemberDetailPage() {
             />
           </Box>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 3, pt: 2, gap: 1 }}>
+        <DialogActions sx={MODULE_DIALOG_ACTIONS_SX}>
           <Button onClick={closeModal} disabled={isSubmitting} color="inherit">Cancel</Button>
           <Button
             variant="contained"
