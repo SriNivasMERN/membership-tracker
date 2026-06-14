@@ -45,6 +45,7 @@ export const listMembers = async (
       success: true,
       message: "Members retrieved",
       data: result.members,
+      summary: result.summary,
       pagination: result.pagination,
     });
   } catch (error) {

@@ -141,7 +141,6 @@ export const memberService = {
     }
   ) {
     const { page, limit, search, planId } = options;
-    const skip = (page - 1) * limit;
 
     const query: Record<string, unknown> = {
       businessId: new mongoose.Types.ObjectId(businessId),
@@ -159,40 +158,45 @@ export const memberService = {
       query["planSnapshot.planId"] = new mongoose.Types.ObjectId(planId);
     }
 
-    const [members, total] = await Promise.all([
-      Member.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit),
-      Member.countDocuments(query),
-    ]);
+    const allMembers = await Member.find(query).sort({ createdAt: -1 });
 
     const expiryAlertDays = await getExpiryAlertDays(businessId);
 
-    let membersWithStatus = members.map((member) =>
+    const overallMembersWithStatus = allMembers.map((member) =>
       attachComputedFields(member, expiryAlertDays)
     );
 
-    // Status, pending, fullyPaid filters applied after computing
-    // because these fields are derived not stored
+    let filteredMembers = overallMembersWithStatus;
+
     if (options.status) {
-      membersWithStatus = membersWithStatus.filter(
+      filteredMembers = filteredMembers.filter(
         (m) => m.status === options.status
       );
     }
 
     if (options.hasPending === true) {
-      membersWithStatus = membersWithStatus.filter((m) => m.pendingAmount > 0);
+      filteredMembers = filteredMembers.filter((m) => m.pendingAmount > 0);
     }
 
     if (options.fullyPaid === true) {
-      membersWithStatus = membersWithStatus.filter((m) => m.pendingAmount === 0);
+      filteredMembers = filteredMembers.filter((m) => m.pendingAmount === 0);
     }
 
-    const filteredTotal =
-      options.status || options.hasPending || options.fullyPaid
-        ? membersWithStatus.length
-        : total;
+    const total = overallMembersWithStatus.length;
+    const filteredTotal = filteredMembers.length;
+    const skip = (page - 1) * limit;
+    const paginatedMembers = filteredMembers.slice(skip, skip + limit);
+
+    const summary = {
+      total,
+      active: overallMembersWithStatus.filter((member) => member.status === "active").length,
+      expiring: overallMembersWithStatus.filter((member) => member.status === "expiring_soon").length,
+      pending: overallMembersWithStatus.filter((member) => member.pendingAmount > 0).length,
+    };
 
     return {
-      members: membersWithStatus,
+      members: paginatedMembers,
+      summary,
       pagination: {
         page,
         limit,

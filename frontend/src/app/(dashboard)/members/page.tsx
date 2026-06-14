@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Box,
@@ -68,8 +68,11 @@ const C = {
 export default function MembersPage() {
   const router = useRouter();
   const { showToast } = useToast();
+  const PAGE_SIZE = 10;
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
 
   const [members, setMembers] = useState<Member[]>([]);
+  const [allMatchingMembers, setAllMatchingMembers] = useState<Member[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -81,7 +84,12 @@ export default function MembersPage() {
 
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
+  const [summary, setSummary] = useState({
+    total: 0,
+    active: 0,
+    expiring: 0,
+    pending: 0,
+  });
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deletingMember, setDeletingMember] = useState<Member | null>(null);
@@ -99,8 +107,8 @@ export default function MembersPage() {
     setError(null);
     try {
       const response = await membersApi.getAll({
-        page,
-        limit: 10,
+        page: 1,
+        limit: 5000,
         search: search.trim() || undefined,
         planId: planFilter || undefined,
         status: statusFilter || undefined,
@@ -108,20 +116,42 @@ export default function MembersPage() {
         fullyPaid: paymentFilter === "paid" ? true : undefined,
       });
 
-      setMembers(response.data || []);
-      setTotalPages(response.pagination?.totalPages || 1);
-      setTotal(response.pagination?.total || 0);
+      const matchingMembers = response.data || [];
+      setAllMatchingMembers(matchingMembers);
+      setSummary({
+        total: matchingMembers.length,
+        active: matchingMembers.filter((member: Member) => member.status === "active").length,
+        expiring: matchingMembers.filter((member: Member) => member.status === "expiring_soon").length,
+        pending: matchingMembers.filter((member: Member) => member.pendingAmount > 0).length,
+      });
+      setTotalPages(Math.max(1, Math.ceil(matchingMembers.length / PAGE_SIZE)));
     } catch {
       setError("Failed to load members.");
     } finally {
       setIsLoading(false);
     }
-  }, [page, search, statusFilter, planFilter, paymentFilter]);
+  }, [search, statusFilter, planFilter, paymentFilter]);
 
   useEffect(() => {
     const delay = setTimeout(fetchMembers, 300);
     return () => clearTimeout(delay);
   }, [fetchMembers]);
+
+  useEffect(() => {
+    searchInputRef.current?.focus();
+  }, [page]);
+
+  useEffect(() => {
+    const nextTotalPages = Math.max(1, Math.ceil(allMatchingMembers.length / PAGE_SIZE));
+
+    if (page > nextTotalPages) {
+      setPage(nextTotalPages);
+      return;
+    }
+
+    const startIndex = (page - 1) * PAGE_SIZE;
+    setMembers(allMatchingMembers.slice(startIndex, startIndex + PAGE_SIZE));
+  }, [allMatchingMembers, page]);
 
   const clearFilters = () => {
     setSearch("");
@@ -142,13 +172,6 @@ export default function MembersPage() {
     { key: "status", label: "Status", width: "9%" },
     { key: "actions", label: "Actions", width: "8%", align: "center" as const },
   ];
-
-  const counts = useMemo(() => {
-    const active = members.filter((member) => member.status === "active").length;
-    const pending = members.filter((member) => member.pendingAmount > 0).length;
-    const expiring = members.filter((member) => member.status === "expiring_soon").length;
-    return { active, pending, expiring };
-  }, [members]);
 
   const formatDate = (date: string) =>
     new Date(date).toLocaleDateString("en-IN", {
@@ -223,28 +246,28 @@ export default function MembersPage() {
               : [
                   {
                     label: "Overall Members",
-                    value: String(total),
+                    value: String(summary.total),
                     helper: "All registered members",
                     icon: <Groups2Outlined sx={{ fontSize: 18 }} />,
                     tone: "default" as const,
                   },
                   {
                     label: "Active",
-                    value: String(counts.active),
+                    value: String(summary.active),
                     helper: "Membership valid today",
                     icon: <CheckCircleOutlined sx={{ fontSize: 18 }} />,
                     tone: "success" as const,
                   },
                   {
                     label: "Renewal Due",
-                    value: String(counts.expiring),
+                    value: String(summary.expiring),
                     helper: "Need follow-up soon",
                     icon: <ScheduleOutlined sx={{ fontSize: 18 }} />,
                     tone: "warning" as const,
                   },
                   {
                     label: "Payment Due",
-                    value: String(counts.pending),
+                    value: String(summary.pending),
                     helper: "Members with dues pending",
                     icon: <CreditCardOutlined sx={{ fontSize: 18 }} />,
                     tone: "danger" as const,
@@ -280,10 +303,10 @@ export default function MembersPage() {
                   setSearch(e.target.value);
                   setPage(1);
                 }}
-                autoFocus
                 size="small"
                 fullWidth
                 sx={MODULE_FIELD_SX}
+                inputRef={searchInputRef}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
