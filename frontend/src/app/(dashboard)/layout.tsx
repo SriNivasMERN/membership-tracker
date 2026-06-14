@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { Box, CircularProgress } from "@mui/material";
+import { Box } from "@mui/material";
 import { useAuth } from "@/context/AuthContext";
 import Sidebar, { SIDEBAR_WIDTH } from "@/components/layout/Sidebar";
 import Topbar from "@/components/layout/Topbar";
+import AppLoadingScreen from "@/components/ui/AppLoadingScreen";
 
 const getPageTitle = (pathname: string): string => {
   if (pathname === "/dashboard") return "Dashboard";
@@ -41,19 +42,7 @@ export default function DashboardLayout({
   }, [isLoading, isAuthenticated, router]);
 
   if (isLoading) {
-    return (
-      <Box
-        sx={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: "background.default",
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    );
+    return <AppLoadingScreen fullScreen />;
   }
 
   if (!isAuthenticated) {

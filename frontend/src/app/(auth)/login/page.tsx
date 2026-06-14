@@ -166,14 +166,6 @@ export default function LoginPage() {
             </Button>
           </Box>
         </Box>
-
-        <Typography
-          variant="caption"
-          color="text.secondary"
-          sx={{ display: "block", textAlign: "center", mt: 3 }}
-        >
-          Internal system - authorised access only
-        </Typography>
       </Box>
     </Box>
   );
