@@ -141,6 +141,7 @@ export default function LoginPage() {
                     <IconButton
                       onClick={() => setShowPassword(!showPassword)}
                       edge="end"
+                      sx={{ width: 44, height: 44 }}
                     >
                       {showPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>

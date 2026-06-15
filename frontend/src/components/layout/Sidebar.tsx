@@ -47,9 +47,14 @@ const navItems: NavItem[] = [
 interface SidebarProps {
   mobileOpen: boolean;
   onMobileClose: () => void;
+  onNavigateStart?: (path: string) => void;
 }
 
-export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
+export default function Sidebar({
+  mobileOpen,
+  onMobileClose,
+  onNavigateStart,
+}: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { user } = useAuth();
@@ -66,6 +71,12 @@ export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
   };
 
   const handleNavigate = (path: string) => {
+    if (pathname === path) {
+      if (isMobile) onMobileClose();
+      return;
+    }
+
+    onNavigateStart?.(path);
     router.push(path);
     if (isMobile) onMobileClose();
   };

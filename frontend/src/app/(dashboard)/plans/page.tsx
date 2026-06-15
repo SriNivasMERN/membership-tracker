@@ -23,7 +23,10 @@ import {
   Chip,
   Tooltip,
   InputAdornment,
+  CircularProgress,
+  useMediaQuery,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import {
   AddOutlined,
   TaskAltOutlined,
@@ -98,6 +101,8 @@ function PlanFormDialog({
   const { showToast } = useToast();
   const isEdit = !!plan;
   const dialogContentRef = useRef<HTMLDivElement | null>(null);
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
   const [form, setForm] = useState<PlanFormData>(EMPTY_FORM);
   const [errors, setErrors] = useState<Partial<Record<keyof PlanFormData, string>>>({});
@@ -175,7 +180,7 @@ function PlanFormDialog({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth
+    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth fullScreen={fullScreen}
       PaperProps={{ elevation: 0, sx: MODULE_DIALOG_PAPER_SX }}
     >
       <DialogTitle sx={MODULE_DIALOG_TITLE_SX}>
@@ -258,7 +263,7 @@ function PlanFormDialog({
           onClick={handleSubmit}
           disabled={isSubmitting}
         >
-          {isSubmitting ? "Saving..." : isEdit ? "Save Changes" : "Create Plan"}
+          {isSubmitting ? <CircularProgress size={20} color="inherit" /> : isEdit ? "Save Changes" : "Create Plan"}
         </Button>
       </DialogActions>
     </Dialog>
@@ -460,7 +465,7 @@ export default function PlansPage() {
             variant="contained"
             startIcon={<AddOutlined />}
             onClick={handleAdd}
-            sx={{ px: 1.75, minWidth: { xs: "auto", xl: 148 }, alignSelf: { xs: "flex-start", xl: "center" } }}
+            sx={{ px: 1.75, minHeight: 44, minWidth: { xs: "auto", xl: 148 }, alignSelf: { xs: "flex-start", xl: "center" } }}
           >
             Add Plan
           </Button>

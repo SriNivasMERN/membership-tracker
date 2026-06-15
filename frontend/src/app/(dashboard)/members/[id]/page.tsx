@@ -26,7 +26,9 @@ import {
   Skeleton,
   InputAdornment,
   Chip,
+  useMediaQuery,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import {
   ArrowBackOutlined,
   PaymentOutlined,
@@ -45,6 +47,7 @@ import { plansApi } from "@/lib/api/plans.api";
 import { slotsApi } from "@/lib/api/slots.api";
 import { pricingApi } from "@/lib/api/pricing.api";
 import { useToast } from "@/context/ToastContext";
+import { useNavigationLoading } from "@/context/NavigationLoadingContext";
 import StatusBadge from "@/components/ui/StatusBadge";
 import {
   MODULE_CARD_SX,
@@ -122,8 +125,11 @@ export default function MemberDetailPage() {
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
+  const theme = useTheme();
+  const fullScreenDialog = useMediaQuery(theme.breakpoints.down("sm"));
   const memberId = params.id as string;
   const { showToast } = useToast();
+  const { startNavigation } = useNavigationLoading();
   const paymentDialogContentRef = useRef<HTMLDivElement | null>(null);
   const renewDialogContentRef = useRef<HTMLDivElement | null>(null);
   const editDialogContentRef = useRef<HTMLDivElement | null>(null);
@@ -165,6 +171,11 @@ export default function MemberDetailPage() {
   const [endDate, setEndDate] = useState("");
   const [settlementDeduction, setSettlementDeduction] = useState("");
   const [endNote, setEndNote] = useState("");
+
+  const navigateTo = (path: string) => {
+    startNavigation(path);
+    router.push(path);
+  };
 
   const fetchMember = useCallback(async () => {
     setIsLoading(true);
@@ -412,7 +423,7 @@ export default function MemberDetailPage() {
   if (error || !member) {
     return (
       <Box>
-        <Button startIcon={<ArrowBackOutlined />} onClick={() => router.push("/members")} color="inherit" size="small" sx={{ mb: 2 }}>Back</Button>
+        <Button startIcon={<ArrowBackOutlined />} onClick={() => navigateTo("/members")} color="inherit" size="small" sx={{ mb: 2 }}>Back</Button>
         <Alert severity="error">{error || "Member not found."}</Alert>
       </Box>
     );
@@ -513,7 +524,7 @@ export default function MemberDetailPage() {
       </Box>
 
       <Box sx={{ mt: -0.5 }}>
-        <Button startIcon={<ArrowBackOutlined />} onClick={() => router.push("/members")} color="inherit" size="small">
+        <Button startIcon={<ArrowBackOutlined />} onClick={() => navigateTo("/members")} color="inherit" size="small">
           Back to Members
         </Button>
       </Box>
@@ -722,7 +733,7 @@ export default function MemberDetailPage() {
       </Grid>
 
       {/* Payment Modal */}
-      <Dialog open={activeModal === "payment"} onClose={closeModal} maxWidth="xs" fullWidth
+      <Dialog open={activeModal === "payment"} onClose={closeModal} maxWidth="xs" fullWidth fullScreen={fullScreenDialog}
         PaperProps={{ elevation: 0, sx: MODULE_DIALOG_PAPER_SX }}
       >
         <DialogTitle sx={MODULE_DIALOG_TITLE_SX}>Record Payment</DialogTitle>
@@ -746,7 +757,7 @@ export default function MemberDetailPage() {
       </Dialog>
 
       {/* Renew Modal */}
-      <Dialog open={activeModal === "renew"} onClose={closeModal} maxWidth="sm" fullWidth
+      <Dialog open={activeModal === "renew"} onClose={closeModal} maxWidth="sm" fullWidth fullScreen={fullScreenDialog}
         PaperProps={{ elevation: 0, sx: MODULE_DIALOG_PAPER_SX }}
       >
         <DialogTitle sx={MODULE_DIALOG_TITLE_SX}>
@@ -836,7 +847,7 @@ export default function MemberDetailPage() {
       </Dialog>
 
       {/* Edit Modal */}
-      <Dialog open={activeModal === "edit"} onClose={closeModal} maxWidth="xs" fullWidth
+      <Dialog open={activeModal === "edit"} onClose={closeModal} maxWidth="xs" fullWidth fullScreen={fullScreenDialog}
         PaperProps={{ elevation: 0, sx: MODULE_DIALOG_PAPER_SX }}
       >
         <DialogTitle sx={MODULE_DIALOG_TITLE_SX}>Edit Member</DialogTitle>
@@ -857,7 +868,7 @@ export default function MemberDetailPage() {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={activeModal === "end"} onClose={closeModal} maxWidth="sm" fullWidth
+      <Dialog open={activeModal === "end"} onClose={closeModal} maxWidth="sm" fullWidth fullScreen={fullScreenDialog}
         PaperProps={{ elevation: 0, sx: MODULE_DIALOG_PAPER_SX }}
       >
         <DialogTitle sx={MODULE_DIALOG_TITLE_SX}>

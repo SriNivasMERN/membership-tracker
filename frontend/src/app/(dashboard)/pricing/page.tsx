@@ -26,7 +26,10 @@ import {
   Switch,
   FormControlLabel,
   InputAdornment,
+  CircularProgress,
+  useMediaQuery,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import {
   AddOutlined,
   EditOutlined,
@@ -124,6 +127,8 @@ function PricingFormDialog({
   const { showToast } = useToast();
   const isEdit = !!rule;
   const dialogContentRef = useRef<HTMLDivElement | null>(null);
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
   const [planId, setPlanId] = useState("");
   const [slotId, setSlotId] = useState("");
@@ -209,6 +214,7 @@ function PricingFormDialog({
     <Dialog
       open={open}
       onClose={onClose}
+      fullScreen={fullScreen}
       maxWidth="xs"
       fullWidth
       PaperProps={{ elevation: 0, sx: MODULE_DIALOG_PAPER_SX }}
@@ -322,7 +328,7 @@ function PricingFormDialog({
       <DialogActions sx={MODULE_DIALOG_ACTIONS_SX}>
         <Button onClick={onClose} disabled={isSubmitting} color="inherit">Cancel</Button>
         <Button variant="contained" onClick={handleSubmit} disabled={isSubmitting}>
-          {isSubmitting ? "Saving..." : isEdit ? "Save Changes" : "Create Rule"}
+          {isSubmitting ? <CircularProgress size={20} color="inherit" /> : isEdit ? "Save Changes" : "Create Rule"}
         </Button>
       </DialogActions>
     </Dialog>
@@ -505,7 +511,7 @@ export default function PricingPage() {
                 setEditingRule(null);
                 setFormOpen(true);
               }}
-              sx={{ px: 1.75, alignSelf: { xs: "flex-start", xl: "flex-end" } }}
+              sx={{ px: 1.75, minHeight: 44, alignSelf: { xs: "flex-start", xl: "flex-end" } }}
             >
               Add Rule
             </Button>

@@ -9,6 +9,7 @@ import {
   Grid,
   IconButton,
   InputAdornment,
+  CircularProgress,
   MenuItem,
   Paper,
   Skeleton,
@@ -51,6 +52,7 @@ import {
   ModuleDashboardStat,
 } from "@/components/ui/moduleStyles";
 import { useToast } from "@/context/ToastContext";
+import { useNavigationLoading } from "@/context/NavigationLoadingContext";
 import { membersApi } from "@/lib/api/members.api";
 import { plansApi } from "@/lib/api/plans.api";
 import { Member } from "@/types/member.types";
@@ -69,6 +71,7 @@ const C = {
 export default function MembersPage() {
   const router = useRouter();
   const { showToast } = useToast();
+  const { startNavigation } = useNavigationLoading();
   const PAGE_SIZE = 10;
   const searchInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -76,6 +79,7 @@ export default function MembersPage() {
   const [allMatchingMembers, setAllMatchingMembers] = useState<Member[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isFiltering, setIsFiltering] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [search, setSearch] = useState("");
@@ -95,6 +99,7 @@ export default function MembersPage() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deletingMember, setDeletingMember] = useState<Member | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const hasFetchedOnceRef = useRef(false);
 
   useEffect(() => {
     plansApi
@@ -104,7 +109,11 @@ export default function MembersPage() {
   }, []);
 
   const fetchMembers = useCallback(async () => {
-    setIsLoading(true);
+    if (hasFetchedOnceRef.current) {
+      setIsFiltering(true);
+    } else {
+      setIsLoading(true);
+    }
     setError(null);
     try {
       const response = await membersApi.getAll({
@@ -126,14 +135,21 @@ export default function MembersPage() {
         pending: matchingMembers.filter((member: Member) => member.pendingAmount > 0).length,
       });
       setTotalPages(Math.max(1, Math.ceil(matchingMembers.length / PAGE_SIZE)));
+      hasFetchedOnceRef.current = true;
     } catch {
       setError("Failed to load members.");
     } finally {
       setIsLoading(false);
+      setIsFiltering(false);
     }
   }, [search, statusFilter, planFilter, paymentFilter]);
 
   useEffect(() => {
+    if (!hasFetchedOnceRef.current) {
+      fetchMembers();
+      return;
+    }
+
     const delay = setTimeout(fetchMembers, 300);
     return () => clearTimeout(delay);
   }, [fetchMembers]);
@@ -206,6 +222,10 @@ export default function MembersPage() {
       transform: "translateY(-1px)",
     },
   });
+  const navigateTo = (path: string) => {
+    startNavigation(path);
+    router.push(path);
+  };
 
   return (
     <Box sx={MODULE_PAGE_SX}>
@@ -280,9 +300,10 @@ export default function MembersPage() {
           <Button
             variant="contained"
             startIcon={<AddOutlined />}
-            onClick={() => router.push("/members/new")}
+            onClick={() => navigateTo("/members/new")}
             sx={{
               px: 1.8,
+              minHeight: 44,
               minWidth: { xs: "auto", xl: 158 },
               alignSelf: { xs: "flex-start", xl: "center" },
               mt: { xs: 0.2, xl: 0 },
@@ -295,6 +316,28 @@ export default function MembersPage() {
 
       <Paper elevation={0} sx={{ ...MODULE_CARD_SX, p: 2 }}>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          {isFiltering ? (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 0.9,
+                px: 0.2,
+              }}
+            >
+              <CircularProgress size={16} sx={{ color: C.muted }} />
+              <Typography
+                sx={{
+                  fontSize: "0.78rem",
+                  color: C.muted,
+                  fontWeight: 700,
+                }}
+              >
+                Updating member list...
+              </Typography>
+            </Box>
+          ) : null}
+
           <Grid container spacing={1.5}>
             <Grid item xs={12} md={4}>
               <TextField
@@ -314,7 +357,11 @@ export default function MembersPage() {
                       <SearchOutlined sx={{ fontSize: 18, color: C.muted }} />
                     </InputAdornment>
                   ),
-                  endAdornment: search ? (
+                  endAdornment: isFiltering ? (
+                    <InputAdornment position="end">
+                      <CircularProgress size={16} sx={{ color: C.muted }} />
+                    </InputAdornment>
+                  ) : search ? (
                     <InputAdornment position="end">
                       <IconButton
                         size="small"
@@ -398,7 +445,7 @@ export default function MembersPage() {
                 onClick={clearFilters}
                 disabled={!hasActiveFilters}
                 sx={{
-                  height: 40,
+                  height: 44,
                   minWidth: 96,
                   opacity: hasActiveFilters ? 1 : 0.65,
                 }}
@@ -486,7 +533,7 @@ export default function MembersPage() {
                             : "Add your first member to begin tracking plans, payments, and renewals."
                         }
                         actionLabel={hasActiveFilters ? "Clear Filters" : "Add Member"}
-                        onAction={hasActiveFilters ? clearFilters : () => router.push("/members/new")}
+                        onAction={hasActiveFilters ? clearFilters : () => navigateTo("/members/new")}
                       />
                     </TableCell>
                   </TableRow>
@@ -494,7 +541,7 @@ export default function MembersPage() {
                   members.map((member) => (
                     <TableRow
                       key={member._id}
-                      onClick={() => router.push(`/members/${member._id}`)}
+                      onClick={() => navigateTo(`/members/${member._id}`)}
                       sx={{
                         ...MODULE_TABLE_ROW_SX,
                         "&:last-child td": { border: 0 },
@@ -569,12 +616,12 @@ export default function MembersPage() {
                       <TableCell sx={{ py: 1.45, px: 0.7, verticalAlign: "top", textAlign: "center" }} onClick={(e) => e.stopPropagation()}>
                         <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 0.08, minWidth: 88, mt: -0.02, mx: "auto" }}>
                           <Tooltip title="View">
-                            <IconButton size="small" onClick={() => router.push(`/members/${member._id}`)} sx={{ p: 0.38, ...getActionIconSx("primary") }}>
+                            <IconButton size="small" onClick={() => navigateTo(`/members/${member._id}`)} sx={{ p: 0.38, ...getActionIconSx("primary") }}>
                               <VisibilityOutlined sx={{ fontSize: 16 }} />
                             </IconButton>
                           </Tooltip>
                           <Tooltip title="Edit">
-                            <IconButton size="small" onClick={() => router.push(`/members/${member._id}?action=edit`)} sx={{ p: 0.38, ...getActionIconSx("primary") }}>
+                            <IconButton size="small" onClick={() => navigateTo(`/members/${member._id}?action=edit`)} sx={{ p: 0.38, ...getActionIconSx("primary") }}>
                               <EditOutlined sx={{ fontSize: 16 }} />
                             </IconButton>
                           </Tooltip>

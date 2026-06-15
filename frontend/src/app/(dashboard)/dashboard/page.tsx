@@ -960,9 +960,11 @@ function DetailModal({
             />
           )
         ) : isLoadingMembers ? (
-          <Box sx={{ py: 6, display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-            <CircularProgress size={28} thickness={3} sx={{ color: C.blue }} />
-            <Typography sx={{ fontSize: "0.82rem", color: C.muted, fontWeight: 600 }}>Loading members...</Typography>
+          <Box sx={{ p: { xs: 1.5, sm: 2 }, display: "flex", flexDirection: "column", gap: 1 }}>
+            <Skeleton variant="rounded" height={48} sx={{ borderRadius: "12px" }} />
+            {[1, 2, 3, 4].map((item) => (
+              <Skeleton key={item} variant="rounded" height={56} sx={{ borderRadius: "12px" }} />
+            ))}
           </Box>
         ) : members.length === 0 ? (
           <EmptyState title="No members found" subtitle="There are no records for this segment yet." />

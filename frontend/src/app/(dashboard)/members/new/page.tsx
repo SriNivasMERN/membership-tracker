@@ -16,6 +16,7 @@ import {
   CircularProgress,
   Divider,
   Paper,
+  Skeleton,
   InputAdornment,
 } from "@mui/material";
 import { ArrowBackOutlined } from "@mui/icons-material";
@@ -26,7 +27,7 @@ import { slotsApi } from "@/lib/api/slots.api";
 import { pricingApi } from "@/lib/api/pricing.api";
 import { membersApi } from "@/lib/api/members.api";
 import { useToast } from "@/context/ToastContext";
-import AppLoadingScreen from "@/components/ui/AppLoadingScreen";
+import { useNavigationLoading } from "@/context/NavigationLoadingContext";
 import {
   MODULE_CARD_SX,
   MODULE_COLORS,
@@ -65,6 +66,7 @@ type CreateMemberFormData = z.infer<typeof createMemberSchema>;
 export default function AddMemberPage() {
   const router = useRouter();
   const { showToast } = useToast();
+  const { startNavigation } = useNavigationLoading();
   const pageTopRef = useRef<HTMLDivElement | null>(null);
   const actionAreaRef = useRef<HTMLDivElement | null>(null);
 
@@ -75,6 +77,11 @@ export default function AddMemberPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [calculatedPrice, setCalculatedPrice] = useState<number | null>(null);
+
+  const navigateTo = (path: string) => {
+    startNavigation(path);
+    router.push(path);
+  };
 
   const {
     register,
@@ -159,7 +166,7 @@ export default function AddMemberPage() {
         initialPayment: data.initialPayment || 0,
       });
       showToast("Member added successfully");
-      router.push("/members");
+      navigateTo("/members");
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } };
       setApiError(err.response?.data?.message || "Failed to create member.");
@@ -172,7 +179,34 @@ export default function AddMemberPage() {
   const selectedSlot = slots.find((s) => s._id === selectedSlotId);
 
   if (isLoadingOptions) {
-    return <AppLoadingScreen title="Add Member" subtitle="Loading plans and slots..." />;
+    return (
+      <Box sx={MODULE_PAGE_SX}>
+        <Skeleton variant="text" width={140} height={32} />
+        <Paper elevation={0} sx={{ ...MODULE_CARD_SX, p: { xs: 1.8, sm: 2.1 }, borderRadius: "14px" }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.6 }}>
+            <Skeleton variant="text" width={120} height={22} />
+            <Grid container spacing={1.4}>
+              {[1, 2, 3, 4, 5, 6, 7].map((item) => (
+                <Grid item xs={12} sm={item === 7 ? 12 : 6} key={item}>
+                  <Skeleton variant="rounded" height={56} sx={{ borderRadius: "14px" }} />
+                </Grid>
+              ))}
+            </Grid>
+            <Skeleton variant="text" width={150} height={22} />
+            <Grid container spacing={1.4}>
+              {[1, 2, 3, 4, 5].map((item) => (
+                <Grid item xs={12} sm={6} key={`membership-${item}`}>
+                  <Skeleton variant="rounded" height={56} sx={{ borderRadius: "14px" }} />
+                </Grid>
+              ))}
+              <Grid item xs={12}>
+                <Skeleton variant="rounded" height={88} sx={{ borderRadius: "14px" }} />
+              </Grid>
+            </Grid>
+          </Box>
+        </Paper>
+      </Box>
+    );
   }
 
   return (
@@ -180,7 +214,7 @@ export default function AddMemberPage() {
       <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.25 }}>
         <Button
           startIcon={<ArrowBackOutlined />}
-          onClick={() => router.push("/members")}
+          onClick={() => navigateTo("/members")}
           color="inherit"
           size="small"
         >
@@ -426,7 +460,7 @@ export default function AddMemberPage() {
           >
             <Button
               variant="outlined"
-              onClick={() => router.push("/members")}
+              onClick={() => navigateTo("/members")}
               disabled={isSubmitting}
               sx={{ borderRadius: "10px", minHeight: 44 }}
             >

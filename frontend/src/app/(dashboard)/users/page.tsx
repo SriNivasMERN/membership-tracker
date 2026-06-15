@@ -23,7 +23,10 @@ import {
   Chip,
   Tooltip,
   Avatar,
+  useMediaQuery,
 } from "@mui/material";
+import CircularProgress from "@mui/material/CircularProgress";
+import { useTheme } from "@mui/material/styles";
 import {
   AddOutlined,
   EditOutlined,
@@ -117,6 +120,8 @@ function AddUserDialog({
 }) {
   const { showToast } = useToast();
   const dialogContentRef = useRef<HTMLDivElement | null>(null);
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -179,6 +184,7 @@ function AddUserDialog({
     <Dialog
       open={open}
       onClose={onClose}
+      fullScreen={fullScreen}
       maxWidth="xs"
       fullWidth
       PaperProps={{
@@ -254,7 +260,7 @@ function AddUserDialog({
           onClick={handleSubmit}
           disabled={isSubmitting}
         >
-          {isSubmitting ? "Creating..." : "Create Account"}
+          {isSubmitting ? <CircularProgress size={20} color="inherit" /> : "Create Account"}
         </Button>
       </DialogActions>
     </Dialog>
@@ -276,6 +282,8 @@ function EditUserDialog({
 }) {
   const { showToast } = useToast();
   const dialogContentRef = useRef<HTMLDivElement | null>(null);
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -355,6 +363,7 @@ function EditUserDialog({
     <Dialog
       open={open}
       onClose={onClose}
+      fullScreen={fullScreen}
       maxWidth="xs"
       fullWidth
       PaperProps={{
@@ -443,7 +452,7 @@ function EditUserDialog({
           onClick={handleSubmit}
           disabled={isSubmitting}
         >
-          {isSubmitting ? "Saving..." : "Save Changes"}
+          {isSubmitting ? <CircularProgress size={20} color="inherit" /> : "Save Changes"}
         </Button>
       </DialogActions>
     </Dialog>
@@ -611,7 +620,7 @@ export default function UsersPage() {
             variant="contained"
             startIcon={<AddOutlined />}
             onClick={() => setAddOpen(true)}
-            sx={{ px: 1.75, minWidth: { xs: "auto", xl: 148 }, alignSelf: { xs: "flex-start", xl: "center" } }}
+            sx={{ px: 1.75, minHeight: 44, minWidth: { xs: "auto", xl: 148 }, alignSelf: { xs: "flex-start", xl: "center" } }}
           >
             Add Staff
           </Button>

@@ -6,7 +6,15 @@ import {
   DialogActions,
   Button,
   CircularProgress,
+  useMediaQuery,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
+import {
+  MODULE_DIALOG_ACTIONS_SX,
+  MODULE_DIALOG_CONTENT_SX,
+  MODULE_DIALOG_PAPER_SX,
+  MODULE_DIALOG_TITLE_SX,
+} from "@/components/ui/moduleStyles";
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -29,35 +37,26 @@ export default function ConfirmDialog({
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
+
   return (
     <Dialog
       open={open}
       onClose={onCancel}
+      fullScreen={fullScreen}
       maxWidth="xs"
       fullWidth
       PaperProps={{
         elevation: 0,
-        sx: {
-          borderRadius: "16px",
-          border: "1px solid #E2E8F0",
-          boxShadow: "0 18px 40px rgba(15,23,42,0.12)",
-        },
+        sx: MODULE_DIALOG_PAPER_SX,
       }}
     >
-      <DialogTitle
-        sx={{
-          fontWeight: 700,
-          fontSize: "1.02rem",
-          color: "#111827",
-          pt: 2.5,
-          pb: 1,
-          px: 3,
-        }}
-      >
+      <DialogTitle sx={MODULE_DIALOG_TITLE_SX}>
         {title}
       </DialogTitle>
 
-      <DialogContent sx={{ px: 3, pb: 1 }}>
+      <DialogContent sx={MODULE_DIALOG_CONTENT_SX}>
         <DialogContentText
           sx={{
             fontSize: "0.88rem",
@@ -70,7 +69,7 @@ export default function ConfirmDialog({
         </DialogContentText>
       </DialogContent>
 
-      <DialogActions sx={{ px: 3, pb: 3, pt: 2, gap: 1 }}>
+      <DialogActions sx={MODULE_DIALOG_ACTIONS_SX}>
         <Button
           onClick={onCancel}
           disabled={isLoading}
@@ -84,7 +83,7 @@ export default function ConfirmDialog({
           color={confirmColor}
           variant="contained"
           disabled={isLoading}
-          sx={{ fontWeight: 700, minWidth: 108 }}
+          sx={{ fontWeight: 700, minWidth: { xs: "100%", sm: 108 } }}
         >
           {isLoading ? (
             <CircularProgress size={20} color="inherit" />

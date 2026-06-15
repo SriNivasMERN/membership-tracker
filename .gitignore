@@ -42,4 +42,31 @@ coverage/
 
 # Misc
 .cache/
-*.tsbuildinfo*.zip
+*.tsbuildinfo
+
+# Archives
+*.zip
+*.7z
+*.rar
+*.tar
+*.gz
+*.tgz
+*.bz2
+
+# Audio
+*.mp3
+*.wav
+*.aac
+*.m4a
+*.flac
+*.ogg
+*.wma
+
+# Video
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.wmv
+*.webm
+*.m4v

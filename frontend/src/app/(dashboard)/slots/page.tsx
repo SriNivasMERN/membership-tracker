@@ -22,7 +22,10 @@ import {
   Skeleton,
   Chip,
   Tooltip,
+  CircularProgress,
+  useMediaQuery,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import {
   AddOutlined,
   TaskAltOutlined,
@@ -120,6 +123,8 @@ function SlotFormDialog({
   const { showToast } = useToast();
   const isEdit = !!slot;
   const dialogContentRef = useRef<HTMLDivElement | null>(null);
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
   const [form, setForm] = useState<SlotFormData>(EMPTY_FORM);
   const [errors, setErrors] = useState<Partial<Record<keyof SlotFormData, string>>>({});
@@ -190,6 +195,7 @@ function SlotFormDialog({
     <Dialog
       open={open}
       onClose={onClose}
+      fullScreen={fullScreen}
       maxWidth="xs"
       fullWidth
       PaperProps={{ elevation: 0, sx: MODULE_DIALOG_PAPER_SX }}
@@ -239,7 +245,7 @@ function SlotFormDialog({
           Cancel
         </Button>
         <Button variant="contained" onClick={handleSubmit} disabled={isSubmitting}>
-          {isSubmitting ? "Saving..." : isEdit ? "Save Changes" : "Create Slot"}
+          {isSubmitting ? <CircularProgress size={20} color="inherit" /> : isEdit ? "Save Changes" : "Create Slot"}
         </Button>
       </DialogActions>
     </Dialog>
@@ -404,7 +410,7 @@ export default function SlotsPage() {
               setEditingSlot(null);
               setFormOpen(true);
             }}
-            sx={{ px: 1.75, minWidth: { xs: "auto", xl: 148 }, alignSelf: { xs: "flex-start", xl: "center" } }}
+            sx={{ px: 1.75, minHeight: 44, minWidth: { xs: "auto", xl: 148 }, alignSelf: { xs: "flex-start", xl: "center" } }}
           >
             Add Slot
           </Button>

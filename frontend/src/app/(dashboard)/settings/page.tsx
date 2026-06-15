@@ -11,6 +11,7 @@ import {
   Button,
   Skeleton,
   InputAdornment,
+  CircularProgress,
 } from "@mui/material";
 import {
   CheckCircleOutlined,
@@ -569,6 +570,7 @@ export default function SettingsPage() {
                 fullWidth
                 sx={{
                   mt: 0.6,
+                  minHeight: 44,
                   py: 0.95,
                   borderRadius: "14px",
                   backgroundColor: C.ink,
@@ -578,7 +580,7 @@ export default function SettingsPage() {
                   },
                 }}
               >
-                {isSaving ? "Saving..." : "Save Settings"}
+                {isSaving ? <CircularProgress size={20} color="inherit" /> : "Save Settings"}
               </Button>
 
               <Box
