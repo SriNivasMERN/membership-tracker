@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
   Button,
@@ -443,10 +443,12 @@ function RevenueTimeline({
   data,
   trend,
   highestAmount,
+  animateIn,
 }: {
   data: { name: string; amount: number; payments: number }[];
   trend: { pct: number; up: boolean } | null;
   highestAmount: number;
+  animateIn: boolean;
 }) {
   const months = data.slice(-6);
   const maxValue = Math.max(highestAmount, 1);
@@ -471,17 +473,15 @@ function RevenueTimeline({
         p: { xs: 1.5, sm: 2 },
         borderRadius: "18px",
         border: `1px solid ${C.border}`,
-        background:
-          "linear-gradient(145deg, rgba(255,255,255,0.98) 0%, rgba(252,248,243,0.96) 52%, rgba(248,242,234,0.97) 100%)",
-        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.96), 0 16px 30px rgba(36,58,87,0.06)",
+        background: "#FFFFFF",
+        boxShadow: "0 12px 22px rgba(36,58,87,0.04)",
         overflow: "hidden",
         "&::before": {
           content: '""',
           position: "absolute",
           inset: 0,
-              background:
-                "linear-gradient(60deg, rgba(250,242,233,0.4) 10%, transparent 10%, transparent 42%, rgba(250,242,233,0.32) 42%, rgba(250,242,233,0.32) 52%, transparent 52%, transparent 76%, rgba(255,255,255,0.28) 76%)",
-          opacity: 0.75,
+          background: "linear-gradient(180deg, rgba(246,249,253,0.88) 0%, rgba(255,255,255,0) 24%)",
+          opacity: 0.7,
           pointerEvents: "none",
         },
       }}
@@ -546,7 +546,7 @@ function RevenueTimeline({
                   <Box
                     key={value}
                     sx={{
-                      borderTop: "1px solid rgba(221,211,197,0.52)",
+                      borderTop: "1px solid rgba(217,226,238,0.82)",
                     }}
                   />
                 ))}
@@ -572,7 +572,7 @@ function RevenueTimeline({
                     <stop offset="100%" stopColor="#1E3A5F" />
                   </linearGradient>
                   <filter id="liveTrendGlow">
-                    <feGaussianBlur stdDeviation="2.4" result="blur" />
+                    <feGaussianBlur stdDeviation="1.1" result="blur" />
                     <feMerge>
                       <feMergeNode in="blur" />
                       <feMergeNode in="SourceGraphic" />
@@ -588,10 +588,9 @@ function RevenueTimeline({
                   strokeLinejoin="round"
                   filter="url(#liveTrendGlow)"
                   strokeDasharray="320"
-                  strokeDashoffset="320"
-                >
-                  <animate attributeName="stroke-dashoffset" from="320" to="0" dur="1.25s" fill="freeze" />
-                </path>
+                  strokeDashoffset={animateIn ? "0" : "320"}
+                  style={{ transition: "stroke-dashoffset 1.25s ease" }}
+                />
                 {points.map((point, index) => {
                   const isLatest = index === points.length - 1;
                   return (
@@ -645,24 +644,30 @@ function RevenueTimeline({
                     >
                       <Box
                         sx={{
-                          width: { xs: 40, sm: 48 },
-                          height: `${Math.max(percent, 14)}%`,
+                          width: { xs: 30, sm: 34 },
+                          height: animateIn ? `${Math.max(percent, 14)}%` : "0%",
                           minHeight: 28,
-                          borderRadius: "12px 12px 0 0",
+                          borderRadius: "4px 4px 0 0",
                           background: isLatest
-                            ? "linear-gradient(180deg, #7EB6FF 0%, #4E7FDC 54%, #263F90 100%)"
+                            ? "linear-gradient(180deg, #78AEFF 0%, #4F82D8 42%, #2F58A9 76%, #203B77 100%)"
                             : isPeak
-                              ? "linear-gradient(180deg, #8EBEFF 0%, #5B88E0 54%, #2B4292 100%)"
-                              : "linear-gradient(180deg, #94C1FF 0%, #628EDB 54%, #304A9A 100%)",
+                              ? "linear-gradient(180deg, #86B5FF 0%, #648FDC 42%, #3D66B4 76%, #294687 100%)"
+                              : "linear-gradient(180deg, #97BAF1 0%, #7399D4 44%, #4C71B5 78%, #34508E 100%)",
                           boxShadow: isLatest
-                            ? "0 0 20px rgba(96,165,250,0.18), 0 14px 24px rgba(46,117,182,0.16)"
+                            ? "0 8px 18px rgba(35,61,124,0.12)"
                             : isPeak
-                              ? "0 0 14px rgba(93,138,226,0.14), 0 12px 20px rgba(39,59,138,0.14)"
-                              : "0 10px 18px rgba(46,117,182,0.16)",
+                              ? "0 7px 16px rgba(41,70,135,0.1)"
+                              : "0 6px 12px rgba(49,77,139,0.08)",
+                          borderLeft: "1px solid rgba(255,255,255,0.16)",
+                          borderRight: "1px solid rgba(19,42,93,0.08)",
                           position: "relative",
                           transformOrigin: "bottom",
                           overflow: "hidden",
-                          animation: `${isLatest ? `barLive${index}` : `barRise${index}`} ${isLatest ? "1600ms" : "1100ms"} ${isLatest ? "cubic-bezier(0.22, 1, 0.36, 1)" : "ease-out"}, ${`barFloat${index} 3.8s ease-in-out ${1.2 + index * 0.18}s infinite`}, ${isPeak ? `barGlow${index} 4.2s ease-in-out ${1.4 + index * 0.12}s infinite` : `barGlowSoft${index} 5.2s ease-in-out ${1.1 + index * 0.14}s infinite`}`,
+                          transition: "height 1.05s cubic-bezier(0.22, 1, 0.36, 1)",
+                          transitionDelay: `${index * 120}ms`,
+                          animation: animateIn
+                            ? `${isLatest ? `barLive${index}` : `barRise${index}`} ${isLatest ? "1600ms" : "1100ms"} ${isLatest ? "cubic-bezier(0.22, 1, 0.36, 1)" : "ease-out"}, ${`barFloat${index} 5.4s ease-in-out ${1.4 + index * 0.18}s infinite`}, ${isPeak ? `barGlow${index} 6s ease-in-out ${1.6 + index * 0.12}s infinite` : `barGlowSoft${index} 7.2s ease-in-out ${1.4 + index * 0.14}s infinite`}`
+                            : "none",
                           [`@keyframes barRise${index}`]: {
                             "0%": { transform: "scaleY(0.05) translateY(8px)", opacity: 0.18 },
                             "60%": { transform: "scaleY(1.04) translateY(-2px)", opacity: 1 },
@@ -676,72 +681,50 @@ function RevenueTimeline({
                           },
                           [`@keyframes barFloat${index}`]: {
                             "0%": { transform: "scaleY(1) translateY(0px)" },
-                            "50%": { transform: `scaleY(${isLatest ? 1.016 : 1.01}) translateY(${isLatest ? "-3px" : "-2px"})` },
+                            "50%": { transform: `scaleY(${isLatest ? 1.008 : 1.005}) translateY(${isLatest ? "-1.5px" : "-1px"})` },
                             "100%": { transform: "scaleY(1) translateY(0px)" },
                           },
                           [`@keyframes barGlow${index}`]: {
-                            "0%": { boxShadow: "0 0 10px rgba(93,138,226,0.10), 0 12px 20px rgba(39,59,138,0.12)" },
-                            "50%": { boxShadow: "0 0 18px rgba(93,138,226,0.18), 0 14px 24px rgba(39,59,138,0.16)" },
-                            "100%": { boxShadow: "0 0 10px rgba(93,138,226,0.10), 0 12px 20px rgba(39,59,138,0.12)" },
+                            "0%": { boxShadow: "0 7px 16px rgba(41,70,135,0.1)" },
+                            "50%": { boxShadow: "0 8px 18px rgba(41,70,135,0.12)" },
+                            "100%": { boxShadow: "0 7px 16px rgba(41,70,135,0.1)" },
                           },
                           [`@keyframes barGlowSoft${index}`]: {
-                            "0%": { boxShadow: "0 8px 18px rgba(46,117,182,0.12)" },
-                            "50%": { boxShadow: "0 0 12px rgba(96,165,250,0.12), 0 10px 20px rgba(46,117,182,0.16)" },
-                            "100%": { boxShadow: "0 8px 18px rgba(46,117,182,0.12)" },
+                            "0%": { boxShadow: "0 6px 12px rgba(49,77,139,0.08)" },
+                            "50%": { boxShadow: "0 7px 14px rgba(49,77,139,0.1)" },
+                            "100%": { boxShadow: "0 6px 12px rgba(49,77,139,0.08)" },
                           },
                           "&::before": {
                             content: '""',
                             position: "absolute",
                             top: 0,
-                            left: "10%",
-                            width: "80%",
-                            height: "10%",
-                            borderRadius: "10px 10px 999px 999px",
-                            background: "linear-gradient(180deg, rgba(255,255,255,0.24) 0%, rgba(255,255,255,0.02) 100%)",
+                            left: 0,
+                            right: 0,
+                            height: 3,
+                            background: "rgba(255,255,255,0.32)",
                           },
                           "&::after": {
                             content: '""',
                             position: "absolute",
                             inset: 0,
                             background: isLatest
-                              ? "linear-gradient(105deg, transparent 0%, rgba(255,255,255,0.02) 28%, rgba(255,255,255,0.18) 46%, rgba(255,255,255,0.02) 64%, transparent 100%)"
-                              : "linear-gradient(105deg, transparent 0%, rgba(255,255,255,0.01) 34%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.01) 66%, transparent 100%)",
-                            transform: "translateX(-135%)",
-                            animation: `${`barSweep${index} ${isLatest ? "2.6s" : "4.8s"} ease-in-out ${0.6 + index * 0.15}s infinite`}`,
-                          },
-                          [`@keyframes barSweep${index}`]: {
-                            "0%": { transform: "translateX(-135%)" },
-                            "100%": { transform: "translateX(135%)" },
+                              ? "linear-gradient(90deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.02) 18%, transparent 18%, transparent 100%)"
+                              : "linear-gradient(90deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.015) 16%, transparent 16%, transparent 100%)",
                           },
                         }}
                       >
-                        {isLatest ? (
-                          <Box
-                            sx={{
-                              position: "absolute",
-                              top: -18,
-                              left: "50%",
-                              width: 12,
-                              height: 12,
-                              borderRadius: "999px",
-                              backgroundColor: "#2563EB",
-                              transform: "translateX(-50%)",
-                              boxShadow: "0 0 0 4px rgba(255,255,255,0.9)",
-                              "&::after": {
-                                content: '""',
-                                position: "absolute",
-                                inset: -8,
-                                borderRadius: "999px",
-                                border: "2px solid rgba(96,165,250,0.55)",
-                                animation: "livePulseRing 2s ease-in-out infinite",
-                              },
-                              "@keyframes livePulseRing": {
-                                "0%": { transform: "scale(0.85)", opacity: 0.8 },
-                                "100%": { transform: "scale(1.8)", opacity: 0 },
-                              },
-                            }}
-                          />
-                        ) : null}
+                        <Box
+                          sx={{
+                            position: "absolute",
+                            top: 8,
+                            left: "50%",
+                            width: "46%",
+                            height: 2,
+                            borderRadius: "999px",
+                            transform: "translateX(-50%)",
+                            backgroundColor: isLatest ? "rgba(255,255,255,0.42)" : "rgba(255,255,255,0.28)",
+                          }}
+                        />
                       </Box>
                     </Box>
 
@@ -773,12 +756,14 @@ function UtilizationBar({
   percent,
   color,
   helper,
+  animateIn,
 }: {
   label: string;
   value: number;
   percent: number;
   color: string;
   helper: string;
+  animateIn: boolean;
 }) {
   return (
     <Box>
@@ -791,7 +776,15 @@ function UtilizationBar({
         </Typography>
       </Box>
       <Box sx={{ height: 8, borderRadius: "999px", backgroundColor: "#E2E8F0", overflow: "hidden" }}>
-        <Box sx={{ height: "100%", width: `${percent}%`, borderRadius: "999px", backgroundColor: color }} />
+        <Box
+          sx={{
+            height: "100%",
+            width: animateIn ? `${percent}%` : "0%",
+            borderRadius: "999px",
+            backgroundColor: color,
+            transition: "width 0.9s cubic-bezier(0.22, 1, 0.36, 1)",
+          }}
+        />
       </Box>
       <Typography sx={{ mt: 0.22, fontSize: "0.7rem", color: C.muted, fontWeight: 600, lineHeight: 1.25 }}>
         {helper}
@@ -983,11 +976,15 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeModal, setActiveModal] = useState<ModalType>(null);
+  const [animateInsights, setAnimateInsights] = useState(false);
+  const [collectionsTrendVisible, setCollectionsTrendVisible] = useState(false);
+  const collectionsTrendRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const load = async () => {
       setIsLoading(true);
       setError(null);
+      setAnimateInsights(false);
       try {
         const [summary, monthlyRevenue, planDistribution] = await Promise.all([
           dashboardApi.getSummary(),
@@ -1006,6 +1003,37 @@ export default function DashboardPage() {
 
     load();
   }, []);
+
+  useEffect(() => {
+    if (isLoading || error || !data) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      setAnimateInsights(true);
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [isLoading, error, data]);
+
+  useEffect(() => {
+    if (isLoading || error || collectionsTrendVisible || !collectionsTrendRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (!entry?.isIntersecting) return;
+        setCollectionsTrendVisible(true);
+        observer.disconnect();
+      },
+      {
+        threshold: 0.3,
+        rootMargin: "0px 0px -40px 0px",
+      },
+    );
+
+    observer.observe(collectionsTrendRef.current);
+
+    return () => observer.disconnect();
+  }, [isLoading, error, collectionsTrendVisible]);
 
   const chartData = useMemo(
     () =>
@@ -1192,6 +1220,7 @@ export default function DashboardPage() {
                           percent={percent}
                           color={[C.navy, C.blue, C.green, C.orange][index % 4]}
                           helper={percent > 0 ? `${percent}% of active plan assignments` : "No members on this plan"}
+                          animateIn={animateInsights}
                         />
                       );
                     })}
@@ -1216,6 +1245,7 @@ export default function DashboardPage() {
                             percent={percent}
                             color={[C.orange, C.blue, C.green, C.navy][index % 4]}
                             helper={percent > 0 ? `${percent}% of slot usage` : "No members in this slot"}
+                            animateIn={animateInsights}
                           />
                         );
                       })}
@@ -1250,7 +1280,7 @@ export default function DashboardPage() {
               </Box>
             }
           >
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+            <Box ref={collectionsTrendRef} sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
               {!isLoading && chartData.length > 0 ? (
                 <Grid container spacing={1.2}>
                   <Grid item xs={12} md={8}>
@@ -1277,7 +1307,7 @@ export default function DashboardPage() {
               ) : chartData.length === 0 ? (
                 <EmptyState title="No payment data yet" subtitle="The trend appears once payments start getting recorded." icon={<WarningAmberOutlined sx={{ fontSize: 26 }} />} />
               ) : (
-                <RevenueTimeline data={chartData} trend={trend} highestAmount={highestAmount} />
+                <RevenueTimeline data={chartData} trend={trend} highestAmount={highestAmount} animateIn={collectionsTrendVisible} />
               )}
             </Box>
           </SectionCard>
