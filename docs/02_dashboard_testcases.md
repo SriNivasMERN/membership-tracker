@@ -22,6 +22,8 @@ This document validates:
 - Utilization section
 - Renewal Queue section
 - Section jump navigation
+- First-view chart animation behavior
+- Hover interaction behavior for cards and records
 - Responsive behavior on key viewports
 
 ## Test Cases
@@ -58,6 +60,9 @@ This document validates:
 | DSH-028 | Dashboard is usable on laptop viewport | Owner/Admin | Browser width is between 1280px and 1440px | 1. Open `/dashboard` on laptop viewport 2. Observe section balance and chart area | Layout remains balanced, sections align properly, and there is no clipped content. | Medium |
 | DSH-029 | Dashboard is usable on large desktop viewport | Owner/Admin | Browser width is 1920px or above | 1. Open `/dashboard` on large desktop viewport 2. Observe spacing and section alignment | Layout remains visually balanced without excessive breakage, truncation, or overlap. | Medium |
 | DSH-030 | Dashboard supports staff access | Staff | Staff user has valid access to dashboard | 1. Login with valid staff account 2. Open `/dashboard` | Dashboard loads successfully for staff according to access rules. | High |
+| DSH-031 | Collections Trend animates when first entering viewport | Owner/Admin | Monthly payment data exists and dashboard is opened from the top | 1. Open `/dashboard` 2. Stay at the top section initially 3. Scroll down to `Collections Trend` for the first time | Revenue bars and trend line animate from zero only when the section first enters view. | Medium |
+| DSH-032 | Collections Trend does not keep replaying animation during same visit | Owner/Admin | Dashboard has already shown the trend animation once in the current visit | 1. Scroll to `Collections Trend` and let animation complete 2. Scroll away 3. Scroll back to the same section | Chart remains stable and does not repeatedly replay the entry animation during the same page visit. | Medium |
+| DSH-033 | Dashboard cards and record items show consistent hover motion | Owner/Admin | Dashboard is fully loaded on desktop or laptop viewport | 1. Hover summary cards 2. Hover section cards 3. Hover renewal queue items | Hover interaction is smooth and consistent, with the same lift-style motion across dashboard cards and record items. | Medium |
 
 ## Execution Notes
 
