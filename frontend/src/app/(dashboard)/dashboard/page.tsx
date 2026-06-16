@@ -44,6 +44,7 @@ import {
   MODULE_COLORS,
   MODULE_DIALOG_PAPER_SX,
   MODULE_DIALOG_TITLE_SX,
+  MODULE_HOVER_MOTION_SX,
   MODULE_NEUTRAL_CHIP_SX,
   MODULE_PAGE_SX,
   MODULE_SUCCESS_CHIP_SX,
@@ -153,9 +154,9 @@ function StatCard({
         ...MODULE_CARD_SX,
         borderRadius: "14px",
         cursor: "pointer",
-        transition: "transform 0.15s ease, box-shadow 0.15s ease",
+        transition: "transform 1s ease, box-shadow 1s ease",
         "&:hover": {
-          transform: "translateY(-1px)",
+          transform: "translateY(-4px) scale(1.01)",
           boxShadow: "0 18px 30px rgba(36,58,87,0.1)",
         },
       }}
@@ -309,7 +310,7 @@ function PulseMetric({
           : { bg: "#FBF7F1", border: "#D9CCBB", color: C.navy };
 
   return (
-    <Paper elevation={0} sx={{ p: 1.45, borderRadius: "14px", border: `1px solid ${styles.border}`, background: `linear-gradient(180deg, rgba(255,255,255,0.98) 0%, ${styles.bg} 100%)`, height: "100%", boxShadow: "0 10px 20px rgba(36,58,87,0.05)" }}>
+    <Paper elevation={0} sx={{ p: 1.45, borderRadius: "14px", border: `1px solid ${styles.border}`, background: `linear-gradient(180deg, rgba(255,255,255,0.98) 0%, ${styles.bg} 100%)`, height: "100%", boxShadow: "0 10px 20px rgba(36,58,87,0.05)", ...MODULE_HOVER_MOTION_SX }}>
       <Typography sx={{ fontSize: "0.7rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>
         {label}
       </Typography>
@@ -347,6 +348,7 @@ function ActionLine({
         borderRadius: "12px",
         background: "linear-gradient(180deg, rgba(255,255,255,0.99) 0%, rgba(253,250,246,0.98) 100%)",
         border: `1px solid ${C.border}`,
+        ...MODULE_HOVER_MOTION_SX,
       }}
     >
       <Box sx={{ minWidth: 0 }}>
@@ -410,6 +412,7 @@ function SparklinePanel({
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
+        ...MODULE_HOVER_MOTION_SX,
       }}
     >
       <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 1 }}>
@@ -1155,7 +1158,7 @@ export default function DashboardPage() {
                 {isLoading ? (
                   <Skeleton variant="rounded" height={146} sx={{ borderRadius: "14px" }} />
                 ) : (
-                  <Box sx={{ p: 1.6, borderRadius: "14px", border: `1px solid ${C.border}`, backgroundColor: C.surface, height: "100%" }}>
+                  <Box sx={{ p: 1.6, borderRadius: "14px", border: `1px solid ${C.border}`, backgroundColor: C.surface, height: "100%", ...MODULE_HOVER_MOTION_SX }}>
                     <Typography sx={{ fontSize: "0.78rem", fontWeight: 800, color: C.slate }}>
                       What needs attention first
                     </Typography>
@@ -1171,7 +1174,7 @@ export default function DashboardPage() {
                 {isLoading ? (
                   <Skeleton variant="rounded" height={146} sx={{ borderRadius: "14px" }} />
                 ) : (
-                  <Box sx={{ p: 1.6, borderRadius: "14px", border: `1px solid ${C.border}`, backgroundColor: "#FFFFFF", height: "100%" }}>
+                  <Box sx={{ p: 1.6, borderRadius: "14px", border: `1px solid ${C.border}`, backgroundColor: "#FFFFFF", height: "100%", ...MODULE_HOVER_MOTION_SX }}>
                     <Typography sx={{ fontSize: "0.78rem", fontWeight: 800, color: C.slate }}>
                       Revenue context
                     </Typography>
@@ -1333,6 +1336,7 @@ export default function DashboardPage() {
                       borderRadius: "12px",
                       border: `1px solid ${C.border}`,
                       backgroundColor: "#FFFFFF",
+                      ...MODULE_HOVER_MOTION_SX,
                     }}
                   >
                     <Box sx={{ display: "flex", justifyContent: "space-between", gap: 1.5 }}>

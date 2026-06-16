@@ -2,6 +2,7 @@
 
 import { Box, Paper, Typography } from "@mui/material";
 import type { SxProps, Theme } from "@mui/material/styles";
+import type { SystemStyleObject } from "@mui/system";
 import type { ReactNode } from "react";
 
 export const MODULE_COLORS = {
@@ -17,6 +18,15 @@ export const MODULE_COLORS = {
   amber: "#A36A2C",
   accent: "#355072",
   red: "#A13C32",
+};
+
+export const MODULE_HOVER_MOTION_SX: SystemStyleObject<Theme> = {
+  transition: "transform 1s ease, box-shadow 1s ease, background-color 1s ease",
+  transformOrigin: "center",
+  willChange: "transform",
+  "&:hover": {
+    transform: "translateY(-4px) scale(1.01)",
+  },
 };
 
 export const MODULE_PAGE_SX: SxProps<Theme> = {
@@ -59,6 +69,7 @@ export const MODULE_CARD_SX: SxProps<Theme> = {
   boxShadow: "0 16px 32px rgba(36,58,87,0.08)",
   background: "linear-gradient(180deg, rgba(255,255,255,0.995) 0%, rgba(253,250,246,0.985) 100%)",
   minWidth: 0,
+  ...MODULE_HOVER_MOTION_SX,
 };
 
 export const MODULE_DIALOG_PAPER_SX: SxProps<Theme> = {
@@ -106,6 +117,7 @@ export const MODULE_INLINE_PANEL_SX: SxProps<Theme> = {
   borderRadius: "12px",
   border: `1px solid ${MODULE_COLORS.border}`,
   background: "linear-gradient(180deg, rgba(255,255,255,0.995) 0%, rgba(250,246,241,0.97) 100%)",
+  ...MODULE_HOVER_MOTION_SX,
 };
 
 export const MODULE_TABLE_HEAD_CELL_SX: SxProps<Theme> = {
@@ -119,8 +131,12 @@ export const MODULE_TABLE_HEAD_CELL_SX: SxProps<Theme> = {
 };
 
 export const MODULE_TABLE_ROW_SX: SxProps<Theme> = {
+  transition: "transform 1s ease, background-color 1s ease, box-shadow 1s ease",
+  transformOrigin: "center",
   "&:hover": {
     backgroundColor: "rgba(255,250,245,0.9)",
+    transform: "translateY(-2px) scale(1.006)",
+    boxShadow: "0 10px 24px rgba(36,58,87,0.06)",
   },
 };
 
@@ -330,6 +346,7 @@ export function ModuleSummaryStat({
         background: `linear-gradient(180deg, rgba(255,255,255,0.96) 0%, ${styles.backgroundColor} 100%)`,
         minWidth: 132,
         boxShadow: styles.shadow,
+        ...MODULE_HOVER_MOTION_SX,
       }}
     >
       <Typography
@@ -376,6 +393,7 @@ export function ModuleInfoStrip({
         border: "1px solid #DDD1C1",
         background: "linear-gradient(135deg, rgba(255,251,246,0.99) 0%, rgba(250,245,239,0.97) 100%)",
         boxShadow: "0 10px 18px rgba(36,58,87,0.06), inset 0 1px 0 rgba(255,255,255,0.86)",
+        ...MODULE_HOVER_MOTION_SX,
         ...sx,
       }}
     >
