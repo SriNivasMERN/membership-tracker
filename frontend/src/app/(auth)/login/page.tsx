@@ -114,7 +114,12 @@ export default function LoginPage() {
             </Alert>
           )}
 
-          <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
+          <Box
+            component="form"
+            onSubmit={handleSubmit(onSubmit)}
+            method="post"
+            noValidate
+          >
             <TextField
               {...register("email")}
               label="Email address"
@@ -124,7 +129,16 @@ export default function LoginPage() {
               autoFocus
               error={!!errors.email}
               helperText={errors.email?.message}
-              sx={{ mb: 2.5 }}
+              InputLabelProps={{ shrink: true }}
+              sx={{
+                mb: 2.5,
+                "& .MuiInputBase-input:-webkit-autofill": {
+                  WebkitBoxShadow: "0 0 0 100px #ffffff inset",
+                  WebkitTextFillColor: "#111827",
+                  caretColor: "#111827",
+                  borderRadius: "inherit",
+                },
+              }}
             />
 
             <TextField
@@ -135,6 +149,7 @@ export default function LoginPage() {
               autoComplete="current-password"
               error={!!errors.password}
               helperText={errors.password?.message}
+              InputLabelProps={{ shrink: true }}
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
@@ -148,7 +163,15 @@ export default function LoginPage() {
                   </InputAdornment>
                 ),
               }}
-              sx={{ mb: 3 }}
+              sx={{
+                mb: 3,
+                "& .MuiInputBase-input:-webkit-autofill": {
+                  WebkitBoxShadow: "0 0 0 100px #ffffff inset",
+                  WebkitTextFillColor: "#111827",
+                  caretColor: "#111827",
+                  borderRadius: "inherit",
+                },
+              }}
             />
 
             <Button
