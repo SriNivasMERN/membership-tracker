@@ -128,6 +128,7 @@ export default function AuditTrailPage() {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [filteredCount, setFilteredCount] = useState(0);
   const [search, setSearch] = useState("");
   const [moduleFilter, setModuleFilter] = useState("");
   const [actionFilter, setActionFilter] = useState("");
@@ -155,6 +156,7 @@ export default function AuditTrailPage() {
           staffActions: 0,
         }
       );
+      setFilteredCount(response.filteredCount || 0);
       setTotalPages(response.pagination?.totalPages || 1);
     } catch {
       setError("Failed to load audit trail. Please refresh.");
@@ -247,94 +249,103 @@ export default function AuditTrailPage() {
         elevation={0}
         sx={{
           ...MODULE_CARD_SX,
-          p: 1.5,
+          p: 1.25,
           display: "grid",
           gridTemplateColumns: {
             xs: "1fr",
             md: "1.8fr 1fr 1fr 1fr auto",
           },
-          gap: 1.25,
+          gap: 1,
           alignItems: "center",
         }}
       >
-        <TextField
-          inputRef={searchInputRef}
-          placeholder="Search by module, action, user, or description"
-          value={search}
-          onChange={(event) => {
-            setSearch(event.target.value);
-            setPage(1);
-          }}
-          fullWidth
-          sx={MODULE_FIELD_SX}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchOutlined sx={{ color: C.slate }} />
-              </InputAdornment>
-            ),
-          }}
-        />
-        <TextField
-          select
-          value={moduleFilter}
-          onChange={(event) => {
-            setModuleFilter(event.target.value);
-            setPage(1);
-          }}
-          fullWidth
-          sx={MODULE_FIELD_SX}
-          label="Module"
-        >
-          {MODULE_OPTIONS.map((option) => (
-            <MenuItem key={option.value || "all-modules"} value={option.value}>
-              {option.label}
-            </MenuItem>
-          ))}
-        </TextField>
-        <TextField
-          select
-          value={actionFilter}
-          onChange={(event) => {
-            setActionFilter(event.target.value);
-            setPage(1);
-          }}
-          fullWidth
-          sx={MODULE_FIELD_SX}
-          label="Action"
-        >
-          {ACTION_OPTIONS.map((option) => (
-            <MenuItem key={option.value || "all-actions"} value={option.value}>
-              {option.label}
-            </MenuItem>
-          ))}
-        </TextField>
-        <TextField
-          select
-          value={actorRoleFilter}
-          onChange={(event) => {
-            setActorRoleFilter(event.target.value);
-            setPage(1);
-          }}
-          fullWidth
-          sx={MODULE_FIELD_SX}
-          label="User Role"
-        >
-          {ROLE_OPTIONS.map((option) => (
-            <MenuItem key={option.value || "all-roles"} value={option.value}>
-              {option.label}
-            </MenuItem>
-          ))}
-        </TextField>
-        <Button
-          variant="text"
-          color="inherit"
-          onClick={handleClear}
-          disabled={!hasFilters}
-          sx={{ minHeight: 44, px: 1.5 }}
-        >
-          Clear
-        </Button>
+          <TextField
+            inputRef={searchInputRef}
+            placeholder="Search by module, action, user, or description"
+            value={search}
+            onChange={(event) => {
+              setSearch(event.target.value);
+              setPage(1);
+            }}
+            fullWidth
+            size="small"
+            sx={MODULE_FIELD_SX}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchOutlined sx={{ fontSize: 18, color: C.slate }} />
+                </InputAdornment>
+              ),
+            }}
+          />
+          <TextField
+            select
+            value={moduleFilter}
+            onChange={(event) => {
+              setModuleFilter(event.target.value);
+              setPage(1);
+            }}
+            fullWidth
+            size="small"
+            sx={MODULE_FIELD_SX}
+            label="Module"
+          >
+            {MODULE_OPTIONS.map((option) => (
+              <MenuItem key={option.value || "all-modules"} value={option.value}>
+                {option.label}
+              </MenuItem>
+            ))}
+          </TextField>
+          <TextField
+            select
+            value={actionFilter}
+            onChange={(event) => {
+              setActionFilter(event.target.value);
+              setPage(1);
+            }}
+            fullWidth
+            size="small"
+            sx={MODULE_FIELD_SX}
+            label="Action"
+          >
+            {ACTION_OPTIONS.map((option) => (
+              <MenuItem key={option.value || "all-actions"} value={option.value}>
+                {option.label}
+              </MenuItem>
+            ))}
+          </TextField>
+          <TextField
+            select
+            value={actorRoleFilter}
+            onChange={(event) => {
+              setActorRoleFilter(event.target.value);
+              setPage(1);
+            }}
+            fullWidth
+            size="small"
+            sx={MODULE_FIELD_SX}
+            label="User Role"
+          >
+            {ROLE_OPTIONS.map((option) => (
+              <MenuItem key={option.value || "all-roles"} value={option.value}>
+                {option.label}
+              </MenuItem>
+            ))}
+          </TextField>
+          <Button
+            variant={hasFilters ? "outlined" : "text"}
+            color="inherit"
+            onClick={handleClear}
+            disabled={!hasFilters}
+            sx={{
+              minHeight: 40,
+              px: 1.25,
+              borderColor: hasFilters ? C.border : "transparent",
+              color: hasFilters ? C.slate : C.muted,
+            }}
+          >
+            Clear
+          </Button>
       </Paper>
 
       <Paper elevation={0} sx={{ ...MODULE_CARD_SX, overflow: "hidden" }}>
@@ -372,12 +383,17 @@ export default function AuditTrailPage() {
             <TableContainer sx={MODULE_TABLE_CONTAINER_SX}>
               <Table sx={{ minWidth: 980 }}>
                 <TableHead>
-                  <TableRow>
-                    <TableCell sx={MODULE_TABLE_HEAD_CELL_SX}>Date & Time</TableCell>
-                    <TableCell sx={MODULE_TABLE_HEAD_CELL_SX}>Module</TableCell>
-                    <TableCell sx={MODULE_TABLE_HEAD_CELL_SX}>Action</TableCell>
-                    <TableCell sx={MODULE_TABLE_HEAD_CELL_SX}>Description</TableCell>
-                    <TableCell sx={MODULE_TABLE_HEAD_CELL_SX}>Done By</TableCell>
+                  <TableRow
+                    sx={{
+                      background:
+                        "linear-gradient(180deg, rgba(252,247,241,0.95) 0%, rgba(248,242,235,0.82) 100%)",
+                    }}
+                  >
+                    <TableCell sx={{ ...MODULE_TABLE_HEAD_CELL_SX, background: "transparent" }}>Date & Time</TableCell>
+                    <TableCell sx={{ ...MODULE_TABLE_HEAD_CELL_SX, background: "transparent" }}>Module</TableCell>
+                    <TableCell sx={{ ...MODULE_TABLE_HEAD_CELL_SX, background: "transparent" }}>Action</TableCell>
+                    <TableCell sx={{ ...MODULE_TABLE_HEAD_CELL_SX, background: "transparent" }}>Description</TableCell>
+                    <TableCell sx={{ ...MODULE_TABLE_HEAD_CELL_SX, background: "transparent" }}>Done By</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -396,10 +412,22 @@ export default function AuditTrailPage() {
                           </Typography>
                         </TableCell>
                         <TableCell sx={{ py: 1.8, borderBottom: `1px solid ${C.border}` }}>
-                          <Typography sx={{ fontWeight: 800, color: C.ink }}>
-                            {formatModule(entry.module)}
-                          </Typography>
-                          <Typography sx={{ mt: 0.35, fontWeight: 600, color: C.slate, fontSize: "0.82rem" }}>
+                          <Box
+                            sx={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              px: 1.2,
+                              minHeight: 30,
+                              borderRadius: "999px",
+                              border: `1px solid ${C.border}`,
+                              backgroundColor: "rgba(251,247,241,0.94)",
+                            }}
+                          >
+                            <Typography sx={{ fontWeight: 800, color: C.ink, fontSize: "0.83rem" }}>
+                              {formatModule(entry.module)}
+                            </Typography>
+                          </Box>
+                          <Typography sx={{ mt: 0.6, fontWeight: 600, color: C.slate, fontSize: "0.82rem" }}>
                             {entry.entityLabel || "Record update"}
                           </Typography>
                         </TableCell>
@@ -421,17 +449,45 @@ export default function AuditTrailPage() {
                           </Box>
                         </TableCell>
                         <TableCell sx={{ py: 1.8, borderBottom: `1px solid ${C.border}` }}>
-                          <Typography sx={{ fontWeight: 700, color: C.ink, lineHeight: 1.5 }}>
+                          <Typography sx={{ fontWeight: 800, color: C.ink, lineHeight: 1.55 }}>
                             {entry.description || "Action completed"}
                           </Typography>
+                          {entry.entityId ? (
+                            <Typography sx={{ mt: 0.45, fontWeight: 600, color: C.muted, fontSize: "0.8rem" }}>
+                              Ref: {entry.entityId.slice(-8).toUpperCase()}
+                            </Typography>
+                          ) : null}
                         </TableCell>
                         <TableCell sx={{ py: 1.8, borderBottom: `1px solid ${C.border}` }}>
                           <Typography sx={{ fontWeight: 800, color: C.ink }}>
                             {entry.performedBy.name}
                           </Typography>
-                          <Typography sx={{ mt: 0.35, fontWeight: 600, color: C.slate, fontSize: "0.82rem", textTransform: "capitalize" }}>
-                            {entry.performedBy.role}
-                          </Typography>
+                          <Box
+                            sx={{
+                              mt: 0.55,
+                              display: "inline-flex",
+                              alignItems: "center",
+                              px: 1.05,
+                              minHeight: 26,
+                              borderRadius: "999px",
+                              border: `1px solid ${entry.performedBy.role === "owner" ? `${C.amber}33` : `${C.accent}33`}`,
+                              backgroundColor:
+                                entry.performedBy.role === "owner"
+                                  ? "rgba(252,244,233,0.92)"
+                                  : "rgba(244,247,251,0.92)",
+                            }}
+                          >
+                            <Typography
+                              sx={{
+                                fontWeight: 800,
+                                color: entry.performedBy.role === "owner" ? C.amber : C.accent,
+                                fontSize: "0.74rem",
+                                textTransform: "capitalize",
+                              }}
+                            >
+                              {entry.performedBy.role}
+                            </Typography>
+                          </Box>
                         </TableCell>
                       </TableRow>
                     );
