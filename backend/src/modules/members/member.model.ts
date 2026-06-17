@@ -26,6 +26,8 @@ export interface ISlotSnapshot {
 
 export interface IMembershipClosure {
   endedOn: Date;
+  originalEndDate?: Date;
+  originalCreditBalance?: number;
   usedValue: number;
   settlementDeduction: number;
   refundableBalance: number;
@@ -110,6 +112,13 @@ const membershipClosureSchema = new Schema<IMembershipClosure>(
     endedOn: {
       type: Date,
       required: true,
+    },
+    originalEndDate: {
+      type: Date,
+    },
+    originalCreditBalance: {
+      type: Number,
+      min: [0, "Original credit balance cannot be negative"],
     },
     usedValue: {
       type: Number,

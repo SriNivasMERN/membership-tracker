@@ -34,6 +34,7 @@ import {
   PaymentOutlined,
   AutorenewOutlined,
   EditOutlined,
+  UndoOutlined,
   CalendarTodayOutlined,
   PersonOutlined,
   CreditCardOutlined,
@@ -134,6 +135,7 @@ export default function MemberDetailPage() {
   const renewDialogContentRef = useRef<HTMLDivElement | null>(null);
   const editDialogContentRef = useRef<HTMLDivElement | null>(null);
   const endDialogContentRef = useRef<HTMLDivElement | null>(null);
+  const revertDialogContentRef = useRef<HTMLDivElement | null>(null);
 
   const [member, setMember] = useState<Member | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -141,7 +143,7 @@ export default function MemberDetailPage() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [slots, setSlots] = useState<Slot[]>([]);
 
-  const [activeModal, setActiveModal] = useState<"payment" | "renew" | "edit" | "end" | null>(null);
+  const [activeModal, setActiveModal] = useState<"payment" | "renew" | "edit" | "end" | "revert" | null>(null);
   const [autoOpenDone, setAutoOpenDone] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modalError, setModalError] = useState<string | null>(null);
@@ -198,10 +200,11 @@ export default function MemberDetailPage() {
     if (activeModal === "renew") renewDialogContentRef.current?.scrollTo({ top: 0, behavior: "smooth" });
     if (activeModal === "edit") editDialogContentRef.current?.scrollTo({ top: 0, behavior: "smooth" });
     if (activeModal === "end") endDialogContentRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    if (activeModal === "revert") revertDialogContentRef.current?.scrollTo({ top: 0, behavior: "smooth" });
   }, [modalError, activeModal]);
 
   useEffect(() => {
-    Promise.all([plansApi.getAll(), slotsApi.getAll()]).then(([p, s]) => {
+    Promise.all([plansApi.getActive(), slotsApi.getActive()]).then(([p, s]) => {
       setPlans(p.data || []);
       setSlots(s.data || []);
     }).catch(() => {});
@@ -233,11 +236,27 @@ export default function MemberDetailPage() {
     const today = getTodayString();
     const memberIsActive = member.status === "active" || member.status === "expiring_soon";
     const existingCredit = member.creditBalance || 0;
+    const selectedActivePlan =
+      plans.find((plan) => plan._id === (member.planSnapshot.planId as string)) || plans[0];
+    const selectedActiveSlot =
+      slots.find((slot) => slot._id === (member.slotSnapshot.slotId as string)) || slots[0];
+    const reopenPlan = memberIsActive
+      ? plans.find((plan) => plan._id === (member.planSnapshot.planId as string))
+      : selectedActivePlan;
+    const reopenSlot = memberIsActive
+      ? slots.find((slot) => slot._id === (member.slotSnapshot.slotId as string))
+      : selectedActiveSlot;
+
+    if (!reopenPlan || !reopenSlot) {
+      setModalError("At least one active plan and one active slot are required to reopen membership.");
+      return;
+    }
+
     setIsUpgrade(memberIsActive);
-    setRenewPlanId(member.planSnapshot.planId as string);
-    setRenewSlotId(member.slotSnapshot.slotId as string);
+    setRenewPlanId(reopenPlan._id);
+    setRenewSlotId(reopenSlot._id);
     setRenewStartDate(today);
-    setRenewEndDate(addDays(today, member.planSnapshot.durationDays));
+    setRenewEndDate(addDays(today, reopenPlan.durationDays));
 
     if (memberIsActive) {
       const settlement = getPlanChangeSettlement(member);
@@ -251,8 +270,8 @@ export default function MemberDetailPage() {
       setPlanChangeUsedValue(0);
       setPlanChangeShortfall(0);
       setProratedCredit(existingCredit);
-      setNewPlanPrice(member.finalPrice);
-      setRenewFinalPrice(String(member.finalPrice));
+      setNewPlanPrice(reopenPlan.basePrice);
+      setRenewFinalPrice(String(reopenPlan.basePrice));
       setRenewPayment("");
     }
     setModalError(null);
@@ -314,6 +333,11 @@ export default function MemberDetailPage() {
     setActiveModal("end");
   };
 
+  const openRevertEnd = () => {
+    setModalError(null);
+    setActiveModal("revert");
+  };
+
   const handlePayment = async () => {
     if (!member) return;
     const amount = parseFloat(paymentAmount);
@@ -355,7 +379,10 @@ export default function MemberDetailPage() {
       showToast(isUpgrade ? "Plan changed" : "Membership renewed");
       closeModal();
       fetchMember();
-    } catch { setModalError("Failed to update membership."); }
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } } };
+      setModalError(e.response?.data?.message || "Failed to update membership.");
+    }
     finally { setIsSubmitting(false); }
   };
 
@@ -405,6 +432,22 @@ export default function MemberDetailPage() {
     }
   };
 
+  const handleRevertEnd = async () => {
+    setIsSubmitting(true);
+    setModalError(null);
+    try {
+      await membersApi.revertEndMembership(memberId);
+      showToast("Membership end reverted");
+      closeModal();
+      fetchMember();
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } } };
+      setModalError(e.response?.data?.message || "Failed to revert membership end.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const fmt = (n: number) => `Rs.${n.toLocaleString("en-IN")}`;
   const fmtDate = (d: string) => new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
 
@@ -430,6 +473,7 @@ export default function MemberDetailPage() {
   }
 
   const memberIsActive = member.status === "active" || member.status === "expiring_soon";
+  const memberIsEnded = member.status === "ended";
   const renewFinalPriceValue = renewFinalPrice ? parseFloat(renewFinalPrice) : 0;
   const renewPayableAmount = Math.max(
     0,
@@ -566,7 +610,9 @@ export default function MemberDetailPage() {
                     <CalendarTodayOutlined sx={{ fontSize: 16, color: C.muted }} />
                     <Typography sx={{ fontSize: "0.72rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.8 }}>Membership Details</Typography>
                   </Box>
-                  <Button size="small" startIcon={<EditOutlined sx={{ fontSize: 14 }} />} onClick={openRenew} sx={{ fontSize: "0.75rem", fontWeight: 700 }}>Change</Button>
+                  <Button size="small" startIcon={<EditOutlined sx={{ fontSize: 14 }} />} onClick={openRenew} sx={{ fontSize: "0.75rem", fontWeight: 700 }}>
+                    {memberIsEnded ? "Reopen" : "Change"}
+                  </Button>
                 </Box>
                 <InfoRow label="Plan" value={member.planSnapshot.name} />
                 <InfoRow label="Duration" value={`${member.planSnapshot.durationDays} days`} />
@@ -678,36 +724,59 @@ export default function MemberDetailPage() {
                 </Typography>
               </Box>
               <Box sx={{ display: "flex", flexDirection: "column", gap: 1.25, mt: 2 }}>
-                <Button
-                  variant="contained"
-                  startIcon={<PaymentOutlined />}
-                  fullWidth
-                  onClick={openPayment}
-                  disabled={member.pendingAmount <= 0 || member.status === "ended"}
-                  sx={{ fontWeight: 700, borderRadius: "10px", py: 1.1 }}
-                >
-                  Record Payment
-                </Button>
-                <Button
-                  variant="outlined"
-                  startIcon={<AutorenewOutlined />}
-                  fullWidth
-                  onClick={openRenew}
-                  disabled={member.status === "ended"}
-                  sx={{ fontWeight: 700, borderRadius: "10px", py: 1.1 }}
-                >
-                  {memberIsActive ? "Change / Renew Plan" : "Renew Membership"}
-                </Button>
-                <Button
-                  variant="text"
-                  startIcon={<PersonOffOutlined />}
-                  fullWidth
-                  onClick={openEndMembership}
-                  disabled={member.status === "ended"}
-                  sx={{ fontWeight: 700, borderRadius: "10px", py: 1.05, color: "#B45309" }}
-                >
-                  End Membership
-                </Button>
+                {memberIsEnded ? (
+                  <>
+                    <Button
+                      variant="outlined"
+                      startIcon={<UndoOutlined />}
+                      fullWidth
+                      onClick={openRevertEnd}
+                      sx={{ fontWeight: 700, borderRadius: "10px", py: 1.1 }}
+                    >
+                      Revert End
+                    </Button>
+                    <Button
+                      variant="contained"
+                      startIcon={<AutorenewOutlined />}
+                      fullWidth
+                      onClick={openRenew}
+                      sx={{ fontWeight: 700, borderRadius: "10px", py: 1.1 }}
+                    >
+                      Reopen Membership
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      variant="contained"
+                      startIcon={<PaymentOutlined />}
+                      fullWidth
+                      onClick={openPayment}
+                      disabled={member.pendingAmount <= 0}
+                      sx={{ fontWeight: 700, borderRadius: "10px", py: 1.1 }}
+                    >
+                      Record Payment
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      startIcon={<AutorenewOutlined />}
+                      fullWidth
+                      onClick={openRenew}
+                      sx={{ fontWeight: 700, borderRadius: "10px", py: 1.1 }}
+                    >
+                      {memberIsActive ? "Change / Renew Plan" : "Renew Membership"}
+                    </Button>
+                    <Button
+                      variant="text"
+                      startIcon={<PersonOffOutlined />}
+                      fullWidth
+                      onClick={openEndMembership}
+                      sx={{ fontWeight: 700, borderRadius: "10px", py: 1.05, color: "#B45309" }}
+                    >
+                      End Membership
+                    </Button>
+                  </>
+                )}
               </Box>
             </Paper>
 
@@ -761,7 +830,7 @@ export default function MemberDetailPage() {
         PaperProps={{ elevation: 0, sx: MODULE_DIALOG_PAPER_SX }}
       >
         <DialogTitle sx={MODULE_DIALOG_TITLE_SX}>
-          {isUpgrade ? "Change Plan" : "Renew Membership"}
+          {isUpgrade ? "Change Plan" : memberIsEnded ? "Reopen Membership" : "Renew Membership"}
         </DialogTitle>
         <DialogContent ref={renewDialogContentRef} sx={MODULE_DIALOG_CONTENT_SX}>
           {modalError && <Alert severity="error" sx={{ mb: 2, mt: 1 }}>{modalError}</Alert>}
@@ -841,7 +910,7 @@ export default function MemberDetailPage() {
         <DialogActions sx={MODULE_DIALOG_ACTIONS_SX}>
           <Button onClick={closeModal} disabled={isSubmitting} color="inherit">Cancel</Button>
           <Button variant="contained" onClick={handleRenew} disabled={isSubmitting} sx={{ fontWeight: 700 }}>
-            {isSubmitting ? <CircularProgress size={20} color="inherit" /> : isUpgrade ? "Change Plan" : "Renew"}
+            {isSubmitting ? <CircularProgress size={20} color="inherit" /> : isUpgrade ? "Change Plan" : memberIsEnded ? "Reopen Membership" : "Renew"}
           </Button>
         </DialogActions>
       </Dialog>
@@ -957,6 +1026,29 @@ export default function MemberDetailPage() {
             sx={{ fontWeight: 700 }}
           >
             {isSubmitting ? <CircularProgress size={20} color="inherit" /> : "Confirm End Membership"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={activeModal === "revert"} onClose={closeModal} maxWidth="xs" fullWidth fullScreen={fullScreenDialog}
+        PaperProps={{ elevation: 0, sx: MODULE_DIALOG_PAPER_SX }}
+      >
+        <DialogTitle sx={MODULE_DIALOG_TITLE_SX}>Revert End</DialogTitle>
+        <DialogContent ref={revertDialogContentRef} sx={MODULE_DIALOG_CONTENT_SX}>
+          {modalError && <Alert severity="error" sx={{ mb: 2, mt: 1 }}>{modalError}</Alert>}
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, mt: 1 }}>
+            <Typography sx={{ fontSize: "0.92rem", color: C.slate, fontWeight: 700 }}>
+              Use this only when the membership was ended by mistake.
+            </Typography>
+            <Typography sx={{ fontSize: "0.85rem", color: C.muted, fontWeight: 600, lineHeight: 1.6 }}>
+              This restores the previous membership end date and the credit balance that existed before the membership was ended. The current plan continues without starting a new cycle.
+            </Typography>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={MODULE_DIALOG_ACTIONS_SX}>
+          <Button onClick={closeModal} disabled={isSubmitting} color="inherit">Cancel</Button>
+          <Button variant="contained" onClick={handleRevertEnd} disabled={isSubmitting} sx={{ fontWeight: 700 }}>
+            {isSubmitting ? <CircularProgress size={20} color="inherit" /> : "Confirm Revert"}
           </Button>
         </DialogActions>
       </Dialog>

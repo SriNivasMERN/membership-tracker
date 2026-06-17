@@ -8,6 +8,7 @@ import {
   addPayment,
   renewMember,
   endMembership,
+  revertEndMembership,
 } from "./member.controller";
 import { authenticate } from "../../middleware/auth.middleware";
 import { requireRole } from "../../middleware/role.middleware";
@@ -18,6 +19,7 @@ import {
   addPaymentSchema,
   renewMemberSchema,
   endMembershipSchema,
+  revertEndMembershipSchema,
 } from "./member.schema";
 
 const router = Router();
@@ -58,6 +60,12 @@ router.post(
   "/:id/end",
   validate(endMembershipSchema),
   endMembership
+);
+
+router.post(
+  "/:id/revert-end",
+  validate(revertEndMembershipSchema),
+  revertEndMembership
 );
 
 export default router;

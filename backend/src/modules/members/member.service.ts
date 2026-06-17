@@ -17,6 +17,7 @@ import {
   AddPaymentInput,
   RenewMemberInput,
   EndMembershipInput,
+  RevertEndMembershipInput,
 } from "./member.schema";
 
 const getExpiryAlertDays = async (businessId: string): Promise<number> => {
@@ -275,6 +276,13 @@ export const memberService = {
 
     if (!member) throw new AppError("Member not found", 404);
 
+    if (member.membershipClosure) {
+      throw new AppError(
+        "Payments cannot be recorded after the membership has ended. Reopen the membership to continue billing.",
+        400
+      );
+    }
+
     const pendingAmount = calculatePendingAmount(member.finalPrice, member.payments);
     if (input.amount > pendingAmount) {
       throw new AppError(`Payment cannot exceed pending amount of ${pendingAmount}`, 400);
@@ -314,7 +322,9 @@ export const memberService = {
       member.endDate,
       expiryAlertDays
     );
-    const isPlanChange = currentStatus === "active" || currentStatus === "expiring_soon";
+    const isPlanChange =
+      !member.membershipClosure &&
+      (currentStatus === "active" || currentStatus === "expiring_soon");
 
     const planId = input.planId || member.planSnapshot.planId.toString();
     const slotId = input.slotId || member.slotSnapshot.slotId.toString();
@@ -406,6 +416,7 @@ export const memberService = {
     member.endDate = newEndDate;
     member.finalPrice = finalPrice;
     member.creditBalance = remainingCreditBalance;
+    member.membershipClosure = undefined;
     member.updatedBy = new mongoose.Types.ObjectId(userId);
     member.payments = [];
 
@@ -497,6 +508,8 @@ export const memberService = {
     member.creditBalance = 0;
     member.membershipClosure = {
       endedOn: effectiveEndDate,
+      originalEndDate: currentEndDate,
+      originalCreditBalance: existingCredit,
       usedValue,
       settlementDeduction,
       refundableBalance,
@@ -504,6 +517,45 @@ export const memberService = {
       note: input.note,
       closedBy: new mongoose.Types.ObjectId(userId),
     };
+    member.updatedBy = new mongoose.Types.ObjectId(userId);
+
+    await member.save();
+
+    const expiryAlertDays = await getExpiryAlertDays(businessId);
+    return attachComputedFields(member, expiryAlertDays);
+  },
+
+  async revertEndMembership(
+    memberId: string,
+    businessId: string,
+    userId: string,
+    _input: RevertEndMembershipInput
+  ) {
+    const member = await Member.findOne({
+      _id: new mongoose.Types.ObjectId(memberId),
+      businessId: new mongoose.Types.ObjectId(businessId),
+      isDeleted: false,
+    });
+
+    if (!member) throw new AppError("Member not found", 404);
+
+    if (!member.membershipClosure) {
+      throw new AppError("This membership is not currently ended", 400);
+    }
+
+    if (
+      !member.membershipClosure.originalEndDate ||
+      member.membershipClosure.originalCreditBalance === undefined
+    ) {
+      throw new AppError(
+        "Revert is unavailable for this record because the previous membership state was not saved",
+        400
+      );
+    }
+
+    member.endDate = new Date(member.membershipClosure.originalEndDate);
+    member.creditBalance = member.membershipClosure.originalCreditBalance;
+    member.membershipClosure = undefined;
     member.updatedBy = new mongoose.Types.ObjectId(userId);
 
     await member.save();

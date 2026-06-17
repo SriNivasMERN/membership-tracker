@@ -181,3 +181,25 @@ export const endMembership = async (
     next(error);
   }
 };
+
+export const revertEndMembership = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const member = await memberService.revertEndMembership(
+      String(req.params.id),
+      req.user!.businessId,
+      req.user!.userId,
+      req.body
+    );
+    res.json({
+      success: true,
+      message: "Membership end reverted successfully",
+      data: member,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

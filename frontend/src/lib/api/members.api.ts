@@ -75,4 +75,9 @@ export const membersApi = {
     const response = await api.post(`/members/${id}/end`, data);
     return response.data;
   },
+
+  revertEndMembership: async (id: string) => {
+    const response = await api.post(`/members/${id}/revert-end`, {});
+    return response.data;
+  },
 };

@@ -24,6 +24,8 @@ export interface PaymentEntry {
 
 export interface MembershipClosure {
   endedOn: string;
+  originalEndDate?: string;
+  originalCreditBalance?: number;
   usedValue: number;
   settlementDeduction: number;
   refundableBalance: number;
