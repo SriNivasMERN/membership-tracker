@@ -22,6 +22,7 @@ This document validates:
 - Record Payment flow
 - Change / Renew Plan flow
 - End Membership flow
+- Revert End and Reopen Membership flows
 - Edit Member flow
 - Delete Member flow
 - Focus, scroll-to-message, and loading behavior
@@ -82,18 +83,23 @@ This document validates:
 | MEM-049 | Show Not Applicable for renewal date after membership is ended | Owner/Admin | Member membership has been ended | 1. Open ended member details 2. Observe renewal summary and list representation | Renewal date is shown as `Not Applicable` for ended membership instead of misleading active-style renewal date. | High |
 | MEM-050 | Show settlement outcome clearly when membership is ended | Owner/Admin | Member has either refundable balance or outstanding due | 1. End membership for different financial cases 2. Observe payment summary | Summary communicates the correct final outcome, such as refund due or pending amount due to the gym, without misleading wording. | High |
 | MEM-051 | Keep ended member visible in members list with correct status | Owner/Admin | A member has been ended successfully | 1. Return to `/members` 2. Find the ended member | Ended member remains accessible in the list and is clearly marked with `Ended` status. | High |
-| MEM-052 | Delete member successfully from members list | Owner/Admin | Deletable member exists | 1. Click delete action from list 2. Confirm deletion | Member is deleted successfully and list refreshes without crash. | Critical |
-| MEM-053 | Cancel member deletion | Owner/Admin | Delete confirmation dialog is open | 1. Open delete confirmation 2. Cancel action | Dialog closes and member remains unchanged. | Medium |
-| MEM-054 | Show inline loading state during deletion | Owner/Admin | Delete confirmation dialog is open | 1. Confirm deletion 2. Observe action button | Confirmation button shows loading state and blocks repeated submission until action finishes. | High |
-| MEM-055 | Auto-scroll to visible error when member-detail action fails | Owner/Admin | Any detail-page action fails due to API or validation response | 1. Trigger a failing action such as payment, renew, edit, or end membership 2. Observe error visibility | Error message is brought into view automatically so user does not miss the failure reason. | High |
-| MEM-056 | Keep number fields protected from accidental mouse-wheel changes | Owner/Admin | Payment or membership amount field is focused | 1. Focus numeric amount field 2. Scroll mouse wheel | Value does not accidentally change due to mouse-wheel input. | Medium |
-| MEM-057 | Members list is usable on mobile viewport | Owner/Admin | Browser width is between 360px and 480px | 1. Open `/members` on mobile viewport 2. Observe stat cards, filters, list/table, and actions | Page remains usable without horizontal page break. Filters stack cleanly and tap targets remain usable. | Critical |
-| MEM-058 | Add Member page is usable on mobile viewport | Owner/Admin | Browser width is between 360px and 480px | 1. Open `/members/new` on mobile viewport 2. Observe form layout and action buttons | Form fields stack vertically, remain readable, and do not require broken pinch-zoom behavior. | High |
-| MEM-059 | Member details page and dialogs are usable on mobile viewport | Owner/Admin | Browser width is between 360px and 480px | 1. Open a member details page on mobile viewport 2. Open payment, renew, edit, and end dialogs | Details layout and dialogs remain readable and usable on mobile-sized screens. | High |
-| MEM-060 | Members module is usable on tablet viewport | Owner/Admin | Browser width is between 768px and 1024px | 1. Open list, add, and detail pages on tablet viewport | Layout remains balanced, content is not clipped, and actions remain easy to use. | High |
-| MEM-061 | Members module is usable on laptop viewport | Owner/Admin | Browser width is between 1280px and 1440px | 1. Open list, add, and detail pages on laptop viewport | Layout remains visually balanced and table/actions remain fully visible. | Medium |
-| MEM-062 | Members module is usable on large desktop viewport | Owner/Admin | Browser width is 1920px or above | 1. Open list, add, and detail pages on large desktop viewport | Layout remains balanced without odd stretching, clipping, or overlap. | Medium |
-| MEM-063 | Staff can access allowed members module functions | Staff | Valid staff account exists with members access | 1. Login as staff 2. Open `/members` 3. Validate available actions | Members module loads successfully for staff according to access permissions. | High |
+| MEM-052 | Revert ended membership successfully when end was created by mistake | Owner/Admin | Member has been ended and previous membership state snapshot exists | 1. Open ended member details 2. Click `Revert End` 3. Confirm action | Membership returns to the previous active lifecycle state. Previous renewal date and prior credit state are restored correctly. | Critical |
+| MEM-053 | Reopen membership successfully for an ended member | Owner/Admin | Member is in ended status and at least one active plan and slot exist | 1. Open ended member details 2. Click `Reopen Membership` 3. Select valid active plan and slot 4. Submit | Membership starts a fresh cycle from the chosen start date. New final price, paid amount, and pending amount reflect the reopened cycle correctly. | Critical |
+| MEM-054 | Block payment posting after membership has ended | Owner/Admin | Member is already ended | 1. Open ended member details 2. Attempt to reach or submit payment flow through API/UI validation path | Payment is not accepted after closure. User is instructed to reopen membership before billing again. | Critical |
+| MEM-055 | Show inactive-plan restriction clearly in Reopen Membership flow | Owner/Admin | At least one inactive plan exists in the system | 1. Open ended member details 2. Try to reopen using an inactive plan through request validation path | Reopen is blocked for inactive plans. Clear error feedback is shown instead of silent failure. | High |
+| MEM-056 | Keep revert and reopen actions semantically separate | Owner/Admin | Member is ended | 1. Observe available ended-member actions 2. Use `Revert End` in one case 3. Use `Reopen Membership` in another case | `Revert End` restores the prior cycle. `Reopen Membership` starts a new cycle. The two actions do not produce the same outcome. | High |
+| MEM-057 | Delete member successfully from members list | Owner/Admin | Deletable member exists | 1. Click delete action from list 2. Confirm deletion | Member is deleted successfully and list refreshes without crash. | Critical |
+| MEM-058 | Cancel member deletion | Owner/Admin | Delete confirmation dialog is open | 1. Open delete confirmation 2. Cancel action | Dialog closes and member remains unchanged. | Medium |
+| MEM-059 | Show inline loading state during deletion | Owner/Admin | Delete confirmation dialog is open | 1. Confirm deletion 2. Observe action button | Confirmation button shows loading state and blocks repeated submission until action finishes. | High |
+| MEM-060 | Auto-scroll to visible error when member-detail action fails | Owner/Admin | Any detail-page action fails due to API or validation response | 1. Trigger a failing action such as payment, renew, edit, end, revert, or reopen 2. Observe error visibility | Error message is brought into view automatically so user does not miss the failure reason. | High |
+| MEM-061 | Keep number fields protected from accidental mouse-wheel changes | Owner/Admin | Payment or membership amount field is focused | 1. Focus numeric amount field 2. Scroll mouse wheel | Value does not accidentally change due to mouse-wheel input. | Medium |
+| MEM-062 | Members list is usable on mobile viewport | Owner/Admin | Browser width is between 360px and 480px | 1. Open `/members` on mobile viewport 2. Observe stat cards, filters, list/table, and actions | Page remains usable without horizontal page break. Filters stack cleanly and tap targets remain usable. | Critical |
+| MEM-063 | Add Member page is usable on mobile viewport | Owner/Admin | Browser width is between 360px and 480px | 1. Open `/members/new` on mobile viewport 2. Observe form layout and action buttons | Form fields stack vertically, remain readable, and do not require broken pinch-zoom behavior. | High |
+| MEM-064 | Member details page and dialogs are usable on mobile viewport | Owner/Admin | Browser width is between 360px and 480px | 1. Open a member details page on mobile viewport 2. Open payment, renew, edit, end, revert, and reopen dialogs | Details layout and dialogs remain readable and usable on mobile-sized screens. | High |
+| MEM-065 | Members module is usable on tablet viewport | Owner/Admin | Browser width is between 768px and 1024px | 1. Open list, add, and detail pages on tablet viewport | Layout remains balanced, content is not clipped, and actions remain easy to use. | High |
+| MEM-066 | Members module is usable on laptop viewport | Owner/Admin | Browser width is between 1280px and 1440px | 1. Open list, add, and detail pages on laptop viewport | Layout remains visually balanced and table/actions remain fully visible. | Medium |
+| MEM-067 | Members module is usable on large desktop viewport | Owner/Admin | Browser width is 1920px or above | 1. Open list, add, and detail pages on large desktop viewport | Layout remains balanced without odd stretching, clipping, or overlap. | Medium |
+| MEM-068 | Staff can access allowed members module functions | Staff | Valid staff account exists with members access | 1. Login as staff 2. Open `/members` 3. Validate available actions | Members module loads successfully for staff according to access permissions. | High |
 
 ## Execution Notes
 
@@ -102,6 +108,10 @@ This document validates:
 - For add-member duplicate checks, use an already existing mobile number in the test environment.
 - For financial actions, validate both paid and pending member states where applicable.
 - For ended-membership checks, validate at least one case with refund due and one case with pending amount due.
+- For ended-member lifecycle checks, validate both:
+  - revert end for mistaken closure
+  - reopen membership for fresh-cycle rejoining
+- Validate that ended memberships cannot accept further payment until reopened.
 - For responsive checks, validate at minimum:
   - `360px`
   - `768px`
