@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { slotService } from "./slot.service";
+import { logAuditAction } from "../auditTrail/auditTrail.utils";
 
 export const getAllSlots = async (
   req: Request,
@@ -59,6 +60,13 @@ export const createSlot = async (
       req.user!.businessId,
       req.body
     );
+    logAuditAction(req.user!, {
+      module: "slots",
+      action: "create",
+      entityId: String(slot._id),
+      entityLabel: slot.label,
+      description: `Created slot ${slot.label}`,
+    });
     res.status(201).json({
       success: true,
       message: "Slot created successfully",
@@ -80,6 +88,13 @@ export const updateSlot = async (
       req.user!.businessId,
       req.body
     );
+    logAuditAction(req.user!, {
+      module: "slots",
+      action: "update",
+      entityId: String(slot._id),
+      entityLabel: slot.label,
+      description: `Updated slot ${slot.label}`,
+    });
     res.json({
       success: true,
       message: "Slot updated successfully",
@@ -101,6 +116,13 @@ export const toggleSlotStatus = async (
       req.user!.businessId,
       req.body
     );
+    logAuditAction(req.user!, {
+      module: "slots",
+      action: req.body.isActive ? "activate" : "deactivate",
+      entityId: String(slot._id),
+      entityLabel: slot.label,
+      description: `${req.body.isActive ? "Activated" : "Deactivated"} slot ${slot.label}`,
+    });
     res.json({
       success: true,
       message: `Slot ${req.body.isActive ? "activated" : "deactivated"} successfully`,
@@ -121,6 +143,12 @@ export const deleteSlot = async (
       String(req.params.id),
       req.user!.businessId
     );
+    logAuditAction(req.user!, {
+      module: "slots",
+      action: "delete",
+      entityId: String(req.params.id),
+      description: "Deleted slot",
+    });
     res.json({
       success: true,
       message: "Slot deleted successfully",

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { settingsService } from "./settings.service";
+import { logAuditAction } from "../auditTrail/auditTrail.utils";
 
 export const getSettings = async (
   req: Request,
@@ -33,6 +34,12 @@ export const saveSettings = async (
       req.user!.businessId,
       req.body
     );
+    logAuditAction(req.user!, {
+      module: "settings",
+      action: "save",
+      entityLabel: settings.businessName,
+      description: `Saved settings for ${settings.businessName}`,
+    });
 
     res.json({
       success: true,
@@ -54,6 +61,12 @@ export const updateSettings = async (
       req.user!.businessId,
       req.body
     );
+    logAuditAction(req.user!, {
+      module: "settings",
+      action: "update",
+      entityLabel: settings.businessName,
+      description: `Updated settings for ${settings.businessName}`,
+    });
 
     res.json({
       success: true,

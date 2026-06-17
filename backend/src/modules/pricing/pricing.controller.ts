@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { pricingService } from "./pricing.service";
+import { logAuditAction } from "../auditTrail/auditTrail.utils";
 
 export const getAllRules = async (
   req: Request,
@@ -50,6 +51,13 @@ export const createRule = async (
       req.user!.businessId,
       req.body
     );
+    logAuditAction(req.user!, {
+      module: "pricing",
+      action: "create",
+      entityId: String(rule._id),
+      entityLabel: `Multiplier ${rule.multiplier}x`,
+      description: "Created pricing rule",
+    });
     res.status(201).json({
       success: true,
       message: "Pricing rule created successfully",
@@ -71,6 +79,22 @@ export const updateRule = async (
       req.user!.businessId,
       req.body
     );
+    const pricingAction =
+      typeof req.body.isActive === "boolean"
+        ? req.body.isActive
+          ? "activate"
+          : "deactivate"
+        : "update";
+    logAuditAction(req.user!, {
+      module: "pricing",
+      action: pricingAction,
+      entityId: String(rule._id),
+      entityLabel: `Multiplier ${rule.multiplier}x`,
+      description:
+        pricingAction === "update"
+          ? "Updated pricing rule"
+          : `${pricingAction === "activate" ? "Activated" : "Deactivated"} pricing rule`,
+    });
     res.json({
       success: true,
       message: "Pricing rule updated successfully",
@@ -91,6 +115,12 @@ export const deleteRule = async (
       String(req.params.id),
       req.user!.businessId
     );
+    logAuditAction(req.user!, {
+      module: "pricing",
+      action: "delete",
+      entityId: String(req.params.id),
+      description: "Deleted pricing rule",
+    });
     res.json({
       success: true,
       message: "Pricing rule deleted successfully",

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { memberService } from "./member.service";
+import { logAuditAction } from "../auditTrail/auditTrail.utils";
 
 export const createMember = async (
   req: Request,
@@ -12,6 +13,13 @@ export const createMember = async (
       req.user!.userId,
       req.body
     );
+    logAuditAction(req.user!, {
+      module: "members",
+      action: "create",
+      entityId: String(member._id),
+      entityLabel: member.name,
+      description: `Created member ${member.name}`,
+    });
     res.status(201).json({
       success: true,
       message: "Member created successfully",
@@ -85,6 +93,13 @@ export const updateMember = async (
       req.user!.userId,
       req.body
     );
+    logAuditAction(req.user!, {
+      module: "members",
+      action: "update",
+      entityId: String(member._id),
+      entityLabel: member.name,
+      description: `Updated member ${member.name}`,
+    });
     res.json({
       success: true,
       message: "Member updated successfully",
@@ -106,6 +121,12 @@ export const deleteMember = async (
       req.user!.businessId,
       req.user!.userId
     );
+    logAuditAction(req.user!, {
+      module: "members",
+      action: "delete",
+      entityId: String(req.params.id),
+      description: "Deleted member record",
+    });
     res.json({
       success: true,
       message: "Member deleted successfully",
@@ -128,6 +149,13 @@ export const addPayment = async (
       req.user!.userId,
       req.body
     );
+    logAuditAction(req.user!, {
+      module: "members",
+      action: "payment",
+      entityId: String(member._id),
+      entityLabel: member.name,
+      description: `Recorded payment of Rs.${Number(req.body.amount || 0).toLocaleString("en-IN")} for ${member.name}`,
+    });
     res.json({
       success: true,
       message: "Payment recorded successfully",
@@ -150,6 +178,13 @@ export const renewMember = async (
       req.user!.userId,
       req.body
     );
+    logAuditAction(req.user!, {
+      module: "members",
+      action: "renew",
+      entityId: String(member._id),
+      entityLabel: member.name,
+      description: `Updated membership cycle for ${member.name}`,
+    });
     res.json({
       success: true,
       message: "Membership renewed successfully",
@@ -172,6 +207,13 @@ export const endMembership = async (
       req.user!.userId,
       req.body
     );
+    logAuditAction(req.user!, {
+      module: "members",
+      action: "end",
+      entityId: String(member._id),
+      entityLabel: member.name,
+      description: `Ended membership for ${member.name}`,
+    });
     res.json({
       success: true,
       message: "Membership ended successfully",
@@ -194,6 +236,13 @@ export const revertEndMembership = async (
       req.user!.userId,
       req.body
     );
+    logAuditAction(req.user!, {
+      module: "members",
+      action: "revert",
+      entityId: String(member._id),
+      entityLabel: member.name,
+      description: `Reverted membership end for ${member.name}`,
+    });
     res.json({
       success: true,
       message: "Membership end reverted successfully",

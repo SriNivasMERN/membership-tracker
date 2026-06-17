@@ -12,6 +12,7 @@ import pricingRoutes from "./modules/pricing/pricing.routes";
 import userRoutes from "./modules/users/user.routes";
 import memberRoutes from "./modules/members/member.routes";
 import dashboardRoutes from "./modules/dashboard/dashboard.routes";
+import auditTrailRoutes from "./modules/auditTrail/auditTrail.routes";
 
 const app: Application = express();
 
@@ -35,6 +36,7 @@ app.use("/api/pricing", pricingRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/members", memberRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/audit-trail", auditTrailRoutes);
 
 // Health check
 app.get("/api/health", (_req, res) => {

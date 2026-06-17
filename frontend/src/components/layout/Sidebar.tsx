@@ -22,6 +22,7 @@ import {
   AttachMoneyOutlined,
   SettingsOutlined,
   PeopleAltOutlined,
+  HistoryOutlined,
 } from "@mui/icons-material";
 import { useAuth } from "@/context/AuthContext";
 
@@ -41,6 +42,7 @@ const navItems: NavItem[] = [
   { label: "Slots",         path: "/slots",     icon: <AccessTimeOutlined />,    ownerOnly: true },
   { label: "Pricing Rules", path: "/pricing",   icon: <AttachMoneyOutlined />,   ownerOnly: true },
   { label: "Users",         path: "/users",     icon: <PeopleAltOutlined />,     ownerOnly: true },
+  { label: "Audit Trail",   path: "/audit-trail", icon: <HistoryOutlined />,     ownerOnly: true },
   { label: "Settings",      path: "/settings",  icon: <SettingsOutlined />,      ownerOnly: true },
 ];
 

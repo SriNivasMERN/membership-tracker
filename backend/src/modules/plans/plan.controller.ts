@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { planService } from "./plan.service";
+import { logAuditAction } from "../auditTrail/auditTrail.utils";
 
 export const getAllPlans = async (
   req: Request,
@@ -67,6 +68,13 @@ export const createPlan = async (
       req.user!.businessId,
       req.body
     );
+    logAuditAction(req.user!, {
+      module: "plans",
+      action: "create",
+      entityId: String(plan._id),
+      entityLabel: plan.name,
+      description: `Created plan ${plan.name}`,
+    });
     res.status(201).json({
       success: true,
       message: "Plan created successfully",
@@ -88,6 +96,13 @@ export const updatePlan = async (
       req.user!.businessId,
       req.body
     );
+    logAuditAction(req.user!, {
+      module: "plans",
+      action: "update",
+      entityId: String(plan._id),
+      entityLabel: plan.name,
+      description: `Updated plan ${plan.name}`,
+    });
     res.json({
       success: true,
       message: "Plan updated successfully",
@@ -109,6 +124,13 @@ export const togglePlanStatus = async (
       req.user!.businessId,
       req.body
     );
+    logAuditAction(req.user!, {
+      module: "plans",
+      action: req.body.isActive ? "activate" : "deactivate",
+      entityId: String(plan._id),
+      entityLabel: plan.name,
+      description: `${req.body.isActive ? "Activated" : "Deactivated"} plan ${plan.name}`,
+    });
     res.json({
       success: true,
       message: `Plan ${req.body.isActive ? "activated" : "deactivated"} successfully`,
@@ -129,6 +151,12 @@ export const deletePlan = async (
       String(req.params.id),
       req.user!.businessId
     );
+    logAuditAction(req.user!, {
+      module: "plans",
+      action: "delete",
+      entityId: String(req.params.id),
+      description: "Deleted plan",
+    });
     res.json({
       success: true,
       message: "Plan deleted successfully",

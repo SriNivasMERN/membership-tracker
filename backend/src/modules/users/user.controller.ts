@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { userService } from "./user.service";
+import { logAuditAction } from "../auditTrail/auditTrail.utils";
 
 export const getAllUsers = async (
   req: Request,
@@ -65,6 +66,13 @@ export const createUser = async (
       req.user!.businessId,
       req.body
     );
+    logAuditAction(req.user!, {
+      module: "users",
+      action: "create",
+      entityId: String(user._id),
+      entityLabel: user.name,
+      description: `Created ${user.role} account for ${user.name}`,
+    });
     res.status(201).json({
       success: true,
       message: "User created successfully",
@@ -86,6 +94,13 @@ export const updateUser = async (
       req.user!.businessId,
       req.body
     );
+    logAuditAction(req.user!, {
+      module: "users",
+      action: "update",
+      entityId: String(user._id),
+      entityLabel: user.name,
+      description: `Updated user ${user.name}`,
+    });
     res.json({
       success: true,
       message: "User updated successfully",
@@ -108,6 +123,13 @@ export const toggleUserStatus = async (
       req.body,
       req.user!.userId
     );
+    logAuditAction(req.user!, {
+      module: "users",
+      action: req.body.isActive ? "activate" : "deactivate",
+      entityId: String(user._id),
+      entityLabel: user.name,
+      description: `${req.body.isActive ? "Activated" : "Deactivated"} user ${user.name}`,
+    });
     res.json({
       success: true,
       message: `User ${req.body.isActive ? "activated" : "deactivated"} successfully`,
@@ -130,6 +152,13 @@ export const updateCredentials = async (
       req.user!.businessId,
       req.body
     );
+    logAuditAction(req.user!, {
+      module: "users",
+      action: "credentials",
+      entityId: String(user._id),
+      entityLabel: user.name,
+      description: `Updated credentials for ${user.name}`,
+    });
     res.json({
       success: true,
       message: "Credentials updated successfully",

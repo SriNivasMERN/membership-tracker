@@ -17,6 +17,7 @@ const getPageTitle = (pathname: string): string => {
   if (pathname === "/plans") return "Plans";
   if (pathname === "/slots") return "Slots";
   if (pathname === "/pricing") return "Pricing Rules";
+  if (pathname === "/audit-trail") return "Audit Trail";
   if (pathname === "/settings") return "Settings";
   if (pathname === "/users") return "Users";
   return "Membership Tracker";
@@ -30,6 +31,7 @@ const getLoadingSubtitle = (pathname: string): string => {
   if (pathname === "/plans") return "Preparing membership plans...";
   if (pathname === "/slots") return "Preparing slot schedule...";
   if (pathname === "/pricing") return "Preparing pricing logic...";
+  if (pathname === "/audit-trail") return "Preparing business activity...";
   if (pathname === "/settings") return "Preparing business settings...";
   if (pathname === "/users") return "Preparing user access...";
   return "Preparing workspace...";
