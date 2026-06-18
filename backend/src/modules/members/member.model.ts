@@ -1,9 +1,12 @@
 import mongoose, { Document, Schema } from "mongoose";
 
+export type PaymentMethod = "cash" | "upi" | "card";
+
 // Payment entry shape
 export interface IPaymentEntry {
   amount: number;
   paidOn: Date;
+  paymentMethod?: PaymentMethod;
   note?: string;
   recordedBy: mongoose.Types.ObjectId;
 }
@@ -72,6 +75,10 @@ const paymentEntrySchema = new Schema<IPaymentEntry>(
     paidOn: {
       type: Date,
       required: [true, "Payment date is required"],
+    },
+    paymentMethod: {
+      type: String,
+      enum: ["cash", "upi", "card"],
     },
     note: {
       type: String,

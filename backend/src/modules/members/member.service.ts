@@ -92,6 +92,7 @@ export const memberService = {
       payments.push({
         amount: input.initialPayment,
         paidOn: new Date(),
+        paymentMethod: input.initialPaymentMethod,
         note: "Initial payment",
         recordedBy: new mongoose.Types.ObjectId(userId),
       });
@@ -291,6 +292,7 @@ export const memberService = {
     member.payments.push({
       amount: input.amount,
       paidOn: new Date(input.paidOn),
+      paymentMethod: input.paymentMethod,
       note: input.note,
       recordedBy: new mongoose.Types.ObjectId(userId),
     });
@@ -439,6 +441,7 @@ export const memberService = {
       member.payments.push({
         amount: paymentAppliedToNewPlan,
         paidOn: new Date(),
+        paymentMethod: input.initialPaymentMethod,
         note: "Renewal payment",
         recordedBy: new mongoose.Types.ObjectId(userId),
       });

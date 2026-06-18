@@ -2,6 +2,7 @@ import { z } from "zod";
 
 // ObjectId validation regex
 const objectIdRegex = /^[a-f\d]{24}$/i;
+const paymentMethodEnum = z.enum(["cash", "upi", "card"]);
 
 export const createMemberSchema = z.object({
   name: z
@@ -50,10 +51,20 @@ export const createMemberSchema = z.object({
     .min(0, "Payment cannot be negative")
     .optional(),
 
+  initialPaymentMethod: paymentMethodEnum.optional(),
+
   notes: z
     .string()
     .max(500, "Notes cannot exceed 500 characters")
     .optional(),
+}).superRefine((data, ctx) => {
+  if ((data.initialPayment ?? 0) > 0 && !data.initialPaymentMethod) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["initialPaymentMethod"],
+      message: "Payment method is required when initial payment is entered",
+    });
+  }
 });
 
 export const updateMemberSchema = z.object({
@@ -91,6 +102,8 @@ export const addPaymentSchema = z.object({
     .string()
     .min(1, "Payment date is required"),
 
+  paymentMethod: paymentMethodEnum,
+
   note: z
     .string()
     .max(200, "Note cannot exceed 200 characters")
@@ -121,6 +134,16 @@ export const renewMemberSchema = z.object({
     .number()
     .min(0, "Payment cannot be negative")
     .optional(),
+
+  initialPaymentMethod: paymentMethodEnum.optional(),
+}).superRefine((data, ctx) => {
+  if ((data.initialPayment ?? 0) > 0 && !data.initialPaymentMethod) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["initialPaymentMethod"],
+      message: "Payment method is required when payment is entered",
+    });
+  }
 });
 
 export const endMembershipSchema = z.object({

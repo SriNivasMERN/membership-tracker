@@ -40,7 +40,7 @@ import {
   CreditCardOutlined,
   PersonOffOutlined,
 } from "@mui/icons-material";
-import { Member } from "@/types/member.types";
+import { Member, PaymentMethod } from "@/types/member.types";
 import { Plan } from "@/types/plan.types";
 import { Slot } from "@/types/slot.types";
 import { membersApi } from "@/lib/api/members.api";
@@ -82,6 +82,12 @@ function addDays(dateStr: string, days: number): string {
 function preventNumberScroll(event: WheelEvent<HTMLInputElement>) {
   event.currentTarget.blur();
 }
+
+const PAYMENT_METHOD_OPTIONS: { value: PaymentMethod; label: string }[] = [
+  { value: "cash", label: "Cash" },
+  { value: "upi", label: "UPI" },
+  { value: "card", label: "Card" },
+];
 
 function getPlanChangeSettlement(member: Member) {
   const today = new Date();
@@ -149,6 +155,7 @@ export default function MemberDetailPage() {
   const [modalError, setModalError] = useState<string | null>(null);
 
   const [paymentAmount, setPaymentAmount] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | "">("");
   const [paymentNote, setPaymentNote] = useState("");
   const [paymentDate, setPaymentDate] = useState("");
 
@@ -158,6 +165,7 @@ export default function MemberDetailPage() {
   const [renewEndDate, setRenewEndDate] = useState("");
   const [renewFinalPrice, setRenewFinalPrice] = useState("");
   const [renewPayment, setRenewPayment] = useState("");
+  const [renewPaymentMethod, setRenewPaymentMethod] = useState<PaymentMethod | "">("");
   const [proratedCredit, setProratedCredit] = useState(0);
   const [planChangeUsedValue, setPlanChangeUsedValue] = useState(0);
   const [planChangeShortfall, setPlanChangeShortfall] = useState(0);
@@ -211,6 +219,18 @@ export default function MemberDetailPage() {
   }, []);
 
   useEffect(() => {
+    if (Number(paymentAmount || 0) <= 0) {
+      setPaymentMethod("");
+    }
+  }, [paymentAmount]);
+
+  useEffect(() => {
+    if (Number(renewPayment || 0) <= 0) {
+      setRenewPaymentMethod("");
+    }
+  }, [renewPayment]);
+
+  useEffect(() => {
     if (searchParams.get("action") === "edit" && member && activeModal === null && !autoOpenDone) {
       setAutoOpenDone(true);
       openEdit();
@@ -225,6 +245,7 @@ export default function MemberDetailPage() {
 
   const openPayment = () => {
     setPaymentAmount("");
+    setPaymentMethod("");
     setPaymentNote("");
     setPaymentDate(getTodayString());
     setModalError(null);
@@ -274,6 +295,7 @@ export default function MemberDetailPage() {
       setRenewFinalPrice(String(reopenPlan.basePrice));
       setRenewPayment("");
     }
+    setRenewPaymentMethod("");
     setModalError(null);
     setActiveModal("renew");
   };
@@ -343,10 +365,16 @@ export default function MemberDetailPage() {
     const amount = parseFloat(paymentAmount);
     if (!paymentAmount || amount <= 0) { setModalError("Enter a valid amount"); return; }
     if (amount > member.pendingAmount) { setModalError(`Payment cannot exceed pending amount of ${fmt(member.pendingAmount)}`); return; }
+    if (!paymentMethod) { setModalError("Select payment method"); return; }
     setIsSubmitting(true);
     setModalError(null);
     try {
-      await membersApi.addPayment(memberId, { amount, paidOn: paymentDate, note: paymentNote || undefined });
+      await membersApi.addPayment(memberId, {
+        amount,
+        paidOn: paymentDate,
+        paymentMethod,
+        note: paymentNote || undefined,
+      });
       showToast("Payment recorded");
       closeModal();
       fetchMember();
@@ -362,6 +390,10 @@ export default function MemberDetailPage() {
       0,
       finalPriceValue - (isUpgrade ? proratedCredit : 0) + (isUpgrade ? planChangeShortfall : 0)
     );
+    if (paymentValue > 0 && !renewPaymentMethod) {
+      setModalError("Select payment method");
+      return;
+    }
     if (renewPayment && paymentValue > payableAfterCredit) {
       setModalError(`Payment cannot exceed payable amount of ${fmt(payableAfterCredit)}`);
       return;
@@ -375,6 +407,8 @@ export default function MemberDetailPage() {
         startDate: renewStartDate,
         finalPrice: finalPriceValue || undefined,
         initialPayment: paymentValue || undefined,
+        initialPaymentMethod:
+          paymentValue > 0 && renewPaymentMethod ? renewPaymentMethod : undefined,
       });
       showToast(isUpgrade ? "Plan changed" : "Membership renewed");
       closeModal();
@@ -450,6 +484,18 @@ export default function MemberDetailPage() {
 
   const fmt = (n: number) => `Rs.${n.toLocaleString("en-IN")}`;
   const fmtDate = (d: string) => new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+  const fmtPaymentMethod = (method?: PaymentMethod) => {
+    switch (method) {
+      case "cash":
+        return "Cash";
+      case "upi":
+        return "UPI";
+      case "card":
+        return "Card";
+      default:
+        return "-";
+    }
+  };
 
   if (isLoading) {
     return (
@@ -638,7 +684,7 @@ export default function MemberDetailPage() {
                     <Table size="small" sx={{ minWidth: { xs: 520, md: 0 } }}>
                       <TableHead>
                         <TableRow sx={{ backgroundColor: C.surface }}>
-                          {["Date", "Amount", "Note"].map(h => (
+                          {["Date", "Amount", "Method", "Note"].map(h => (
                             <TableCell key={h} sx={MODULE_TABLE_HEAD_CELL_SX}>{h}</TableCell>
                           ))}
                         </TableRow>
@@ -651,6 +697,11 @@ export default function MemberDetailPage() {
                             </TableCell>
                             <TableCell sx={{ py: 1.25 }}>
                               <Typography sx={{ fontSize: "0.9rem", fontWeight: 800, color: C.green }}>{fmt(payment.amount)}</Typography>
+                            </TableCell>
+                            <TableCell sx={{ py: 1.25 }}>
+                              <Typography sx={{ fontSize: "0.88rem", color: C.slate, fontWeight: 700 }}>
+                                {fmtPaymentMethod(payment.paymentMethod)}
+                              </Typography>
                             </TableCell>
                             <TableCell sx={{ py: 1.25 }}>
                               <Typography sx={{ fontSize: "0.88rem", color: C.muted, fontWeight: 600 }}>{payment.note || "-"}</Typography>
@@ -813,6 +864,23 @@ export default function MemberDetailPage() {
               InputProps={{ startAdornment: <InputAdornment position="start">Rs.</InputAdornment> }}
               inputProps={{ min: 1, max: Math.max(member.pendingAmount, 0), onWheel: preventNumberScroll }}
               helperText={member.pendingAmount > 0 ? `Pending: ${fmt(member.pendingAmount)}` : ""} />
+            {Number(paymentAmount || 0) > 0 ? (
+              <TextField
+                select
+                label="Payment Method"
+                value={paymentMethod}
+                onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod | "")}
+                fullWidth
+                sx={MODULE_FIELD_SX}
+                helperText="Select how this payment was collected"
+              >
+                {PAYMENT_METHOD_OPTIONS.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+            ) : null}
             <TextField label="Payment Date" type="date" value={paymentDate} onChange={(e) => setPaymentDate(e.target.value)} fullWidth sx={MODULE_FIELD_SX} InputLabelProps={{ shrink: true }} />
             <TextField label="Note (optional)" value={paymentNote} onChange={(e) => setPaymentNote(e.target.value)} fullWidth multiline rows={2} sx={MODULE_FIELD_SX} />
           </Box>
@@ -905,6 +973,23 @@ export default function MemberDetailPage() {
               InputProps={{ startAdornment: <InputAdornment position="start">Rs.</InputAdornment> }}
               inputProps={{ min: 0, max: Math.max(renewPayableAmount, 0), onWheel: preventNumberScroll }}
               helperText={isUpgrade ? `Payable after settlement: ${fmt(renewPayableAmount)}` : "Leave blank if no payment now"} />
+            {Number(renewPayment || 0) > 0 ? (
+              <TextField
+                select
+                label="Payment Method"
+                value={renewPaymentMethod}
+                onChange={(e) => setRenewPaymentMethod(e.target.value as PaymentMethod | "")}
+                fullWidth
+                sx={MODULE_FIELD_SX}
+                helperText="Select how the collected amount was paid"
+              >
+                {PAYMENT_METHOD_OPTIONS.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+            ) : null}
           </Box>
         </DialogContent>
         <DialogActions sx={MODULE_DIALOG_ACTIONS_SX}>

@@ -44,7 +44,7 @@ export const membersApi = {
 
   addPayment: async (
     id: string,
-    data: { amount: number; paidOn: string; note?: string }
+    data: { amount: number; paidOn: string; paymentMethod: "cash" | "upi" | "card"; note?: string }
   ) => {
     const response = await api.post(`/members/${id}/payment`, data);
     return response.data;
@@ -58,6 +58,7 @@ export const membersApi = {
       startDate: string;
       finalPrice?: number;
       initialPayment?: number;
+      initialPaymentMethod?: "cash" | "upi" | "card";
     }
   ) => {
     const response = await api.post(`/members/${id}/renew`, data);

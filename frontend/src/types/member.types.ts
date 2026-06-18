@@ -1,4 +1,5 @@
 export type MemberStatus = "active" | "expiring_soon" | "expired" | "ended";
+export type PaymentMethod = "cash" | "upi" | "card";
 
 export interface PlanSnapshot {
   planId: string;
@@ -18,6 +19,7 @@ export interface PaymentEntry {
   _id: string;
   amount: number;
   paidOn: string;
+  paymentMethod?: PaymentMethod;
   note?: string;
   recordedBy: string;
 }

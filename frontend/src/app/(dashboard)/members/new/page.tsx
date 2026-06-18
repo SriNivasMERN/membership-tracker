@@ -36,6 +36,12 @@ import {
   MODULE_PAGE_SX,
 } from "@/components/ui/moduleStyles";
 
+const PAYMENT_METHOD_OPTIONS = [
+  { value: "cash", label: "Cash" },
+  { value: "upi", label: "UPI" },
+  { value: "card", label: "Card" },
+] as const;
+
 // Helper - client side only
 function getTodayString() {
   return new Date().toISOString().split("T")[0];
@@ -58,7 +64,16 @@ const createMemberSchema = z.object({
   startDate: z.string().min(1, "Start date is required"),
   finalPrice: z.number().min(0, "Price cannot be negative"),
   initialPayment: z.number().min(0, "Payment cannot be negative").optional(),
+  initialPaymentMethod: z.enum(["cash", "upi", "card"]).optional(),
   notes: z.string().max(500).optional().or(z.literal("")),
+}).superRefine((data, ctx) => {
+  if ((data.initialPayment ?? 0) > 0 && !data.initialPaymentMethod) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["initialPaymentMethod"],
+      message: "Select payment method",
+    });
+  }
 });
 
 type CreateMemberFormData = z.infer<typeof createMemberSchema>;
@@ -95,18 +110,26 @@ export default function AddMemberPage() {
     defaultValues: {
       finalPrice: 0,
       initialPayment: 0,
+      initialPaymentMethod: undefined,
       startDate: getTodayString(), // Default to today
     },
   });
 
   const selectedPlanId = watch("planId");
   const selectedSlotId = watch("slotId");
+  const initialPaymentValue = watch("initialPayment");
 
   useEffect(() => {
     if (apiError) {
       pageTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }, [apiError]);
+
+  useEffect(() => {
+    if ((initialPaymentValue ?? 0) <= 0) {
+      setValue("initialPaymentMethod", undefined);
+    }
+  }, [initialPaymentValue, setValue]);
 
   // Load plans and slots on mount
   useEffect(() => {
@@ -164,6 +187,8 @@ export default function AddMemberPage() {
         email: data.email || undefined,
         notes: data.notes || undefined,
         initialPayment: data.initialPayment || 0,
+        initialPaymentMethod:
+          (data.initialPayment ?? 0) > 0 ? data.initialPaymentMethod : undefined,
       });
       showToast("Member added successfully");
       navigateTo("/members");
@@ -233,7 +258,7 @@ export default function AddMemberPage() {
       )}
 
       <Paper elevation={0} sx={{ ...MODULE_CARD_SX, p: { xs: 1.8, sm: 2.1 }, borderRadius: "14px" }}>
-        <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
+        <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off">
           {(selectedPlan || selectedSlot) && (
             <Box sx={{ mb: 1.4 }}>
               <ModuleInfoStrip
@@ -263,6 +288,7 @@ export default function AddMemberPage() {
                 label="Full Name"
                 fullWidth
                 autoFocus
+                autoComplete="new-password"
                 error={!!errors.name}
                 helperText={errors.name?.message}
                 sx={MODULE_FIELD_SX}
@@ -273,6 +299,7 @@ export default function AddMemberPage() {
                 {...register("mobile")}
                 label="Mobile Number"
                 fullWidth
+                autoComplete="off"
                 error={!!errors.mobile}
                 helperText={errors.mobile?.message}
                 sx={MODULE_FIELD_SX}
@@ -284,6 +311,7 @@ export default function AddMemberPage() {
                 label="Email (optional)"
                 type="email"
                 fullWidth
+                autoComplete="off"
                 error={!!errors.email}
                 helperText={errors.email?.message}
                 sx={MODULE_FIELD_SX}
@@ -411,7 +439,7 @@ export default function AddMemberPage() {
               />
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={Number(initialPaymentValue || 0) > 0 ? 3 : 6}>
               <Controller
                 name="initialPayment"
                 control={control}
@@ -434,6 +462,32 @@ export default function AddMemberPage() {
                 )}
               />
             </Grid>
+            {Number(initialPaymentValue || 0) > 0 ? (
+              <Grid item xs={12} md={3}>
+                <Controller
+                  name="initialPaymentMethod"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      value={field.value ?? ""}
+                      select
+                      label="Payment Method"
+                      fullWidth
+                      sx={MODULE_FIELD_SX}
+                      error={!!errors.initialPaymentMethod}
+                      helperText={errors.initialPaymentMethod?.message || "Used for the registration payment"}
+                    >
+                      {PAYMENT_METHOD_OPTIONS.map((option) => (
+                        <MenuItem key={option.value} value={option.value}>
+                          {option.label}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  )}
+                />
+              </Grid>
+            ) : null}
             <Grid item xs={12} md={6}>
               <TextField
                 {...register("notes")}
@@ -441,6 +495,7 @@ export default function AddMemberPage() {
                 multiline
                 rows={2}
                 fullWidth
+                autoComplete="off"
                 sx={MODULE_FIELD_SX}
                 error={!!errors.notes}
                 helperText={errors.notes?.message}
