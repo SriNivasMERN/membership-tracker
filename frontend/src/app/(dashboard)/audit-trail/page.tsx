@@ -287,6 +287,17 @@ export default function AuditTrailPage() {
             }}
             fullWidth
             size="small"
+            InputLabelProps={{ shrink: true }}
+            SelectProps={{
+              displayEmpty: true,
+              renderValue: (value) => {
+                if (!value) return "All Modules";
+                return (
+                  MODULE_OPTIONS.find((option) => option.value === value)?.label ||
+                  String(value)
+                );
+              },
+            }}
             sx={MODULE_FIELD_SX}
             label="Module"
           >
@@ -305,6 +316,17 @@ export default function AuditTrailPage() {
             }}
             fullWidth
             size="small"
+            InputLabelProps={{ shrink: true }}
+            SelectProps={{
+              displayEmpty: true,
+              renderValue: (value) => {
+                if (!value) return "All Actions";
+                return (
+                  ACTION_OPTIONS.find((option) => option.value === value)?.label ||
+                  String(value)
+                );
+              },
+            }}
             sx={MODULE_FIELD_SX}
             label="Action"
           >
@@ -323,6 +345,17 @@ export default function AuditTrailPage() {
             }}
             fullWidth
             size="small"
+            InputLabelProps={{ shrink: true }}
+            SelectProps={{
+              displayEmpty: true,
+              renderValue: (value) => {
+                if (!value) return "All Roles";
+                return (
+                  ROLE_OPTIONS.find((option) => option.value === value)?.label ||
+                  String(value)
+                );
+              },
+            }}
             sx={MODULE_FIELD_SX}
             label="User Role"
           >

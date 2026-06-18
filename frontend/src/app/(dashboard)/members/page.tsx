@@ -388,6 +388,25 @@ export default function MembersPage() {
                 }}
                 size="small"
                 fullWidth
+                InputLabelProps={{ shrink: true }}
+                SelectProps={{
+                  displayEmpty: true,
+                  renderValue: (value) => {
+                    if (!value) return "All Status";
+                    switch (value) {
+                      case "active":
+                        return "Active";
+                      case "expiring_soon":
+                        return "Renewal Due Soon";
+                      case "expired":
+                        return "Expired";
+                      case "ended":
+                        return "Ended";
+                      default:
+                        return String(value);
+                    }
+                  },
+                }}
                 sx={MODULE_FIELD_SX}
               >
                 <MenuItem value="">All Status</MenuItem>
@@ -408,6 +427,15 @@ export default function MembersPage() {
                 }}
                 size="small"
                 fullWidth
+                InputLabelProps={{ shrink: true }}
+                SelectProps={{
+                  displayEmpty: true,
+                  renderValue: (value) => {
+                    if (!value) return "All Plans";
+                    const selectedPlan = plans.find((plan) => plan._id === value);
+                    return selectedPlan?.name || String(value);
+                  },
+                }}
                 sx={MODULE_FIELD_SX}
               >
                 <MenuItem value="">All Plans</MenuItem>
@@ -429,9 +457,17 @@ export default function MembersPage() {
                 }}
                 size="small"
                 fullWidth
+                InputLabelProps={{ shrink: true }}
+                SelectProps={{
+                  displayEmpty: true,
+                  renderValue: (value) => {
+                    if (!value) return "All Payments";
+                    return value === "pending" ? "Payment Due" : "Fully Paid";
+                  },
+                }}
                 sx={MODULE_FIELD_SX}
               >
-                <MenuItem value="">All</MenuItem>
+                <MenuItem value="">All Payments</MenuItem>
                 <MenuItem value="pending">Payment Due</MenuItem>
                 <MenuItem value="paid">Fully Paid</MenuItem>
               </TextField>
