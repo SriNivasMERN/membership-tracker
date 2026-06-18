@@ -5,7 +5,7 @@ export default function Loading() {
     <AppLoadingScreen
       fullScreen
       title="Membership Tracker"
-      subtitle="Preparing sign in..."
+      subtitle="Preparing access..."
     />
   );
 }
