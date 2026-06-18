@@ -72,6 +72,22 @@ export default function Sidebar({
     return pathname.startsWith(path);
   };
 
+  const formattedLastLogin = (() => {
+    if (!user?.previousLoginAt) return "First session";
+
+    const parsedDate = new Date(user.previousLoginAt);
+    if (Number.isNaN(parsedDate.getTime())) return "First session";
+
+    return parsedDate.toLocaleString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+  })();
+
   const handleNavigate = (path: string) => {
     if (pathname === path) {
       if (isMobile) onMobileClose();
@@ -224,7 +240,7 @@ export default function Sidebar({
       <Box sx={{ mt: "auto" }}>
         {/* User info */}
         <Divider sx={{ borderColor: "rgba(255,255,255,0.1)" }} />
-        <Box sx={{ px: 2.5, py: 2.25 }}>
+        <Box sx={{ px: 2.5, pt: 2.9, pb: 2.35, minHeight: 108 }}>
           <Typography
             variant="body2"
             sx={{ color: "white", fontWeight: 600, fontSize: "0.82rem" }}
@@ -234,14 +250,44 @@ export default function Sidebar({
           <Typography
             variant="caption"
             sx={{
-              color: "rgba(255,255,255,0.6)",
+              color: "rgba(241,245,249,0.84)",
               textTransform: "capitalize",
               fontSize: "0.75rem",
-              fontWeight: 500,
+              fontWeight: 600,
+              letterSpacing: 0.1,
             }}
           >
             {user?.role}
           </Typography>
+          <Box sx={{ mt: 1.25 }}>
+            <Typography
+              variant="caption"
+              sx={{
+                display: "block",
+                color: "rgba(191,219,254,0.72)",
+                fontSize: "0.67rem",
+                fontWeight: 700,
+                letterSpacing: 0.45,
+                textTransform: "uppercase",
+                lineHeight: 1.2,
+              }}
+            >
+              Last Login
+            </Typography>
+            <Typography
+              variant="caption"
+              sx={{
+                display: "block",
+                mt: 0.4,
+                color: "rgba(248,250,252,0.96)",
+                fontSize: "0.73rem",
+                fontWeight: 600,
+                lineHeight: 1.4,
+              }}
+            >
+              {formattedLastLogin}
+            </Typography>
+          </Box>
         </Box>
       </Box>
     </Box>

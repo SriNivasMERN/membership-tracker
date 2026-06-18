@@ -6,4 +6,5 @@ export interface AuthUser {
   email: string;
   role: UserRole;
   businessId: string;
+  previousLoginAt?: string | null;
 }

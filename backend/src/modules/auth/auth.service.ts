@@ -93,10 +93,19 @@ export const authService = {
     // Generate both tokens
     const accessToken = generateAccessToken(tokenPayload);
     const refreshToken = generateRefreshToken(tokenPayload);
+    const loginTimestamp = new Date();
 
     // Hash refresh token before storing - never store plain token
     const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
-    await User.findByIdAndUpdate(user._id, { refreshTokenHash });
+    const updatedUser = await User.findByIdAndUpdate(
+      user._id,
+      {
+        refreshTokenHash,
+        previousLoginAt: user.lastLoginAt ?? null,
+        lastLoginAt: loginTimestamp,
+      },
+      { new: true }
+    );
 
     // Set refresh token as httpOnly cookie
     res.cookie("refreshToken", refreshToken, {
@@ -106,7 +115,7 @@ export const authService = {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
     });
 
-    return { accessToken, user };
+    return { accessToken, user: updatedUser ?? user };
   },
 
   async logout(res: Response): Promise<void> {

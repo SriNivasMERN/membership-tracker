@@ -10,6 +10,8 @@ export interface IUser {
   role: UserRole;
   isActive: boolean;
   refreshTokenHash?: string;
+  lastLoginAt?: Date | null;
+  previousLoginAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -52,6 +54,14 @@ const userSchema = new Schema<IUserDocument>(
     },
     refreshTokenHash: {
       type: String,
+    },
+    lastLoginAt: {
+      type: Date,
+      default: null,
+    },
+    previousLoginAt: {
+      type: Date,
+      default: null,
     },
   },
   {

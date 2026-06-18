@@ -58,6 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           email: userData.email,
           role: userData.role,
           businessId: userData.businessId,
+          previousLoginAt: userData.previousLoginAt ?? null,
         });
       } catch {
         setUser(null);
@@ -85,6 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email: userData.email,
       role: userData.role,
       businessId: userData.businessId,
+      previousLoginAt: userData.previousLoginAt ?? null,
     };
     setUser(authUser);
     setAccessToken(token);
