@@ -637,7 +637,7 @@ export default function UsersPage() {
         }}
       >
         <TableContainer sx={MODULE_TABLE_CONTAINER_SX}>
-          <Table sx={{ minWidth: { xs: 820, md: 0 } }}>
+          <Table sx={{ minWidth: { xs: 720, sm: 760, md: 0 } }}>
             <TableHead>
               <TableRow
                 sx={{

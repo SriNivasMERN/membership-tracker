@@ -71,11 +71,12 @@ export default function LoginPage() {
         alignItems: "center",
         justifyContent: "center",
         backgroundColor: "background.default",
-        px: 2,
+        px: { xs: 1.5, sm: 2 },
+        py: { xs: 3, sm: 4 },
       }}
     >
       <Box ref={pageTopRef} sx={{ width: "100%", maxWidth: 420 }}>
-        <Box sx={{ textAlign: "center", mb: 4 }}>
+        <Box sx={{ textAlign: "center", mb: { xs: 3, sm: 4 } }}>
           <Box
             sx={{
               width: 56,
@@ -102,10 +103,10 @@ export default function LoginPage() {
         <Box
           sx={{
             backgroundColor: "background.paper",
-            borderRadius: 2,
+            borderRadius: { xs: 2.5, sm: 2 },
             border: "1px solid #E8EDF3",
             boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-            p: 4,
+            p: { xs: 2.5, sm: 4 },
           }}
         >
           {apiError && (

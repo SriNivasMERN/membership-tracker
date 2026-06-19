@@ -482,7 +482,7 @@ export default function PlansPage() {
         }}
       >
         <TableContainer sx={MODULE_TABLE_CONTAINER_SX}>
-          <Table sx={{ minWidth: { xs: 720, md: 0 } }}>
+          <Table sx={{ minWidth: { xs: 660, sm: 700, md: 0 } }}>
             <TableHead>
               <TableRow
                 sx={{

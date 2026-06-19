@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
   Button,
+  CircularProgress,
   InputAdornment,
   MenuItem,
   Paper,
@@ -117,6 +118,7 @@ function getActionColor(action: AuditAction) {
 
 export default function AuditTrailPage() {
   const searchInputRef = useRef<HTMLInputElement | null>(null);
+  const hasFetchedOnceRef = useRef(false);
   const [entries, setEntries] = useState<AuditTrailEntry[]>([]);
   const [summary, setSummary] = useState<AuditTrailSummary>({
     total: 0,
@@ -125,6 +127,7 @@ export default function AuditTrailPage() {
     staffActions: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [isFiltering, setIsFiltering] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -135,7 +138,11 @@ export default function AuditTrailPage() {
   const [actorRoleFilter, setActorRoleFilter] = useState("");
 
   const fetchEntries = useCallback(async () => {
-    setIsLoading(true);
+    if (hasFetchedOnceRef.current) {
+      setIsFiltering(true);
+    } else {
+      setIsLoading(true);
+    }
     setError(null);
     try {
       const response = await auditTrailApi.getAll({
@@ -158,10 +165,12 @@ export default function AuditTrailPage() {
       );
       setFilteredCount(response.filteredCount || 0);
       setTotalPages(response.pagination?.totalPages || 1);
+      hasFetchedOnceRef.current = true;
     } catch {
       setError("Failed to load audit trail. Please refresh.");
     } finally {
       setIsLoading(false);
+      setIsFiltering(false);
       window.requestAnimationFrame(() => {
         searchInputRef.current?.focus();
       });
@@ -253,12 +262,36 @@ export default function AuditTrailPage() {
           display: "grid",
           gridTemplateColumns: {
             xs: "1fr",
-            md: "1.8fr 1fr 1fr 1fr auto",
+            sm: "repeat(2, minmax(0, 1fr))",
+            lg: "1.8fr 1fr 1fr 1fr auto",
           },
           gap: 1,
           alignItems: "center",
         }}
       >
+          {isFiltering ? (
+            <Box
+              sx={{
+                gridColumn: { xs: "1 / -1", md: "1 / -1" },
+                display: "flex",
+                alignItems: "center",
+                gap: 0.9,
+                px: 0.2,
+                pb: 0.15,
+              }}
+            >
+              <CircularProgress size={16} sx={{ color: C.muted }} />
+              <Typography
+                sx={{
+                  fontSize: "0.78rem",
+                  color: C.muted,
+                  fontWeight: 700,
+                }}
+              >
+                Updating activity log...
+              </Typography>
+            </Box>
+          ) : null}
           <TextField
             inputRef={searchInputRef}
             placeholder="Search by module, action, user, or description"
@@ -276,6 +309,11 @@ export default function AuditTrailPage() {
                   <SearchOutlined sx={{ fontSize: 18, color: C.slate }} />
                 </InputAdornment>
               ),
+              endAdornment: isFiltering ? (
+                <InputAdornment position="end">
+                  <CircularProgress size={16} sx={{ color: C.muted }} />
+                </InputAdornment>
+              ) : null,
             }}
           />
           <TextField
@@ -371,10 +409,11 @@ export default function AuditTrailPage() {
             onClick={handleClear}
             disabled={!hasFilters}
             sx={{
-              minHeight: 40,
+              minHeight: 44,
               px: 1.25,
               borderColor: hasFilters ? C.border : "transparent",
               color: hasFilters ? C.slate : C.muted,
+              gridColumn: { xs: "1 / -1", sm: "auto", lg: "auto" },
             }}
           >
             Clear
@@ -414,19 +453,14 @@ export default function AuditTrailPage() {
         ) : (
           <>
             <TableContainer sx={MODULE_TABLE_CONTAINER_SX}>
-              <Table sx={{ minWidth: 980 }}>
+              <Table>
                 <TableHead>
-                  <TableRow
-                    sx={{
-                      background:
-                        "linear-gradient(180deg, rgba(252,247,241,0.95) 0%, rgba(248,242,235,0.82) 100%)",
-                    }}
-                  >
-                    <TableCell sx={{ ...MODULE_TABLE_HEAD_CELL_SX, background: "transparent" }}>Date & Time</TableCell>
-                    <TableCell sx={{ ...MODULE_TABLE_HEAD_CELL_SX, background: "transparent" }}>Module</TableCell>
-                    <TableCell sx={{ ...MODULE_TABLE_HEAD_CELL_SX, background: "transparent" }}>Action</TableCell>
-                    <TableCell sx={{ ...MODULE_TABLE_HEAD_CELL_SX, background: "transparent" }}>Description</TableCell>
-                    <TableCell sx={{ ...MODULE_TABLE_HEAD_CELL_SX, background: "transparent" }}>Done By</TableCell>
+                  <TableRow>
+                    <TableCell sx={MODULE_TABLE_HEAD_CELL_SX}>Date & Time</TableCell>
+                    <TableCell sx={MODULE_TABLE_HEAD_CELL_SX}>Module</TableCell>
+                    <TableCell sx={MODULE_TABLE_HEAD_CELL_SX}>Action</TableCell>
+                    <TableCell sx={MODULE_TABLE_HEAD_CELL_SX}>Description</TableCell>
+                    <TableCell sx={MODULE_TABLE_HEAD_CELL_SX}>Done By</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>

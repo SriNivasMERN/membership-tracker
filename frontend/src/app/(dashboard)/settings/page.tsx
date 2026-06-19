@@ -364,7 +364,7 @@ export default function SettingsPage() {
       <Box
         sx={{
           display: "grid",
-          gridTemplateColumns: { xs: "1fr", lg: "minmax(0, 9fr) minmax(0, 3fr)" },
+          gridTemplateColumns: { xs: "1fr", xl: "minmax(0, 9fr) minmax(0, 3fr)" },
           gap: 1.15,
           alignItems: "stretch",
         }}

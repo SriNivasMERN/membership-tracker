@@ -110,7 +110,8 @@ export default function Sidebar({
         borderTop: "1px solid rgba(255,255,255,0.12)",
         borderTopRightRadius: "18px",
         borderBottomRightRadius: "18px",
-        minHeight: "calc(100vh - 12px)",
+        minHeight: "calc(100dvh - 12px)",
+        height: "calc(100dvh - 12px)",
         display: "flex",
         flexDirection: "column",
         position: "relative",
@@ -179,6 +180,15 @@ export default function Sidebar({
             display: "flex",
             flexDirection: "column",
             gap: 0.3,
+            flex: 1,
+            minHeight: 0,
+            overflowY: "auto",
+            overscrollBehaviorY: "contain",
+            "&::-webkit-scrollbar": {
+              width: 0,
+              height: 0,
+            },
+            scrollbarWidth: "none",
           }}
         >
           {visibleItems.map((item) => (

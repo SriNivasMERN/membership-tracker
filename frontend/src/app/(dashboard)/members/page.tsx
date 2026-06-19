@@ -191,13 +191,13 @@ export default function MembersPage() {
   const columns = [
     { key: "select", label: "", width: "4.5%", align: "center" as const },
     { key: "member", label: "Member", width: "19%" },
-    { key: "mobile", label: "Mobile", width: "11%", align: "center" as const },
+    { key: "mobile", label: "Mobile", width: "12%", align: "left" as const },
     { key: "plan", label: "Plan", width: "12%" },
     { key: "slot", label: "Slot", width: "15%" },
     { key: "renewal", label: "Renewal Date", width: "12.5%" },
     { key: "payment", label: "Payment Due", width: "10%" },
-    { key: "status", label: "Status", width: "8.5%" },
-    { key: "actions", label: "Actions", width: "7.5%", align: "center" as const },
+    { key: "status", label: "Status", width: "9%" },
+    { key: "actions", label: "Actions", width: "6%", align: "center" as const },
   ];
 
   const formatDate = (date: string) =>
@@ -669,7 +669,7 @@ export default function MembersPage() {
               sx={{
                 tableLayout: { xs: "auto", lg: "fixed" },
                 width: "100%",
-                minWidth: { xs: 1180, lg: 0 },
+                minWidth: { xs: 1020, md: 1080, lg: 0 },
               }}
             >
               <colgroup>
@@ -777,13 +777,13 @@ export default function MembersPage() {
                           </Typography>
                         </Box>
                       </TableCell>
-                      <TableCell sx={{ py: 1.45, px: 1, verticalAlign: "top", textAlign: "center" }}>
+                      <TableCell sx={{ py: 1.45, px: 1, verticalAlign: "top", textAlign: "left" }}>
                         <Box
                           sx={{
                             mt: -0.02,
                             display: "inline-flex",
                             alignItems: "center",
-                            justifyContent: "center",
+                            justifyContent: "flex-start",
                             minHeight: 30,
                             px: 0.9,
                             borderRadius: "999px",
@@ -851,7 +851,7 @@ export default function MembersPage() {
                         </Typography>
                       </TableCell>
                       <TableCell sx={{ py: 1.45, px: 0.6, verticalAlign: "top", textAlign: "center" }} onClick={(e) => e.stopPropagation()}>
-                        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 0.12, minWidth: 82, mt: -0.02, mx: "auto" }}>
+                        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 0.2, minWidth: 96, mt: -0.02, mx: "auto" }}>
                           <Tooltip title="View">
                             <IconButton size="small" onClick={() => navigateTo(`/members/${member._id}`)} sx={{ p: 0.38, ...getActionIconSx("primary") }}>
                               <VisibilityOutlined sx={{ fontSize: 16 }} />

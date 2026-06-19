@@ -32,11 +32,12 @@ export const MODULE_HOVER_MOTION_SX: SystemStyleObject<Theme> = {
 export const MODULE_PAGE_SX: SxProps<Theme> = {
   display: "flex",
   flexDirection: "column",
-  gap: { xs: 1.5, sm: 2, md: 2.25 },
-  p: { xs: 0, sm: 0.15, md: 0.5 },
+  gap: { xs: 1.25, sm: 1.7, md: 2.1, lg: 2.25 },
+  p: { xs: 0, sm: 0.15, md: 0.4, lg: 0.5 },
   borderRadius: { xs: "20px", sm: "22px", md: "24px" },
   background: MODULE_COLORS.background,
   minWidth: 0,
+  width: "100%",
 };
 
 export const MODULE_FIELD_SX: SxProps<Theme> = {
@@ -72,14 +73,15 @@ export const MODULE_CARD_SX: SystemStyleObject<Theme> = {
 };
 
 export const MODULE_DIALOG_PAPER_SX: SxProps<Theme> = {
-  borderRadius: { xs: "20px", sm: "18px" },
+  borderRadius: { xs: 0, sm: "18px" },
   border: `1px solid ${MODULE_COLORS.border}`,
   boxShadow: "0 24px 44px rgba(36,58,87,0.14)",
   background: "linear-gradient(180deg, rgba(255,255,255,0.996) 0%, rgba(253,250,246,0.988) 100%)",
-  width: { xs: "calc(100vw - 16px)", sm: "min(680px, calc(100vw - 32px))" },
-  maxWidth: { xs: "calc(100vw - 16px)", sm: "min(680px, calc(100vw - 32px))" },
-  maxHeight: { xs: "calc(100dvh - 16px)", sm: "calc(100dvh - 32px)" },
-  m: { xs: 1, sm: 2 },
+  width: { xs: "100vw", sm: "min(680px, calc(100vw - 32px))" },
+  maxWidth: { xs: "100vw", sm: "min(680px, calc(100vw - 32px))" },
+  minHeight: { xs: "100dvh", sm: "auto" },
+  maxHeight: { xs: "100dvh", sm: "calc(100dvh - 32px)" },
+  m: { xs: 0, sm: 2 },
   overflow: "hidden",
 };
 
@@ -95,7 +97,10 @@ export const MODULE_DIALOG_TITLE_SX: SxProps<Theme> = {
 
 export const MODULE_DIALOG_CONTENT_SX: SxProps<Theme> = {
   px: { xs: 2, sm: 3 },
+  pt: { xs: 1.25, sm: 1.5 },
   pb: { xs: 1.25, sm: 1.5 },
+  overflowY: "auto",
+  WebkitOverflowScrolling: "touch",
 };
 
 export const MODULE_DIALOG_ACTIONS_SX: SxProps<Theme> = {
@@ -124,9 +129,13 @@ export const MODULE_TABLE_HEAD_CELL_SX: SxProps<Theme> = {
   fontSize: { xs: "0.68rem", sm: "0.72rem" },
   color: MODULE_COLORS.slate,
   py: { xs: 1.15, sm: 1.45 },
+  px: { xs: 1.35, sm: 1.7, md: 2 },
+  background:
+    "linear-gradient(180deg, rgba(252,247,241,0.96) 0%, rgba(250,244,236,0.94) 100%)",
   borderBottom: `1px solid ${MODULE_COLORS.border}`,
   letterSpacing: 0.4,
   textTransform: "uppercase",
+  whiteSpace: "nowrap",
 };
 
 export const MODULE_TABLE_ROW_SX: SxProps<Theme> = {
@@ -157,6 +166,16 @@ export const MODULE_TABLE_CONTAINER_SX: SxProps<Theme> = {
   overflowY: "hidden",
   WebkitOverflowScrolling: "touch",
   overscrollBehaviorX: "contain",
+  maxWidth: "100%",
+  "& .MuiTable-root": {
+    minWidth: { xs: 720, sm: 820, md: "100%" },
+    tableLayout: { xs: "auto", md: "fixed" },
+  },
+  "& .MuiTableBody-root .MuiTableCell-root": {
+    px: { xs: 1.35, sm: 1.7, md: 2 },
+    py: { xs: 1.2, sm: 1.45, md: 1.6 },
+    verticalAlign: "top",
+  },
   "&::-webkit-scrollbar": {
     height: 8,
   },

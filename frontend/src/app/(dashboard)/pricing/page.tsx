@@ -642,7 +642,7 @@ export default function PricingPage() {
         }}
       >
         <TableContainer sx={MODULE_TABLE_CONTAINER_SX}>
-          <Table sx={{ minWidth: { xs: 980, lg: 0 } }}>
+          <Table sx={{ minWidth: { xs: 860, md: 920, lg: 0 } }}>
             <TableHead>
               <TableRow
                 sx={{

@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import Sidebar, { SIDEBAR_WIDTH } from "@/components/layout/Sidebar";
 import Topbar from "@/components/layout/Topbar";
 import AppLoadingScreen from "@/components/ui/AppLoadingScreen";
+import { getModuleLoadingCopy } from "@/components/ui/getModuleLoadingCopy";
 import { NavigationLoadingProvider } from "@/context/NavigationLoadingContext";
 
 const getPageTitle = (pathname: string): string => {
@@ -21,20 +22,6 @@ const getPageTitle = (pathname: string): string => {
   if (pathname === "/settings") return "Settings";
   if (pathname === "/users") return "Users";
   return "Membership Tracker";
-};
-
-const getLoadingSubtitle = (pathname: string): string => {
-  if (pathname === "/dashboard") return "Preparing business overview...";
-  if (pathname.startsWith("/members/new")) return "Preparing member setup...";
-  if (pathname.match(/\/members\/.+/)) return "Preparing member workspace...";
-  if (pathname === "/members") return "Preparing member records...";
-  if (pathname === "/plans") return "Preparing membership plans...";
-  if (pathname === "/slots") return "Preparing slot schedule...";
-  if (pathname === "/pricing") return "Preparing pricing logic...";
-  if (pathname === "/audit-trail") return "Preparing business activity...";
-  if (pathname === "/settings") return "Preparing business settings...";
-  if (pathname === "/users") return "Preparing user access...";
-  return "Preparing workspace...";
 };
 
 export default function DashboardLayout({
@@ -85,11 +72,13 @@ export default function DashboardLayout({
         <Box
           sx={{
             flex: 1,
+            width: 0,
             marginLeft: { xs: 0, md: `${SIDEBAR_WIDTH}px` },
             backgroundColor: "background.default",
             minHeight: "100vh",
             display: "flex",
             flexDirection: "column",
+            overflowX: "clip",
           }}
         >
           <Topbar
@@ -100,8 +89,9 @@ export default function DashboardLayout({
             sx={{
               flex: 1,
               mt: "64px",
-              p: { xs: 1.5, sm: 2 },
-              pt: { xs: 1, sm: 1.25 },
+              p: { xs: 1, sm: 1.5, md: 2 },
+              pt: { xs: 0.9, sm: 1.1, md: 1.25 },
+              minWidth: 0,
             }}
           >
             {children}
@@ -117,8 +107,8 @@ export default function DashboardLayout({
           >
             <AppLoadingScreen
               fullScreen
-              title={getPageTitle(pendingPath)}
-              subtitle={getLoadingSubtitle(pendingPath)}
+              title={getModuleLoadingCopy(pendingPath).title || getPageTitle(pendingPath)}
+              subtitle={getModuleLoadingCopy(pendingPath).subtitle}
             />
           </Box>
         ) : null}

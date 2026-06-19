@@ -427,7 +427,7 @@ export default function SlotsPage() {
         }}
       >
         <TableContainer sx={MODULE_TABLE_CONTAINER_SX}>
-          <Table sx={{ minWidth: { xs: 760, md: 0 } }}>
+          <Table sx={{ minWidth: { xs: 680, sm: 720, md: 0 } }}>
             <TableHead>
               <TableRow
                 sx={{

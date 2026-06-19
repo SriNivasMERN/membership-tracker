@@ -681,7 +681,7 @@ export default function MemberDetailPage() {
                   </Box>
                 ) : (
                   <TableContainer sx={MODULE_TABLE_CONTAINER_SX}>
-                    <Table size="small" sx={{ minWidth: { xs: 520, md: 0 } }}>
+                    <Table size="small" sx={{ minWidth: { xs: 460, sm: 500, md: 0 } }}>
                       <TableHead>
                         <TableRow sx={{ backgroundColor: C.surface }}>
                           {["Date", "Amount", "Method", "Note"].map(h => (
