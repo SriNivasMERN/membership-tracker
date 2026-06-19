@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   Box,
   Button,
+  Checkbox,
   Chip,
   Grid,
   IconButton,
@@ -99,6 +100,7 @@ export default function MembersPage() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deletingMember, setDeletingMember] = useState<Member | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
   const hasFetchedOnceRef = useRef(false);
 
   useEffect(() => {
@@ -159,6 +161,10 @@ export default function MembersPage() {
   }, [page]);
 
   useEffect(() => {
+    setSelectedMemberIds([]);
+  }, [search, statusFilter, planFilter, paymentFilter]);
+
+  useEffect(() => {
     const nextTotalPages = Math.max(1, Math.ceil(allMatchingMembers.length / PAGE_SIZE));
 
     if (page > nextTotalPages) {
@@ -179,15 +185,19 @@ export default function MembersPage() {
   };
 
   const hasActiveFilters = Boolean(search || statusFilter || planFilter || paymentFilter);
+  const selectedMembers = allMatchingMembers.filter((member) => selectedMemberIds.includes(member._id));
+  const areAllVisibleSelected = members.length > 0 && members.every((member) => selectedMemberIds.includes(member._id));
+  const areSomeVisibleSelected = members.some((member) => selectedMemberIds.includes(member._id));
   const columns = [
-    { key: "member", label: "Member", width: "20%" },
-    { key: "mobile", label: "Mobile", width: "12%" },
+    { key: "select", label: "", width: "4.5%", align: "center" as const },
+    { key: "member", label: "Member", width: "19%" },
+    { key: "mobile", label: "Mobile", width: "11%" },
     { key: "plan", label: "Plan", width: "12%" },
-    { key: "slot", label: "Slot", width: "16%" },
-    { key: "renewal", label: "Renewal Date", width: "13%" },
+    { key: "slot", label: "Slot", width: "15%" },
+    { key: "renewal", label: "Renewal Date", width: "12.5%" },
     { key: "payment", label: "Payment Due", width: "10%" },
-    { key: "status", label: "Status", width: "9%" },
-    { key: "actions", label: "Actions", width: "8%", align: "center" as const },
+    { key: "status", label: "Status", width: "8.5%" },
+    { key: "actions", label: "Actions", width: "7.5%", align: "center" as const },
   ];
 
   const formatDate = (date: string) =>
@@ -225,6 +235,84 @@ export default function MembersPage() {
   const navigateTo = (path: string) => {
     startNavigation(path);
     router.push(path);
+  };
+
+  const toggleMemberSelection = (memberId: string) => {
+    setSelectedMemberIds((current) =>
+      current.includes(memberId)
+        ? current.filter((id) => id !== memberId)
+        : [...current, memberId]
+    );
+  };
+
+  const toggleVisibleSelection = () => {
+    if (areAllVisibleSelected) {
+      setSelectedMemberIds((current) =>
+        current.filter((id) => !members.some((member) => member._id === id))
+      );
+      return;
+    }
+
+    setSelectedMemberIds((current) => {
+      const merged = new Set(current);
+      members.forEach((member) => merged.add(member._id));
+      return Array.from(merged);
+    });
+  };
+
+  const exportSelectedMembers = () => {
+    if (!selectedMembers.length) return;
+
+    const escapeCsv = (value: string) => {
+      const normalized = String(value ?? "");
+      if (/[",\n]/.test(normalized)) {
+        return `"${normalized.replace(/"/g, '""')}"`;
+      }
+      return normalized;
+    };
+
+    const rows = [
+      ["Name", "Mobile", "Plan", "Slot", "Renewal Date", "Payment Due", "Status"],
+      ...selectedMembers.map((member) => [
+        member.name,
+        member.mobile,
+        member.planSnapshot.name,
+        `${member.slotSnapshot.label} (${member.slotSnapshot.startTime} - ${member.slotSnapshot.endTime})`,
+        member.status === "ended" ? "Not Applicable" : formatDate(member.endDate),
+        member.pendingAmount > 0 ? formatCurrency(member.pendingAmount) : "Paid",
+        getStatusTextStyle(member.status).label,
+      ]),
+    ];
+
+    const csv = rows.map((row) => row.map((value) => escapeCsv(value)).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `members-page-${page}-selection.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    showToast(`${selectedMembers.length} member record(s) exported`);
+  };
+
+  const handleBulkDelete = async () => {
+    if (!selectedMembers.length) return;
+
+    setIsDeleting(true);
+    try {
+      await Promise.all(selectedMembers.map((member) => membersApi.delete(member._id)));
+      showToast(`${selectedMembers.length} member(s) deleted`);
+      setSelectedMemberIds([]);
+      setDeleteOpen(false);
+      setDeletingMember(null);
+      fetchMembers();
+    } catch {
+      showToast("Failed to delete selected members.", "error");
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -316,6 +404,70 @@ export default function MembersPage() {
 
       <Paper elevation={0} sx={{ ...MODULE_CARD_SX, p: 2 }}>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          {selectedMemberIds.length ? (
+            <Paper
+              elevation={0}
+              sx={{
+                borderRadius: "16px",
+                border: `1px solid ${C.border}`,
+                background:
+                  "linear-gradient(180deg, rgba(252,247,241,0.96) 0%, rgba(248,242,235,0.94) 100%)",
+                px: { xs: 1.25, sm: 1.55 },
+                py: 1,
+              }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: { xs: "stretch", sm: "center" },
+                  justifyContent: "space-between",
+                  flexDirection: { xs: "column", sm: "row" },
+                  gap: 1.1,
+                }}
+              >
+                <Chip
+                  label={`${selectedMemberIds.length} member${selectedMemberIds.length > 1 ? "s" : ""} selected`}
+                  size="small"
+                  sx={{
+                    alignSelf: { xs: "flex-start", sm: "center" },
+                    height: 32,
+                    borderRadius: "999px",
+                    backgroundColor: "rgba(255,255,255,0.74)",
+                    border: `1px solid ${C.border}`,
+                    color: C.navy,
+                    fontWeight: 800,
+                    fontSize: "0.8rem",
+                  }}
+                />
+                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                  <Button size="small" variant="outlined" onClick={exportSelectedMembers} sx={{ minHeight: 38, px: 1.35 }}>
+                    Export Selected
+                  </Button>
+                  <Button
+                    size="small"
+                    color="error"
+                    variant="outlined"
+                    onClick={() => {
+                      setDeletingMember(null);
+                      setDeleteOpen(true);
+                    }}
+                    sx={{ minHeight: 38, px: 1.35 }}
+                  >
+                    Delete Selected
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="text"
+                    onClick={() => setSelectedMemberIds([])}
+                    sx={{ minHeight: 38, px: 1.1 }}
+                  >
+                    Clear Selection
+                  </Button>
+                </Box>
+              </Box>
+            </Paper>
+          ) : null}
+
           {isFiltering ? (
             <Box
               sx={{
@@ -537,12 +689,28 @@ export default function MembersPage() {
                       key={column.key}
                       sx={{
                         ...MODULE_TABLE_HEAD_CELL_SX,
-                        px: 1,
+                        px: column.key === "select" ? 0.7 : 1,
                         textAlign: column.align || "left",
                         whiteSpace: "nowrap",
                       }}
                     >
-                      {column.label}
+                      {column.key === "select" ? (
+                        <Checkbox
+                          checked={areAllVisibleSelected}
+                          indeterminate={!areAllVisibleSelected && areSomeVisibleSelected}
+                          onChange={toggleVisibleSelection}
+                          disabled={!members.length || isLoading}
+                          inputProps={{ "aria-label": "Select all members on this page" }}
+                          sx={{
+                            p: 0.3,
+                            "& .MuiSvgIcon-root": {
+                              fontSize: 20,
+                            },
+                          }}
+                        />
+                      ) : (
+                        column.label
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
@@ -551,7 +719,7 @@ export default function MembersPage() {
                 {isLoading ? (
                   [...Array(6)].map((_, i) => (
                     <TableRow key={i}>
-                      {[1, 2, 3, 4, 5, 6, 7, 8].map((j) => (
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((j) => (
                         <TableCell key={j} sx={{ py: 2 }}>
                           <Skeleton height={22} />
                         </TableCell>
@@ -560,7 +728,7 @@ export default function MembersPage() {
                   ))
                 ) : members.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} sx={{ border: 0, p: 0 }}>
+                    <TableCell colSpan={9} sx={{ border: 0, p: 0 }}>
                       <EmptyState
                         title={hasActiveFilters ? "No members match these filters" : "No members yet"}
                         subtitle={
@@ -584,6 +752,23 @@ export default function MembersPage() {
                         cursor: "pointer",
                       }}
                     >
+                      <TableCell
+                        sx={{ py: 1.45, px: 0.7, verticalAlign: "top", textAlign: "center" }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Checkbox
+                          checked={selectedMemberIds.includes(member._id)}
+                          onChange={() => toggleMemberSelection(member._id)}
+                          inputProps={{ "aria-label": `Select ${member.name}` }}
+                          sx={{
+                            p: 0.45,
+                            mt: -0.18,
+                            "& .MuiSvgIcon-root": {
+                              fontSize: 20,
+                            },
+                          }}
+                        />
+                      </TableCell>
                       <TableCell sx={{ py: 1.45, px: 1, verticalAlign: "top" }}>
                         <Box>
                           <Typography sx={{ fontWeight: 800, fontSize: "0.88rem", color: "#0F172A" }}>{member.name}</Typography>
@@ -649,8 +834,8 @@ export default function MembersPage() {
                           {getStatusTextStyle(member.status).label}
                         </Typography>
                       </TableCell>
-                      <TableCell sx={{ py: 1.45, px: 0.7, verticalAlign: "top", textAlign: "center" }} onClick={(e) => e.stopPropagation()}>
-                        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 0.08, minWidth: 88, mt: -0.02, mx: "auto" }}>
+                      <TableCell sx={{ py: 1.45, px: 0.6, verticalAlign: "top", textAlign: "center" }} onClick={(e) => e.stopPropagation()}>
+                        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 0.12, minWidth: 82, mt: -0.02, mx: "auto" }}>
                           <Tooltip title="View">
                             <IconButton size="small" onClick={() => navigateTo(`/members/${member._id}`)} sx={{ p: 0.38, ...getActionIconSx("primary") }}>
                               <VisibilityOutlined sx={{ fontSize: 16 }} />
@@ -695,25 +880,36 @@ export default function MembersPage() {
 
       <ConfirmDialog
         open={deleteOpen}
-        title="Delete Member"
-        message={`Delete "${deletingMember?.name}"? All payment history will also be removed. This cannot be undone.`}
+        title={deletingMember ? "Delete Member" : "Delete Selected Members"}
+        message={
+          deletingMember
+            ? `Delete "${deletingMember?.name}"? All payment history will also be removed. This cannot be undone.`
+            : `Delete ${selectedMemberIds.length} selected member(s)? All related payment history will also be removed. This cannot be undone.`
+        }
         confirmLabel="Delete"
         confirmColor="error"
         onConfirm={async () => {
-          if (!deletingMember) return;
-          setIsDeleting(true);
-          try {
-            await membersApi.delete(deletingMember._id);
-            showToast("Member deleted");
-            setDeleteOpen(false);
-            fetchMembers();
-          } catch {
-            showToast("Failed to delete.", "error");
-          } finally {
-            setIsDeleting(false);
+          if (deletingMember) {
+            setIsDeleting(true);
+            try {
+              await membersApi.delete(deletingMember._id);
+              showToast("Member deleted");
+              setDeleteOpen(false);
+              fetchMembers();
+            } catch {
+              showToast("Failed to delete.", "error");
+            } finally {
+              setIsDeleting(false);
+            }
+            return;
           }
+
+          await handleBulkDelete();
         }}
-        onCancel={() => setDeleteOpen(false)}
+        onCancel={() => {
+          setDeleteOpen(false);
+          setDeletingMember(null);
+        }}
         isLoading={isDeleting}
       />
     </Box>
