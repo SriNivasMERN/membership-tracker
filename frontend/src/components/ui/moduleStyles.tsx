@@ -63,13 +63,12 @@ export const MODULE_FIELD_SX: SxProps<Theme> = {
   },
 };
 
-export const MODULE_CARD_SX: SxProps<Theme> = {
+export const MODULE_CARD_SX: SystemStyleObject<Theme> = {
   borderRadius: { xs: "14px", sm: "16px" },
   border: `1px solid ${MODULE_COLORS.border}`,
   boxShadow: "0 16px 32px rgba(36,58,87,0.08)",
   background: "linear-gradient(180deg, rgba(255,255,255,0.995) 0%, rgba(253,250,246,0.985) 100%)",
   minWidth: 0,
-  ...MODULE_HOVER_MOTION_SX,
 };
 
 export const MODULE_DIALOG_PAPER_SX: SxProps<Theme> = {
@@ -240,6 +239,7 @@ export function ModuleDashboardStat({
       sx={{
         p: compact ? 1.45 : 1.8,
         ...MODULE_CARD_SX,
+        ...MODULE_HOVER_MOTION_SX,
         borderRadius: "14px",
         height: "100%",
       }}

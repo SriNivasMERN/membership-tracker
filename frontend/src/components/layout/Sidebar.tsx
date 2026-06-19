@@ -240,26 +240,37 @@ export default function Sidebar({
       <Box sx={{ mt: "auto" }}>
         {/* User info */}
         <Divider sx={{ borderColor: "rgba(255,255,255,0.1)" }} />
-        <Box sx={{ px: 2.5, pt: 2.9, pb: 2.35, minHeight: 108 }}>
+        <Box
+          sx={{
+            px: 2.5,
+            pt: 2.95,
+            pb: 2.9,
+            minHeight: "auto",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "flex-start",
+          }}
+        >
           <Typography
             variant="body2"
-            sx={{ color: "white", fontWeight: 600, fontSize: "0.82rem" }}
+            sx={{ color: "rgba(255,255,255,0.98)", fontWeight: 700, fontSize: "0.82rem", lineHeight: 1.2 }}
           >
             {user?.name}
           </Typography>
           <Typography
             variant="caption"
             sx={{
-              color: "rgba(241,245,249,0.84)",
+              color: "rgba(214,226,243,0.92)",
               textTransform: "capitalize",
-              fontSize: "0.75rem",
+              fontSize: "0.74rem",
               fontWeight: 600,
               letterSpacing: 0.1,
+              lineHeight: 1.25,
             }}
           >
             {user?.role}
           </Typography>
-          <Box sx={{ mt: 1.25 }}>
+          <Box sx={{ mt: 1.05 }}>
             <Typography
               variant="caption"
               sx={{
@@ -278,11 +289,11 @@ export default function Sidebar({
               variant="caption"
               sx={{
                 display: "block",
-                mt: 0.4,
+                mt: 0.28,
                 color: "rgba(248,250,252,0.96)",
-                fontSize: "0.73rem",
+                fontSize: "0.72rem",
                 fontWeight: 600,
-                lineHeight: 1.4,
+                lineHeight: 1.32,
               }}
             >
               {formattedLastLogin}

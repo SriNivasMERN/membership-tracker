@@ -191,7 +191,7 @@ export default function MembersPage() {
   const columns = [
     { key: "select", label: "", width: "4.5%", align: "center" as const },
     { key: "member", label: "Member", width: "19%" },
-    { key: "mobile", label: "Mobile", width: "11%" },
+    { key: "mobile", label: "Mobile", width: "11%", align: "center" as const },
     { key: "plan", label: "Plan", width: "12%" },
     { key: "slot", label: "Slot", width: "15%" },
     { key: "renewal", label: "Renewal Date", width: "12.5%" },
@@ -777,20 +777,36 @@ export default function MembersPage() {
                           </Typography>
                         </Box>
                       </TableCell>
-                      <TableCell sx={{ py: 1.45, px: 1, verticalAlign: "top" }}>
-                        <Typography
+                      <TableCell sx={{ py: 1.45, px: 1, verticalAlign: "top", textAlign: "center" }}>
+                        <Box
                           sx={{
-                            mt: 0.08,
-                            fontSize: "0.84rem",
-                            color: C.navy,
-                            fontWeight: 700,
-                            fontVariantNumeric: "tabular-nums",
-                            letterSpacing: 0.04,
-                            lineHeight: 1.2,
+                            mt: -0.02,
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            minHeight: 30,
+                            px: 0.9,
+                            borderRadius: "999px",
+                            border: `1px solid rgba(221, 205, 183, 0.92)`,
+                            background:
+                              "linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(251,246,239,0.95) 100%)",
+                            boxShadow: "0 1px 2px rgba(15, 23, 42, 0.03)",
                           }}
                         >
-                          {member.mobile}
-                        </Typography>
+                          <Typography
+                            sx={{
+                              fontSize: "0.84rem",
+                              color: C.navy,
+                              fontWeight: 800,
+                              fontVariantNumeric: "tabular-nums",
+                              letterSpacing: 0.015,
+                              lineHeight: 1,
+                              textAlign: "left",
+                            }}
+                          >
+                            {member.mobile}
+                          </Typography>
+                        </Box>
                       </TableCell>
                       <TableCell sx={{ py: 1.45, px: 1, verticalAlign: "top" }}>
                         <Typography sx={{ mt: 0.08, fontSize: "0.85rem", color: C.slate, fontWeight: 700 }}>{member.planSnapshot.name}</Typography>
