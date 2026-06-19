@@ -1158,7 +1158,7 @@ export default function DashboardPage() {
                 {isLoading ? (
                   <Skeleton variant="rounded" height={146} sx={{ borderRadius: "14px" }} />
                 ) : (
-                  <Box sx={{ p: 1.6, borderRadius: "14px", border: `1px solid ${C.border}`, backgroundColor: C.surface, height: "100%", ...MODULE_HOVER_MOTION_SX }}>
+                  <Box sx={{ p: 1.6, borderRadius: "14px", border: `1px solid ${C.border}`, backgroundColor: C.surface, height: "100%" }}>
                     <Typography sx={{ fontSize: "0.78rem", fontWeight: 800, color: C.slate }}>
                       What needs attention first
                     </Typography>
@@ -1174,7 +1174,7 @@ export default function DashboardPage() {
                 {isLoading ? (
                   <Skeleton variant="rounded" height={146} sx={{ borderRadius: "14px" }} />
                 ) : (
-                  <Box sx={{ p: 1.6, borderRadius: "14px", border: `1px solid ${C.border}`, backgroundColor: "#FFFFFF", height: "100%", ...MODULE_HOVER_MOTION_SX }}>
+                  <Box sx={{ p: 1.6, borderRadius: "14px", border: `1px solid ${C.border}`, backgroundColor: "#FFFFFF", height: "100%" }}>
                     <Typography sx={{ fontSize: "0.78rem", fontWeight: 800, color: C.slate }}>
                       Revenue context
                     </Typography>
