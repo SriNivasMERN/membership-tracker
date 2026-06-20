@@ -246,6 +246,8 @@ memberSchema.index(
 // Index for fast queries
 memberSchema.index({ businessId: 1, isDeleted: 1 });
 memberSchema.index({ businessId: 1, endDate: 1 });
+memberSchema.index({ businessId: 1, isDeleted: 1, createdAt: -1 });
+memberSchema.index({ businessId: 1, isDeleted: 1, "planSnapshot.planId": 1 });
 
 export const Member = mongoose.model<IMemberDocument>(
   "Member",

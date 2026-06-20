@@ -53,5 +53,7 @@ const planSchema = new Schema<IPlanDocument>(
 
 // Index for fast queries per business
 planSchema.index({ businessId: 1, isDeleted: 1 });
+planSchema.index({ businessId: 1, isDeleted: 1, isActive: 1 });
+planSchema.index({ businessId: 1, isDeleted: 1, createdAt: -1 });
 
 export const Plan = mongoose.model<IPlanDocument>("Plan", planSchema);

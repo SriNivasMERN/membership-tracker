@@ -14,7 +14,9 @@ export const planService = {
     return Plan.find({
       businessId: new mongoose.Types.ObjectId(businessId),
       isDeleted: false,
-    }).sort({ createdAt: -1 });
+    })
+      .sort({ createdAt: -1 })
+      .lean() as unknown as IPlanDocument[];
   },
 
   // Get only active plans - used during member creation
@@ -23,7 +25,9 @@ export const planService = {
       businessId: new mongoose.Types.ObjectId(businessId),
       isActive: true,
       isDeleted: false,
-    }).sort({ name: 1 });
+    })
+      .sort({ name: 1 })
+      .lean() as unknown as IPlanDocument[];
   },
 
   // Get single plan by ID
@@ -35,13 +39,13 @@ export const planService = {
       _id: new mongoose.Types.ObjectId(planId),
       businessId: new mongoose.Types.ObjectId(businessId),
       isDeleted: false,
-    });
+    }).lean();
 
     if (!plan) {
       throw new AppError("Plan not found", 404);
     }
 
-    return plan;
+    return plan as unknown as IPlanDocument;
   },
 
   // Create a new plan
@@ -54,7 +58,7 @@ export const planService = {
       businessId: new mongoose.Types.ObjectId(businessId),
       name: { $regex: new RegExp(`^${input.name}$`, "i") },
       isDeleted: false,
-    });
+    }).lean();
 
     if (existing) {
       throw new AppError(
@@ -84,7 +88,7 @@ export const planService = {
         name: { $regex: new RegExp(`^${input.name}$`, "i") },
         isDeleted: false,
         _id: { $ne: new mongoose.Types.ObjectId(planId) },
-      });
+      }).lean();
 
       if (existing) {
         throw new AppError(

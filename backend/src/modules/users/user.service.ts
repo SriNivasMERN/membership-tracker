@@ -14,7 +14,9 @@ export const userService = {
   async getAllUsers(businessId: string): Promise<IUserDocument[]> {
     return User.find({
       businessId: new mongoose.Types.ObjectId(businessId),
-    }).sort({ createdAt: -1 });
+    })
+      .sort({ createdAt: -1 })
+      .lean() as unknown as IUserDocument[];
   },
 
   async getUserById(
@@ -24,23 +26,23 @@ export const userService = {
     const user = await User.findOne({
       _id: new mongoose.Types.ObjectId(userId),
       businessId: new mongoose.Types.ObjectId(businessId),
-    });
+    }).lean();
 
     if (!user) {
       throw new AppError("User not found", 404);
     }
 
-    return user;
+    return user as unknown as IUserDocument;
   },
 
   async getCurrentUser(userId: string): Promise<IUserDocument> {
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).lean();
 
     if (!user) {
       throw new AppError("User not found", 404);
     }
 
-    return user;
+    return user as unknown as IUserDocument;
   },
 
   async createUser(

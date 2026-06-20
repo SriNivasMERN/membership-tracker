@@ -29,7 +29,7 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -48,6 +48,43 @@ export default function DashboardLayout({
       router.replace("/login");
     }
   }, [isLoading, isAuthenticated, router]);
+
+  useEffect(() => {
+    if (isLoading || !isAuthenticated) return;
+
+    const routesToWarm = [
+      "/dashboard",
+      "/members",
+      "/members/new",
+      ...(user?.role === "owner"
+        ? ["/plans", "/slots", "/pricing", "/users", "/settings", "/audit-trail"]
+        : []),
+    ];
+
+    const warmRoutes = () => {
+      routesToWarm.forEach((route) => {
+        router.prefetch(route);
+      });
+    };
+
+    let idleId: number | null = null;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+      idleId = window.requestIdleCallback(warmRoutes, { timeout: 1200 });
+    } else {
+      timeoutId = setTimeout(warmRoutes, 250);
+    }
+
+    return () => {
+      if (idleId !== null && typeof window !== "undefined" && "cancelIdleCallback" in window) {
+        window.cancelIdleCallback(idleId);
+      }
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [isAuthenticated, isLoading, router, user?.role]);
 
   if (isLoading) {
     return <AppLoadingScreen fullScreen />;

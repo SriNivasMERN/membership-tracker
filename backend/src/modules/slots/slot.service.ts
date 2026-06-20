@@ -13,7 +13,9 @@ export const slotService = {
     return Slot.find({
       businessId: new mongoose.Types.ObjectId(businessId),
       isDeleted: false,
-    }).sort({ startTime: 1 });
+    })
+      .sort({ startTime: 1 })
+      .lean() as unknown as ISlotDocument[];
   },
 
   async getActiveSlots(businessId: string): Promise<ISlotDocument[]> {
@@ -21,7 +23,9 @@ export const slotService = {
       businessId: new mongoose.Types.ObjectId(businessId),
       isActive: true,
       isDeleted: false,
-    }).sort({ startTime: 1 });
+    })
+      .sort({ startTime: 1 })
+      .lean() as unknown as ISlotDocument[];
   },
 
   async getSlotById(
@@ -32,13 +36,13 @@ export const slotService = {
       _id: new mongoose.Types.ObjectId(slotId),
       businessId: new mongoose.Types.ObjectId(businessId),
       isDeleted: false,
-    });
+    }).lean();
 
     if (!slot) {
       throw new AppError("Slot not found", 404);
     }
 
-    return slot;
+    return slot as unknown as ISlotDocument;
   },
 
   async createSlot(
@@ -50,7 +54,7 @@ export const slotService = {
       businessId: new mongoose.Types.ObjectId(businessId),
       label: { $regex: new RegExp(`^${input.label}$`, "i") },
       isDeleted: false,
-    });
+    }).lean();
 
     if (existing) {
       throw new AppError("A slot with this label already exists", 409);
@@ -75,7 +79,7 @@ export const slotService = {
         label: { $regex: new RegExp(`^${input.label}$`, "i") },
         isDeleted: false,
         _id: { $ne: new mongoose.Types.ObjectId(slotId) },
-      });
+      }).lean();
 
       if (existing) {
         throw new AppError(

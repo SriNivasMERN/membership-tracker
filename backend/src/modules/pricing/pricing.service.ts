@@ -17,7 +17,8 @@ export const pricingService = {
     })
       .populate("planId", "name basePrice isActive")
       .populate("slotId", "label startTime endTime isActive")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean() as unknown as IPricingRuleDocument[];
   },
 
   // Get single rule by ID
@@ -30,13 +31,14 @@ export const pricingService = {
       businessId: new mongoose.Types.ObjectId(businessId),
     })
       .populate("planId", "name basePrice")
-      .populate("slotId", "label startTime endTime");
+      .populate("slotId", "label startTime endTime")
+      .lean();
 
     if (!rule) {
       throw new AppError("Pricing rule not found", 404);
     }
 
-    return rule;
+    return rule as unknown as IPricingRuleDocument;
   },
 
   // Find rule for a specific plan/slot combination
@@ -51,7 +53,7 @@ export const pricingService = {
       planId: new mongoose.Types.ObjectId(planId),
       slotId: new mongoose.Types.ObjectId(slotId),
       isActive: true,
-    });
+    }).lean() as unknown as IPricingRuleDocument | null;
   },
 
   // Create a new pricing rule
@@ -60,21 +62,22 @@ export const pricingService = {
     input: CreatePricingRuleInput
   ): Promise<IPricingRuleDocument> {
     // Verify plan exists and belongs to this business
-    const plan = await Plan.findOne({
-      _id: new mongoose.Types.ObjectId(input.planId),
-      businessId: new mongoose.Types.ObjectId(businessId),
-      isDeleted: false,
-    });
+    const [plan, slot] = await Promise.all([
+      Plan.findOne({
+        _id: new mongoose.Types.ObjectId(input.planId),
+        businessId: new mongoose.Types.ObjectId(businessId),
+        isDeleted: false,
+      }).lean(),
+      Slot.findOne({
+        _id: new mongoose.Types.ObjectId(input.slotId),
+        businessId: new mongoose.Types.ObjectId(businessId),
+        isDeleted: false,
+      }).lean(),
+    ]);
     if (!plan) {
       throw new AppError("Plan not found", 404);
     }
 
-    // Verify slot exists and belongs to this business
-    const slot = await Slot.findOne({
-      _id: new mongoose.Types.ObjectId(input.slotId),
-      businessId: new mongoose.Types.ObjectId(businessId),
-      isDeleted: false,
-    });
     if (!slot) {
       throw new AppError("Slot not found", 404);
     }
@@ -84,7 +87,7 @@ export const pricingService = {
       businessId: new mongoose.Types.ObjectId(businessId),
       planId: new mongoose.Types.ObjectId(input.planId),
       slotId: new mongoose.Types.ObjectId(input.slotId),
-    });
+    }).lean();
     if (existing) {
       throw new AppError(
         "A pricing rule already exists for this plan and slot combination",

@@ -113,7 +113,7 @@ export const refreshToken = async (
   try {
     const tokenFromCookie = req.cookies.refreshToken;
 
-    const accessToken = await authService.refreshAccessToken(
+    const { accessToken, user } = await authService.refreshAccessToken(
       tokenFromCookie,
       res
     );
@@ -121,7 +121,10 @@ export const refreshToken = async (
     res.json({
       success: true,
       message: "Token refreshed successfully",
-      data: { accessToken },
+      data: {
+        accessToken,
+        user,
+      },
     });
   } catch (error) {
     next(error);

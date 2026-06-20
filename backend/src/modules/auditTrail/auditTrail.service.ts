@@ -89,7 +89,10 @@ export const auditTrailService = {
       ];
     }
 
-    const [entries, filteredCount, totalCount, ownerCount, staffCount] =
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const [entries, filteredCount, totalCount, ownerCount, staffCount, todayCount] =
       await Promise.all([
         AuditTrail.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
         AuditTrail.countDocuments(filter),
@@ -104,15 +107,11 @@ export const auditTrailService = {
           businessId: new mongoose.Types.ObjectId(businessId),
           "performedBy.role": "staff",
         }),
+        AuditTrail.countDocuments({
+          businessId: new mongoose.Types.ObjectId(businessId),
+          createdAt: { $gte: startOfToday },
+        }),
       ]);
-
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
-
-    const todayCount = await AuditTrail.countDocuments({
-      businessId: new mongoose.Types.ObjectId(businessId),
-      createdAt: { $gte: startOfToday },
-    });
 
     return {
       entries,

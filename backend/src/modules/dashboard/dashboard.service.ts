@@ -12,17 +12,35 @@ export const dashboardService = {
   async getDashboardData(businessId: string) {
     const bizId = new mongoose.Types.ObjectId(businessId);
 
-    // Get expiry alert days from settings
-    const settings = await BusinessSettings.findOne({
-      businessId: bizId,
-    });
-    const expiryAlertDays = settings?.expiryAlertDays ?? 7;
+    const memberProjection = {
+      name: 1,
+      mobile: 1,
+      startDate: 1,
+      endDate: 1,
+      finalPrice: 1,
+      payments: 1,
+      membershipClosure: 1,
+      "planSnapshot.name": 1,
+      "slotSnapshot.slotId": 1,
+      "slotSnapshot.label": 1,
+    };
 
-    // Fetch all non-deleted members
-    const members = await Member.find({
-      businessId: bizId,
-      isDeleted: false,
-    });
+    const [settings, members] = await Promise.all([
+      BusinessSettings.findOne({
+        businessId: bizId,
+      })
+        .select("expiryAlertDays")
+        .lean(),
+      Member.find(
+        {
+          businessId: bizId,
+          isDeleted: false,
+        },
+        memberProjection
+      ).lean(),
+    ]);
+
+    const expiryAlertDays = settings?.expiryAlertDays ?? 7;
 
     // Initialize counters
     let activeCount = 0;

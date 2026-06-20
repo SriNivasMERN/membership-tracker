@@ -47,6 +47,7 @@ pricingRuleSchema.index(
   { businessId: 1, planId: 1, slotId: 1 },
   { unique: true }
 );
+pricingRuleSchema.index({ businessId: 1, isActive: 1, createdAt: -1 });
 
 export const PricingRule = mongoose.model<IPricingRuleDocument>(
   "PricingRule",

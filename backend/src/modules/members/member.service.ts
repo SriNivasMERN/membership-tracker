@@ -23,22 +23,28 @@ import {
 const getExpiryAlertDays = async (businessId: string): Promise<number> => {
   const settings = await BusinessSettings.findOne({
     businessId: new mongoose.Types.ObjectId(businessId),
-  });
+  })
+    .select("expiryAlertDays")
+    .lean();
   return settings?.expiryAlertDays ?? 7;
 };
 
 export const attachComputedFields = (
-  member: IMemberDocument,
+  member: IMemberDocument | Record<string, any>,
   expiryAlertDays: number
 ) => {
-  const paidAmount = calculatePaidAmount(member.payments);
-  const pendingAmount = member.membershipClosure
-    ? member.membershipClosure.payableBalance
-    : calculatePendingAmount(member.finalPrice, member.payments);
-  const status = member.membershipClosure
+  const memberData =
+    typeof (member as IMemberDocument).toObject === "function"
+      ? (member as IMemberDocument).toObject()
+      : member;
+  const paidAmount = calculatePaidAmount(memberData.payments);
+  const pendingAmount = memberData.membershipClosure
+    ? memberData.membershipClosure.payableBalance
+    : calculatePendingAmount(memberData.finalPrice, memberData.payments);
+  const status = memberData.membershipClosure
     ? "ended"
-    : deriveMemberStatus(member.startDate, member.endDate, expiryAlertDays);
-  return { ...member.toObject(), paidAmount, pendingAmount, status };
+    : deriveMemberStatus(memberData.startDate, memberData.endDate, expiryAlertDays);
+  return { ...memberData, paidAmount, pendingAmount, status };
 };
 
 export const memberService = {
@@ -58,21 +64,22 @@ export const memberService = {
       throw new AppError("A member with this mobile number already exists", 409);
     }
 
-    const plan = await Plan.findOne({
-      _id: new mongoose.Types.ObjectId(input.planId),
-      businessId: new mongoose.Types.ObjectId(businessId),
-      isActive: true,
-      isDeleted: false,
-    });
+    const [plan, slot] = await Promise.all([
+      Plan.findOne({
+        _id: new mongoose.Types.ObjectId(input.planId),
+        businessId: new mongoose.Types.ObjectId(businessId),
+        isActive: true,
+        isDeleted: false,
+      }),
+      Slot.findOne({
+        _id: new mongoose.Types.ObjectId(input.slotId),
+        businessId: new mongoose.Types.ObjectId(businessId),
+        isActive: true,
+        isDeleted: false,
+      }),
+    ]);
 
     if (!plan) throw new AppError("Plan not found or is not active", 404);
-
-    const slot = await Slot.findOne({
-      _id: new mongoose.Types.ObjectId(input.slotId),
-      businessId: new mongoose.Types.ObjectId(businessId),
-      isActive: true,
-      isDeleted: false,
-    });
 
     if (!slot) throw new AppError("Slot not found or is not active", 404);
 
@@ -160,9 +167,30 @@ export const memberService = {
       query["planSnapshot.planId"] = new mongoose.Types.ObjectId(planId);
     }
 
-    const allMembers = await Member.find(query).sort({ createdAt: -1 });
+    const memberProjection = {
+      businessId: 1,
+      name: 1,
+      mobile: 1,
+      email: 1,
+      photo: 1,
+      planSnapshot: 1,
+      slotSnapshot: 1,
+      startDate: 1,
+      endDate: 1,
+      finalPrice: 1,
+      creditBalance: 1,
+      payments: 1,
+      membershipClosure: 1,
+      notes: 1,
+      isDeleted: 1,
+      createdAt: 1,
+      updatedAt: 1,
+    };
 
-    const expiryAlertDays = await getExpiryAlertDays(businessId);
+    const [allMembers, expiryAlertDays] = await Promise.all([
+      Member.find(query, memberProjection).sort({ createdAt: -1 }).lean(),
+      getExpiryAlertDays(businessId),
+    ]);
 
     const overallMembersWithStatus = allMembers.map((member) =>
       attachComputedFields(member, expiryAlertDays)
@@ -213,7 +241,7 @@ export const memberService = {
       _id: new mongoose.Types.ObjectId(memberId),
       businessId: new mongoose.Types.ObjectId(businessId),
       isDeleted: false,
-    });
+    }).lean();
 
     if (!member) throw new AppError("Member not found", 404);
 
@@ -331,21 +359,22 @@ export const memberService = {
     const planId = input.planId || member.planSnapshot.planId.toString();
     const slotId = input.slotId || member.slotSnapshot.slotId.toString();
 
-    const plan = await Plan.findOne({
-      _id: new mongoose.Types.ObjectId(planId),
-      businessId: new mongoose.Types.ObjectId(businessId),
-      isActive: true,
-      isDeleted: false,
-    });
+    const [plan, slot] = await Promise.all([
+      Plan.findOne({
+        _id: new mongoose.Types.ObjectId(planId),
+        businessId: new mongoose.Types.ObjectId(businessId),
+        isActive: true,
+        isDeleted: false,
+      }),
+      Slot.findOne({
+        _id: new mongoose.Types.ObjectId(slotId),
+        businessId: new mongoose.Types.ObjectId(businessId),
+        isActive: true,
+        isDeleted: false,
+      }),
+    ]);
 
     if (!plan) throw new AppError("Plan not found or is not active", 404);
-
-    const slot = await Slot.findOne({
-      _id: new mongoose.Types.ObjectId(slotId),
-      businessId: new mongoose.Types.ObjectId(businessId),
-      isActive: true,
-      isDeleted: false,
-    });
 
     if (!slot) throw new AppError("Slot not found or is not active", 404);
 

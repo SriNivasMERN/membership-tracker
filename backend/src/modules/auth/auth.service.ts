@@ -26,6 +26,11 @@ interface LoginResult {
   user: IUserDocument;
 }
 
+interface RefreshResult {
+  accessToken: string;
+  user: IUserDocument;
+}
+
 export const authService = {
   async isOwnerRegistered(): Promise<boolean> {
     const owner = await User.findOne({ role: "owner" });
@@ -128,43 +133,46 @@ export const authService = {
   },
 
   async refreshAccessToken(
-  refreshTokenFromCookie: string | undefined,
-  res: Response
-): Promise<string> {
-  if (!refreshTokenFromCookie) {
-    throw new AppError("Refresh token not found", 401);
-  }
+    refreshTokenFromCookie: string | undefined,
+    _res: Response
+  ): Promise<RefreshResult> {
+    if (!refreshTokenFromCookie) {
+      throw new AppError("Refresh token not found", 401);
+    }
 
-  // Verify the refresh token signature
-  let payload: TokenPayload;
-  try {
-    payload = verifyRefreshToken(refreshTokenFromCookie);
-  } catch {
-    throw new AppError("Invalid or expired refresh token", 401);
-  }
+    // Verify the refresh token signature
+    let payload: TokenPayload;
+    try {
+      payload = verifyRefreshToken(refreshTokenFromCookie);
+    } catch {
+      throw new AppError("Invalid or expired refresh token", 401);
+    }
 
-  // Find user and check stored hash
-  const user = await User.findById(payload.userId).select("+refreshTokenHash");
-  if (!user || !user.refreshTokenHash) {
-    throw new AppError("Invalid refresh token", 401);
-  }
+    // Find user and check stored hash
+    const user = await User.findById(payload.userId).select("+refreshTokenHash");
+    if (!user || !user.refreshTokenHash) {
+      throw new AppError("Invalid refresh token", 401);
+    }
 
-  // Compare token with stored hash
-  const isValid = await bcrypt.compare(
-    refreshTokenFromCookie,
-    user.refreshTokenHash
-  );
-  if (!isValid) {
-    throw new AppError("Invalid refresh token", 401);
-  }
+    // Compare token with stored hash
+    const isValid = await bcrypt.compare(
+      refreshTokenFromCookie,
+      user.refreshTokenHash
+    );
+    if (!isValid) {
+      throw new AppError("Invalid refresh token", 401);
+    }
 
-  // Generate new access token
-  const newAccessToken = generateAccessToken({
-    userId: user._id.toString(),
-    role: user.role,
-    businessId: user.businessId.toString(),
-  });
+    // Generate new access token
+    const newAccessToken = generateAccessToken({
+      userId: user._id.toString(),
+      role: user.role,
+      businessId: user.businessId.toString(),
+    });
 
-  return newAccessToken;
-},
+    return {
+      accessToken: newAccessToken,
+      user,
+    };
+  },
 };

@@ -10,6 +10,8 @@ import {
 } from "react";
 import { AuthUser } from "@/types/auth.types";
 import api from "@/lib/api/axios.instance";
+import { plansApi } from "@/lib/api/plans.api";
+import { slotsApi } from "@/lib/api/slots.api";
 
 interface AuthContextValue {
   user: AuthUser | null;
@@ -45,12 +47,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const restoreSession = async () => {
       try {
         const response = await api.post("/auth/refresh");
-        const token = response.data.data.accessToken;
+        const { accessToken: token, user: userData } = response.data.data;
         window.__accessToken = token;
         setAccessToken(token);
-
-        const profileResponse = await api.get("/users/me");
-        const userData = profileResponse.data.data;
 
         setUser({
           userId: userData._id,
@@ -72,6 +71,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const setAuthData = (userData: AuthUser, token: string) => {
+    plansApi.clearCache();
+    slotsApi.clearCache();
     setUser(userData);
     setAccessToken(token);
     window.__accessToken = token;
@@ -88,6 +89,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       businessId: userData.businessId,
       previousLoginAt: userData.previousLoginAt ?? null,
     };
+    plansApi.clearCache();
+    slotsApi.clearCache();
     setUser(authUser);
     setAccessToken(token);
     window.__accessToken = token;
@@ -97,6 +100,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await api.post("/auth/logout");
     } finally {
+      plansApi.clearCache();
+      slotsApi.clearCache();
       setUser(null);
       setAccessToken(null);
       window.__accessToken = undefined;

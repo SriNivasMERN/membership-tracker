@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Box,
@@ -66,6 +67,38 @@ export default function Sidebar({
   const visibleItems = navItems.filter(
     (item) => !item.ownerOnly || user?.role === "owner"
   );
+
+  useEffect(() => {
+    const routesToPrefetch = visibleItems
+      .map((item) => item.path)
+      .filter((path) => path !== pathname);
+
+    if (!routesToPrefetch.length) return;
+
+    const runPrefetch = () => {
+      routesToPrefetch.forEach((path) => {
+        router.prefetch(path);
+      });
+    };
+
+    let idleId: number | null = null;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+      idleId = window.requestIdleCallback(runPrefetch, { timeout: 1500 });
+    } else {
+      timeoutId = setTimeout(runPrefetch, 300);
+    }
+
+    return () => {
+      if (idleId !== null && typeof window !== "undefined" && "cancelIdleCallback" in window) {
+        window.cancelIdleCallback(idleId);
+      }
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [pathname, router, visibleItems]);
 
   const isActive = (path: string) => {
     if (path === "/dashboard") return pathname === "/dashboard";
@@ -195,6 +228,8 @@ export default function Sidebar({
             <ListItem key={item.path} disablePadding>
               <ListItemButton
                 onClick={() => handleNavigate(item.path)}
+                onMouseEnter={() => router.prefetch(item.path)}
+                onFocus={() => router.prefetch(item.path)}
                 sx={{
                   borderRadius: "18px",
                   px: 1.75,

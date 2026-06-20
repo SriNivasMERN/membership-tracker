@@ -45,5 +45,7 @@ const slotSchema = new Schema<ISlotDocument>(
 );
 
 slotSchema.index({ businessId: 1, isDeleted: 1 });
+slotSchema.index({ businessId: 1, isDeleted: 1, isActive: 1 });
+slotSchema.index({ businessId: 1, isDeleted: 1, startTime: 1 });
 
 export const Slot = mongoose.model<ISlotDocument>("Slot", slotSchema);
