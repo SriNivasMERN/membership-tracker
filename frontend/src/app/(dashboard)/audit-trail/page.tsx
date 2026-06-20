@@ -86,6 +86,9 @@ const ROLE_OPTIONS = [
   { value: "staff", label: "Staff" },
 ];
 
+const ACTION_LEFT_OFFSET = 1.1;
+const MODULE_CONTENT_WIDTH = 170;
+
 function formatDateTime(value: string) {
   const date = new Date(value);
   return {
@@ -458,7 +461,9 @@ export default function AuditTrailPage() {
                   <TableRow>
                     <TableCell sx={MODULE_TABLE_HEAD_CELL_SX}>Date & Time</TableCell>
                     <TableCell sx={MODULE_TABLE_HEAD_CELL_SX}>Module</TableCell>
-                    <TableCell sx={MODULE_TABLE_HEAD_CELL_SX}>Action</TableCell>
+                    <TableCell sx={MODULE_TABLE_HEAD_CELL_SX}>
+                      <Box sx={{ pl: ACTION_LEFT_OFFSET }}>Action</Box>
+                    </TableCell>
                     <TableCell sx={MODULE_TABLE_HEAD_CELL_SX}>Description</TableCell>
                     <TableCell sx={MODULE_TABLE_HEAD_CELL_SX}>Done By</TableCell>
                   </TableRow>
@@ -481,24 +486,39 @@ export default function AuditTrailPage() {
                         <TableCell sx={{ py: 1.8, borderBottom: `1px solid ${C.border}` }}>
                           <Box
                             sx={{
-                              display: "inline-flex",
-                              alignItems: "center",
-                              px: 1.2,
-                              minHeight: 30,
-                              borderRadius: "999px",
-                              border: `1px solid ${C.border}`,
-                              backgroundColor: "rgba(251,247,241,0.94)",
+                              width: MODULE_CONTENT_WIDTH,
+                              maxWidth: "100%",
                             }}
                           >
-                            <Typography sx={{ fontWeight: 800, color: C.ink, fontSize: "0.83rem" }}>
-                              {formatModule(entry.module)}
+                            <Box
+                              sx={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                px: 1.2,
+                                minHeight: 30,
+                                borderRadius: "999px",
+                                border: `1px solid ${C.border}`,
+                                backgroundColor: "rgba(251,247,241,0.94)",
+                              }}
+                            >
+                              <Typography sx={{ fontWeight: 800, color: C.ink, fontSize: "0.83rem" }}>
+                                {formatModule(entry.module)}
+                              </Typography>
+                            </Box>
+                            <Typography
+                              sx={{
+                                mt: 0.6,
+                                fontWeight: 600,
+                                color: C.slate,
+                                fontSize: "0.82rem",
+                                lineHeight: 1.45,
+                              }}
+                            >
+                              {entry.entityLabel || "Record update"}
                             </Typography>
                           </Box>
-                          <Typography sx={{ mt: 0.6, fontWeight: 600, color: C.slate, fontSize: "0.82rem" }}>
-                            {entry.entityLabel || "Record update"}
-                          </Typography>
                         </TableCell>
-                        <TableCell sx={{ py: 1.8, borderBottom: `1px solid ${C.border}` }}>
+                        <TableCell sx={{ py: 1.8, borderBottom: `1px solid ${C.border}`, pl: ACTION_LEFT_OFFSET }}>
                           <Box
                             sx={{
                               display: "inline-flex",

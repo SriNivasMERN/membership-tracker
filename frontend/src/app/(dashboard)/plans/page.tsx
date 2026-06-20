@@ -81,6 +81,13 @@ const C = {
   amber: MODULE_COLORS.amber,
 };
 
+const PRICE_COLUMN_FRAME_WIDTH = 140;
+const PLAN_COLUMN_WIDTH = "22%";
+const DURATION_COLUMN_WIDTH = "15%";
+const PRICE_COLUMN_WIDTH = "21%";
+const STATUS_COLUMN_WIDTH = "14%";
+const ACTIONS_COLUMN_WIDTH = "14%";
+
 function preventNumberScroll(event: WheelEvent<HTMLInputElement>) {
   event.currentTarget.blur();
 }
@@ -482,7 +489,13 @@ export default function PlansPage() {
         }}
       >
         <TableContainer sx={MODULE_TABLE_CONTAINER_SX}>
-          <Table sx={{ minWidth: { xs: 660, sm: 700, md: 0 } }}>
+          <Table
+            sx={{
+              width: "100%",
+              tableLayout: { xs: "fixed", lg: "auto" },
+              minWidth: { xs: 720, sm: 760, md: "100%" },
+            }}
+          >
             <TableHead>
               <TableRow
                 sx={{
@@ -496,10 +509,39 @@ export default function PlansPage() {
                     sx={{
                       ...MODULE_TABLE_HEAD_CELL_SX,
                       whiteSpace: "nowrap",
+                      width:
+                        h === "Plan"
+                          ? PLAN_COLUMN_WIDTH
+                          : h === "Duration"
+                            ? DURATION_COLUMN_WIDTH
+                          : h === "Base Price"
+                            ? PRICE_COLUMN_WIDTH
+                          : h === "Status"
+                            ? STATUS_COLUMN_WIDTH
+                          : h === "Actions"
+                            ? ACTIONS_COLUMN_WIDTH
+                            : "auto",
                       textAlign: h === "Actions" ? "center" : "left",
                     }}
                   >
-                    {h}
+                    {h === "Plan" ? (
+                      <Box sx={{ width: "100%", textAlign: "center" }}>{h}</Box>
+                    ) : h === "Base Price" ? (
+                      <Box
+                        sx={{
+                          width: PRICE_COLUMN_FRAME_WIDTH,
+                          maxWidth: "100%",
+                          mx: "auto",
+                          textAlign: "left",
+                          pl: 1.3,
+                          boxSizing: "border-box",
+                        }}
+                      >
+                        {h}
+                      </Box>
+                    ) : (
+                      h
+                    )}
                   </TableCell>
                 ))}
               </TableRow>
@@ -537,30 +579,76 @@ export default function PlansPage() {
                       opacity: plan.isActive ? 1 : 0.6,
                     }}
                   >
-                    <TableCell sx={{ py: 1.6 }}>
-                      <Typography sx={{ fontWeight: 800, fontSize: "0.88rem", color: "#111827" }}>
-                        {plan.name}
-                      </Typography>
-                      {plan.description && (
-                        <Typography sx={{ fontSize: "0.74rem", color: C.muted, fontWeight: 600, mt: 0.3 }}>
-                          {plan.description}
+                    <TableCell sx={{ py: 1.6, width: PLAN_COLUMN_WIDTH, textAlign: "center", px: 0.9 }}>
+                      <Box
+                        sx={{
+                          display: "inline-flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          minWidth: 0,
+                          maxWidth: "100%",
+                          mx: "auto",
+                          textAlign: "center",
+                          boxSizing: "border-box",
+                        }}
+                      >
+                        <Typography sx={{ fontWeight: 800, fontSize: "0.88rem", color: "#111827" }}>
+                          {plan.name}
                         </Typography>
-                      )}
+                        {plan.description && (
+                          <Typography sx={{ fontSize: "0.74rem", color: C.muted, fontWeight: 600, mt: 0.3 }}>
+                            {plan.description}
+                          </Typography>
+                        )}
+                      </Box>
                     </TableCell>
 
-                    <TableCell sx={{ py: 1.6 }}>
-                      <Typography sx={{ fontSize: "0.85rem", color: C.slate, fontWeight: 600 }}>
+                    <TableCell sx={{ py: 1.6, width: DURATION_COLUMN_WIDTH, px: 0.85 }}>
+                      <Typography
+                        sx={{
+                          fontSize: "0.95rem",
+                          color: C.navy,
+                          fontWeight: 700,
+                          letterSpacing: 0.01,
+                        }}
+                      >
                         {plan.durationDays} days
                       </Typography>
                     </TableCell>
 
-                    <TableCell sx={{ py: 1.6 }}>
-                      <Typography sx={{ fontSize: "0.85rem", fontWeight: 800, color: "#111827" }}>
-                        {formatCurrency(plan.basePrice)}
-                      </Typography>
+                    <TableCell sx={{ py: 1.6, textAlign: "center", width: PRICE_COLUMN_WIDTH, px: 0.8 }}>
+                      <Box sx={{ width: PRICE_COLUMN_FRAME_WIDTH, maxWidth: "100%", mx: "auto", textAlign: "left" }}>
+                        <Box
+                          sx={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "flex-start",
+                            width: "100%",
+                            px: 1,
+                            py: 0.45,
+                            borderRadius: "999px",
+                            border: `1px solid ${C.border}`,
+                            background:
+                              "linear-gradient(180deg, rgba(255,255,255,0.99) 0%, rgba(249,244,237,0.97) 100%)",
+                            lineHeight: 1,
+                            boxSizing: "border-box",
+                          }}
+                        >
+                          <Typography
+                            sx={{
+                              fontSize: "0.88rem",
+                              fontWeight: 800,
+                              color: "#111827",
+                              letterSpacing: 0.01,
+                            }}
+                          >
+                            {formatCurrency(plan.basePrice)}
+                          </Typography>
+                        </Box>
+                      </Box>
                     </TableCell>
 
-                    <TableCell sx={{ py: 1.6 }}>
+                    <TableCell sx={{ py: 1.6, width: STATUS_COLUMN_WIDTH, px: 0.7, textAlign: "left" }}>
                       <Chip
                         label={plan.isActive ? "Active" : "Inactive"}
                         size="small"
@@ -568,15 +656,15 @@ export default function PlansPage() {
                       />
                     </TableCell>
 
-                    <TableCell sx={{ py: 1.6, textAlign: "center" }}>
-                      <Box sx={{ display: "flex", gap: 0.45, justifyContent: "center" }}>
+                    <TableCell sx={{ py: 1.6, textAlign: "center", width: ACTIONS_COLUMN_WIDTH, px: 0.35 }}>
+                      <Box sx={{ display: "flex", gap: 0.05, justifyContent: "center" }}>
                         <Tooltip title="Edit plan">
                           <IconButton
                             size="small"
                             onClick={() => handleEdit(plan)}
-                            sx={getActionIconSx("primary")}
+                            sx={{ ...getActionIconSx("primary"), p: 0.55 }}
                           >
-                            <EditOutlined sx={{ fontSize: 17 }} />
+                            <EditOutlined sx={{ fontSize: 16 }} />
                           </IconButton>
                         </Tooltip>
 
@@ -584,12 +672,12 @@ export default function PlansPage() {
                           <IconButton
                             size="small"
                             onClick={() => handleToggleConfirm(plan)}
-                            sx={getActionIconSx("toggle")}
+                            sx={{ ...getActionIconSx("toggle"), p: 0.55 }}
                           >
                             {plan.isActive ? (
-                              <BlockOutlined sx={{ fontSize: 17 }} />
+                              <BlockOutlined sx={{ fontSize: 16 }} />
                             ) : (
-                              <TaskAltOutlined sx={{ fontSize: 17 }} />
+                              <TaskAltOutlined sx={{ fontSize: 16 }} />
                             )}
                           </IconButton>
                         </Tooltip>
@@ -598,9 +686,9 @@ export default function PlansPage() {
                           <IconButton
                             size="small"
                             onClick={() => handleDeleteConfirm(plan)}
-                            sx={getActionIconSx("danger")}
+                            sx={{ ...getActionIconSx("danger"), p: 0.55 }}
                           >
-                            <DeleteOutlined sx={{ fontSize: 17 }} />
+                            <DeleteOutlined sx={{ fontSize: 16 }} />
                           </IconButton>
                         </Tooltip>
                       </Box>

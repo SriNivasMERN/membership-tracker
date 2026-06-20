@@ -103,8 +103,36 @@ const C = {
   amber: MODULE_COLORS.amber,
 };
 
+const PRICE_COLUMN_FRAME_WIDTH = 124;
+const MULTIPLIER_COLUMN_FRAME_WIDTH = 60;
+const PLAN_COLUMN_WIDTH = "17%";
+const SLOT_COLUMN_WIDTH = "18%";
+const PRICE_COLUMN_WIDTH = "15%";
+const MULTIPLIER_COLUMN_WIDTH = "10%";
+const FINAL_PRICE_COLUMN_WIDTH = "16%";
+const STATUS_COLUMN_WIDTH = "10%";
+const ACTIONS_COLUMN_WIDTH = "14%";
+const STATUS_TEXT_OFFSET = 1.15;
+
 function preventNumberScroll(event: WheelEvent<HTMLInputElement>) {
   event.currentTarget.blur();
+}
+
+function getPricingStatusPillSx(isActive: boolean) {
+  return {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "flex-start",
+    minWidth: 74,
+    px: STATUS_TEXT_OFFSET,
+    py: 0.4,
+    borderRadius: "999px",
+    border: `1px solid ${isActive ? "#BEE5C8" : "#D8DEE6"}`,
+    background: isActive
+      ? "linear-gradient(180deg, rgba(244,252,247,0.995) 0%, rgba(235,249,240,0.985) 100%)"
+      : "linear-gradient(180deg, rgba(250,252,254,0.995) 0%, rgba(244,247,251,0.985) 100%)",
+    boxSizing: "border-box",
+  } as const;
 }
 
 // ─── Pricing Rule Form Dialog ─────────────────────────────────────────────────
@@ -642,7 +670,13 @@ export default function PricingPage() {
         }}
       >
         <TableContainer sx={MODULE_TABLE_CONTAINER_SX}>
-          <Table sx={{ minWidth: { xs: 860, md: 920, lg: 0 } }}>
+          <Table
+            sx={{
+              width: "100%",
+              tableLayout: "fixed",
+              minWidth: { xs: 860, sm: 920, md: "100%" },
+            }}
+          >
             <TableHead>
               <TableRow
                 sx={{
@@ -656,10 +690,65 @@ export default function PricingPage() {
                     sx={{
                       ...MODULE_TABLE_HEAD_CELL_SX,
                       whiteSpace: "nowrap",
+                      width:
+                        h === "Plan"
+                          ? PLAN_COLUMN_WIDTH
+                          : h === "Slot"
+                            ? SLOT_COLUMN_WIDTH
+                          : h === "Multiplier"
+                            ? MULTIPLIER_COLUMN_WIDTH
+                          : h === "Base Price" || h === "Final Price"
+                            ? h === "Base Price"
+                              ? PRICE_COLUMN_WIDTH
+                              : FINAL_PRICE_COLUMN_WIDTH
+                          : h === "Status"
+                            ? STATUS_COLUMN_WIDTH
+                          : h === "Actions"
+                            ? ACTIONS_COLUMN_WIDTH
+                            : "auto",
                       textAlign: h === "Actions" ? "center" : "left",
                     }}
                   >
-                    {h}
+                    {h === "Plan" || h === "Slot" ? (
+                      <Box sx={{ width: "100%", textAlign: "center" }}>{h}</Box>
+                    ) : h === "Status" ? (
+                      <Box
+                        sx={{
+                          width: "100%",
+                          textAlign: "left",
+                          pl: STATUS_TEXT_OFFSET,
+                          boxSizing: "border-box",
+                        }}
+                      >
+                        {h}
+                      </Box>
+                    ) : h === "Multiplier" ? (
+                      <Box
+                        sx={{
+                          width: MULTIPLIER_COLUMN_FRAME_WIDTH,
+                          maxWidth: "100%",
+                          mx: "auto",
+                          textAlign: "center",
+                        }}
+                      >
+                        {h}
+                      </Box>
+                    ) : h === "Base Price" || h === "Final Price" ? (
+                      <Box
+                        sx={{
+                          width: PRICE_COLUMN_FRAME_WIDTH,
+                          maxWidth: "100%",
+                          mx: "auto",
+                          textAlign: "left",
+                          pl: 1.3,
+                          boxSizing: "border-box",
+                        }}
+                      >
+                        {h}
+                      </Box>
+                    ) : (
+                      h
+                    )}
                   </TableCell>
                 ))}
               </TableRow>
@@ -699,60 +788,152 @@ export default function PricingPage() {
                         opacity: rule.isActive ? 1 : 0.72,
                       }}
                     >
-                      <TableCell sx={{ py: 1.6 }}>
-                        <Typography sx={{ fontWeight: 800, fontSize: "0.88rem", color: "#111827" }}>
-                          {rule.planId.name}
-                        </Typography>
+                      <TableCell sx={{ py: 1.6, width: PLAN_COLUMN_WIDTH, textAlign: "center", px: 1 }}>
+                        <Box
+                          sx={{
+                            display: "inline-flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            minWidth: 0,
+                            maxWidth: "100%",
+                            mx: "auto",
+                            textAlign: "center",
+                            boxSizing: "border-box",
+                          }}
+                        >
+                          <Typography sx={{ fontWeight: 800, fontSize: "0.88rem", color: "#111827" }}>
+                            {rule.planId.name}
+                          </Typography>
+                        </Box>
                       </TableCell>
-                      <TableCell sx={{ py: 1.6 }}>
-                        <Typography sx={{ fontSize: "0.85rem", color: C.slate, fontWeight: 700 }}>
+                      <TableCell sx={{ py: 1.6, width: SLOT_COLUMN_WIDTH, textAlign: "center", px: 0.75 }}>
+                        <Typography
+                          sx={{
+                            fontSize: "0.82rem",
+                            color: C.slate,
+                            fontWeight: 700,
+                            whiteSpace: "nowrap",
+                          }}
+                        >
                           {rule.slotId.label}
                         </Typography>
                         <Typography sx={{ fontSize: "0.72rem", color: C.muted, fontWeight: 600, mt: 0.25 }}>
                           {rule.slotId.startTime} - {rule.slotId.endTime}
                         </Typography>
                       </TableCell>
-                      <TableCell sx={{ py: 1.6 }}>
-                        <Typography sx={{ fontSize: "0.85rem", color: C.slate, fontWeight: 700 }}>
-                          {formatCurrency(rule.planId.basePrice)}
-                        </Typography>
+                      <TableCell sx={{ py: 1.6, textAlign: "center", width: PRICE_COLUMN_WIDTH, px: 0.6 }}>
+                        <Box sx={{ width: PRICE_COLUMN_FRAME_WIDTH, maxWidth: "100%", mx: "auto", textAlign: "left" }}>
+                          <Box
+                            sx={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "flex-start",
+                              width: "100%",
+                              px: 1,
+                              py: 0.45,
+                              borderRadius: "999px",
+                              border: `1px solid ${C.border}`,
+                              background:
+                                "linear-gradient(180deg, rgba(255,255,255,0.99) 0%, rgba(249,244,237,0.97) 100%)",
+                              lineHeight: 1,
+                              boxSizing: "border-box",
+                            }}
+                          >
+                            <Typography
+                              sx={{
+                                fontSize: "0.88rem",
+                                fontWeight: 800,
+                                color: "#111827",
+                                letterSpacing: 0.01,
+                              }}
+                            >
+                              {formatCurrency(rule.planId.basePrice)}
+                            </Typography>
+                          </Box>
+                        </Box>
                       </TableCell>
-                      <TableCell sx={{ py: 1.6 }}>
-                        <Chip
-                          label={`${rule.multiplier}x`}
-                          size="small"
+                      <TableCell sx={{ py: 1.6, textAlign: "center", width: MULTIPLIER_COLUMN_WIDTH, px: 0.35 }}>
+                        <Box
                           sx={{
-                            ...MODULE_NEUTRAL_CHIP_SX,
-                            background:
-                              "linear-gradient(180deg, rgba(255,255,255,0.995) 0%, rgba(239,245,251,0.985) 100%)",
-                            border: "1px solid #C6D6E7",
-                            color: C.navy,
-                            fontWeight: 800,
-                            boxShadow: "0 6px 14px rgba(36,58,87,0.06)",
+                            width: MULTIPLIER_COLUMN_FRAME_WIDTH,
+                            maxWidth: "100%",
+                            mx: "auto",
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
                           }}
-                        />
+                        >
+                          <Chip
+                            label={`${rule.multiplier}x`}
+                            size="small"
+                            sx={{
+                              ...MODULE_NEUTRAL_CHIP_SX,
+                              background:
+                                "linear-gradient(180deg, rgba(255,255,255,0.995) 0%, rgba(239,245,251,0.985) 100%)",
+                              border: "1px solid #C6D6E7",
+                              color: C.navy,
+                              fontWeight: 800,
+                              boxShadow: "0 6px 14px rgba(36,58,87,0.06)",
+                            }}
+                          />
+                        </Box>
                       </TableCell>
-                      <TableCell sx={{ py: 1.6 }}>
-                        <Typography sx={{ fontSize: "0.88rem", fontWeight: 800, color: C.green }}>
-                          {formatCurrency(finalPrice)}
-                        </Typography>
+                      <TableCell sx={{ py: 1.6, textAlign: "center", width: FINAL_PRICE_COLUMN_WIDTH, px: 0.6 }}>
+                        <Box sx={{ width: PRICE_COLUMN_FRAME_WIDTH, maxWidth: "100%", mx: "auto", textAlign: "left" }}>
+                          <Box
+                            sx={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "flex-start",
+                              width: "100%",
+                              px: 1,
+                              py: 0.45,
+                              borderRadius: "999px",
+                              border: "1px solid #CFE4D5",
+                              background:
+                                "linear-gradient(180deg, rgba(255,255,255,0.99) 0%, rgba(240,248,243,0.97) 100%)",
+                              lineHeight: 1,
+                              boxSizing: "border-box",
+                            }}
+                          >
+                            <Typography
+                              sx={{
+                                fontSize: "0.88rem",
+                                fontWeight: 800,
+                                color: C.green,
+                                letterSpacing: 0.01,
+                              }}
+                            >
+                              {formatCurrency(finalPrice)}
+                            </Typography>
+                          </Box>
+                        </Box>
                       </TableCell>
-                      <TableCell sx={{ py: 1.6 }}>
-                        <Chip
-                          label={rule.isActive ? "Active" : "Inactive"}
-                          size="small"
-                          sx={rule.isActive ? MODULE_SUCCESS_CHIP_SX : MODULE_NEUTRAL_CHIP_SX}
-                        />
+                      <TableCell sx={{ py: 1.6, width: STATUS_COLUMN_WIDTH, px: 0.35, textAlign: "left" }}>
+                        <Box sx={{ width: "100%", display: "flex", justifyContent: "flex-start" }}>
+                          <Box sx={getPricingStatusPillSx(rule.isActive)}>
+                            <Typography
+                              sx={{
+                                fontSize: "0.88rem",
+                                fontWeight: 700,
+                                lineHeight: 1,
+                                color: rule.isActive ? C.green : C.slate,
+                              }}
+                            >
+                              {rule.isActive ? "Active" : "Inactive"}
+                            </Typography>
+                          </Box>
+                        </Box>
                       </TableCell>
-                      <TableCell sx={{ py: 1.6, textAlign: "center" }}>
-                        <Box sx={{ display: "flex", gap: 0.45, justifyContent: "center" }}>
+                      <TableCell sx={{ py: 1.6, textAlign: "center", width: ACTIONS_COLUMN_WIDTH, px: 0.2 }}>
+                        <Box sx={{ display: "flex", gap: 0, justifyContent: "center" }}>
                           <Tooltip title="Edit rule">
                             <IconButton
                               size="small"
                               onClick={() => { setEditingRule(rule); setFormOpen(true); }}
-                              sx={getActionIconSx("primary")}
+                              sx={{ ...getActionIconSx("primary"), p: 0.55 }}
                             >
-                              <EditOutlined sx={{ fontSize: 17 }} />
+                              <EditOutlined sx={{ fontSize: 16 }} />
                             </IconButton>
                           </Tooltip>
                           <Tooltip title={rule.isActive ? "Deactivate" : "Activate"}>
@@ -763,12 +944,12 @@ export default function PricingPage() {
                                 setConfirmAction("toggle");
                                 setConfirmOpen(true);
                               }}
-                              sx={getActionIconSx("toggle")}
+                              sx={{ ...getActionIconSx("toggle"), p: 0.55 }}
                             >
                               {rule.isActive ? (
-                                <BlockOutlined sx={{ fontSize: 17 }} />
+                                <BlockOutlined sx={{ fontSize: 16 }} />
                               ) : (
-                                <TaskAltOutlined sx={{ fontSize: 17 }} />
+                                <TaskAltOutlined sx={{ fontSize: 16 }} />
                               )}
                             </IconButton>
                           </Tooltip>
@@ -780,9 +961,9 @@ export default function PricingPage() {
                                 setConfirmAction("delete");
                                 setConfirmOpen(true);
                               }}
-                              sx={getActionIconSx("danger")}
+                              sx={{ ...getActionIconSx("danger"), p: 0.55 }}
                             >
-                              <DeleteOutlined sx={{ fontSize: 17 }} />
+                              <DeleteOutlined sx={{ fontSize: 16 }} />
                             </IconButton>
                           </Tooltip>
                         </Box>

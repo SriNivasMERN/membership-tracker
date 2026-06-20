@@ -81,6 +81,8 @@ const C = {
   amber: MODULE_COLORS.amber,
 };
 
+const ROLE_STATUS_LEFT_OFFSET = 1.05;
+
 // ─── API ──────────────────────────────────────────────────────────────────────
 
 const usersApi = {
@@ -652,10 +654,19 @@ export default function UsersPage() {
                       sx={{
                         ...MODULE_TABLE_HEAD_CELL_SX,
                         whiteSpace: "nowrap",
-                        textAlign: h === "Actions" ? "center" : "left",
+                        textAlign:
+                          h === "User" || h === "Email" || h === "Joined" || h === "Actions"
+                            ? "center"
+                            : "left",
                       }}
                     >
-                      {h}
+                      {h === "Role" || h === "Status" ? (
+                        <Box sx={{ pl: ROLE_STATUS_LEFT_OFFSET }}>{h}</Box>
+                      ) : h === "User" || h === "Email" || h === "Joined" || h === "Actions" ? (
+                        <Box sx={{ width: "100%", textAlign: "center" }}>{h}</Box>
+                      ) : (
+                        h
+                      )}
                     </TableCell>
                   )
                 )}
@@ -746,7 +757,7 @@ export default function UsersPage() {
                         </Box>
                       </TableCell>
 
-                      <TableCell sx={{ py: 1.6 }}>
+                      <TableCell sx={{ py: 1.6, textAlign: "center" }}>
                         <Typography
                           sx={{ fontSize: "0.85rem", color: C.slate, fontWeight: 700 }}
                         >
@@ -754,7 +765,7 @@ export default function UsersPage() {
                         </Typography>
                       </TableCell>
 
-                      <TableCell sx={{ py: 1.6 }}>
+                      <TableCell sx={{ py: 1.6, pl: ROLE_STATUS_LEFT_OFFSET }}>
                         <Chip
                           label={isOwner ? "Owner" : "Staff"}
                           size="small"
@@ -778,7 +789,7 @@ export default function UsersPage() {
                         />
                       </TableCell>
 
-                      <TableCell sx={{ py: 1.6 }}>
+                      <TableCell sx={{ py: 1.6, pl: ROLE_STATUS_LEFT_OFFSET }}>
                         <Chip
                           label={u.isActive ? "Active" : "Inactive"}
                           size="small"
@@ -786,7 +797,7 @@ export default function UsersPage() {
                         />
                       </TableCell>
 
-                      <TableCell sx={{ py: 1.6 }}>
+                      <TableCell sx={{ py: 1.6, textAlign: "center" }}>
                         <Typography
                           sx={{
                             fontSize: "0.84rem",
@@ -801,11 +812,12 @@ export default function UsersPage() {
                       <TableCell sx={{ py: 1.6, textAlign: "center" }}>
                         <Box
                           sx={{
-                            display: "flex",
-                            gap: 0.45,
-                            justifyContent: "flex-start",
+                            display: "grid",
+                            gridTemplateColumns: "repeat(2, 20px)",
+                            columnGap: 4,
+                            justifyContent: "center",
                             alignItems: "center",
-                            width: 58,
+                            width: 44,
                             mx: "auto",
                           }}
                         >
@@ -822,7 +834,7 @@ export default function UsersPage() {
                               </IconButton>
                             </Tooltip>
 
-                          {!isOwner && !isCurrentUser && (
+                          {!isOwner && !isCurrentUser ? (
                             <Tooltip
                               title={u.isActive ? "Deactivate" : "Activate"}
                             >
@@ -841,6 +853,8 @@ export default function UsersPage() {
                                 )}
                               </IconButton>
                             </Tooltip>
+                          ) : (
+                            <Box sx={{ width: 20, height: 20 }} />
                           )}
                         </Box>
                       </TableCell>

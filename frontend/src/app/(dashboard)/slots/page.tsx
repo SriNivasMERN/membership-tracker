@@ -441,7 +441,13 @@ export default function SlotsPage() {
                     sx={{
                       ...MODULE_TABLE_HEAD_CELL_SX,
                       whiteSpace: "nowrap",
-                      textAlign: heading === "Actions" ? "center" : "left",
+                      textAlign:
+                        heading === "Actions" ||
+                        heading === "Slot" ||
+                        heading === "Start Time" ||
+                        heading === "End Time"
+                          ? "center"
+                          : "left",
                     }}
                   >
                     {heading}
@@ -479,6 +485,34 @@ export default function SlotsPage() {
                 slots.map((slot) => {
                   const session = slot.startTime < "12:00" ? "Morning" : slot.startTime < "17:00" ? "Afternoon" : "Evening";
                   const sessionTone = getSessionTone(session);
+                  const startTimeSx = {
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    minWidth: 94,
+                    px: 1.1,
+                    py: 0.45,
+                    borderRadius: "999px",
+                    border: `1px solid ${sessionTone.border}`,
+                    background: sessionTone.background,
+                    color: sessionTone.color,
+                    fontSize: "0.88rem",
+                    fontWeight: 800,
+                    fontVariantNumeric: "tabular-nums",
+                    letterSpacing: 0.04,
+                    lineHeight: 1,
+                  } as const;
+                  const endTimeSx = {
+                    ...startTimeSx,
+                    background: "rgba(255,255,255,0.96)",
+                    boxShadow: `inset 0 0 0 1px ${sessionTone.border}22`,
+                    color:
+                      session === "Morning"
+                        ? "#8A5A22"
+                        : session === "Afternoon"
+                          ? "#6A5C4A"
+                          : "#3B5B84",
+                  } as const;
                   return (
                     <TableRow
                       key={slot._id}
@@ -488,36 +522,20 @@ export default function SlotsPage() {
                         opacity: slot.isActive ? 1 : 0.6,
                       }}
                     >
-                      <TableCell sx={{ py: 1.6 }}>
+                      <TableCell sx={{ py: 1.6, textAlign: "center" }}>
                         <Typography sx={{ fontWeight: 800, fontSize: "0.88rem", color: "#111827" }}>
                           {slot.label}
                         </Typography>
                       </TableCell>
 
-                      <TableCell sx={{ py: 1.6 }}>
-                        <Typography
-                          sx={{
-                            fontSize: "0.88rem",
-                            color: C.navy,
-                            fontWeight: 700,
-                            fontVariantNumeric: "tabular-nums",
-                            letterSpacing: 0.04,
-                          }}
-                        >
+                      <TableCell sx={{ py: 1.6, textAlign: "center" }}>
+                        <Typography component="span" sx={startTimeSx}>
                           {slot.startTime}
                         </Typography>
                       </TableCell>
 
-                      <TableCell sx={{ py: 1.6 }}>
-                        <Typography
-                          sx={{
-                            fontSize: "0.88rem",
-                            color: C.slate,
-                            fontWeight: 700,
-                            fontVariantNumeric: "tabular-nums",
-                            letterSpacing: 0.04,
-                          }}
-                        >
+                      <TableCell sx={{ py: 1.6, textAlign: "center" }}>
+                        <Typography component="span" sx={endTimeSx}>
                           {slot.endTime}
                         </Typography>
                       </TableCell>
