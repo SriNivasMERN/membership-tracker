@@ -15,6 +15,7 @@ This document validates:
 
 - Login page rendering
 - Field validation
+- Browser autofill behavior
 - Password visibility behavior
 - Successful login for valid roles
 - Error handling for invalid credentials
@@ -43,9 +44,11 @@ This document validates:
 | LGN-016 | Auto-scroll to error message after failed login | Unauthorized User | Viewport is small enough that alert may be above current view | 1. Enter invalid credentials 2. Submit login 3. Observe page position | Page scrolls to the top error alert automatically so the failure reason is visible without manual scrolling. | High |
 | LGN-017 | Keep entered values after failed login | Unauthorized User | User is on login page | 1. Enter invalid credentials 2. Click `Sign In` | Entered email remains available for correction. Password field behavior remains consistent with app security design. | Medium |
 | LGN-018 | Redirect authenticated user away from login page | Owner/Admin | User already has a valid authenticated session | 1. Login successfully 2. Attempt to revisit `/login` | Authenticated user is not allowed to continue normal login flow and is redirected appropriately by the app. | High |
-| LGN-019 | Login page is usable on mobile viewport | Unauthorized User | Browser width is between 360px and 480px | 1. Open `/login` on mobile viewport 2. Observe card, fields, button, and icon sizes | Form fits screen without horizontal scroll. Fields are readable. Tap targets remain usable. | High |
-| LGN-020 | Login page is usable on tablet viewport | Unauthorized User | Browser width is between 768px and 1024px | 1. Open `/login` on tablet viewport 2. Observe layout | Layout remains centered, balanced, and fully usable without broken alignment. | Medium |
-| LGN-021 | Loading screen appears on first authenticated app entry | Owner/Admin | User is not logged in | 1. Login with valid credentials 2. Observe first post-login transition | User sees the app loading experience while the workspace initializes, without broken or blank intermediate state. | High |
+| LGN-019 | Keep login text readable when browser autofill or history suggestions appear | Unauthorized User | Browser autofill or saved login suggestions are enabled | 1. Open `/login` 2. Click into email and password fields 3. Observe while browser suggestions appear | Field label and typed value remain readable. Text does not appear blurred, overlapped, or struck through. | High |
+| LGN-020 | Never place login credentials in the URL | Unauthorized User | User is on login page | 1. Enter valid or invalid credentials 2. Submit login 3. Observe browser address bar during and after request | Email and password are never exposed in URL path, query string, or hash fragment. | Critical |
+| LGN-021 | Login page is usable on mobile viewport | Unauthorized User | Browser width is between 360px and 480px | 1. Open `/login` on mobile viewport 2. Observe card, fields, button, and icon sizes | Form fits screen without horizontal scroll. Fields are readable. Tap targets remain usable. | High |
+| LGN-022 | Login page is usable on tablet viewport | Unauthorized User | Browser width is between 768px and 1024px | 1. Open `/login` on tablet viewport 2. Observe layout | Layout remains centered, balanced, and fully usable without broken alignment. | Medium |
+| LGN-023 | Loading screen appears on first authenticated app entry | Owner/Admin | User is not logged in | 1. Login with valid credentials 2. Observe first post-login transition | User sees the app loading experience while the workspace initializes, without broken or blank intermediate state. | High |
 
 ## Execution Notes
 
