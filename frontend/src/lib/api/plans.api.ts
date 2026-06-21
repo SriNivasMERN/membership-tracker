@@ -1,4 +1,5 @@
 import api from "./axios.instance";
+import { dashboardApi } from "./dashboard.api";
 import { Plan, PlanFormData } from "@/types/plan.types";
 
 type PlansResponse = { success: boolean; data: Plan[] };
@@ -13,6 +14,7 @@ const invalidatePlansCache = () => {
   cachedActivePlans = null;
   allPlansPromise = null;
   activePlansPromise = null;
+  dashboardApi.clearCache();
 };
 
 export const plansApi = {

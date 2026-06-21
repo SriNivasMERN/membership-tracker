@@ -10,8 +10,13 @@ import {
 } from "react";
 import { AuthUser } from "@/types/auth.types";
 import api from "@/lib/api/axios.instance";
+import { dashboardApi } from "@/lib/api/dashboard.api";
+import { membersApi } from "@/lib/api/members.api";
 import { plansApi } from "@/lib/api/plans.api";
+import { pricingApi } from "@/lib/api/pricing.api";
+import { settingsApi } from "@/lib/api/settings.api";
 import { slotsApi } from "@/lib/api/slots.api";
+import { usersApi } from "@/lib/api/users.api";
 
 interface AuthContextValue {
   user: AuthUser | null;
@@ -24,6 +29,16 @@ interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+
+const clearSessionCaches = () => {
+  dashboardApi.clearCache();
+  membersApi.clearCache();
+  plansApi.clearCache();
+  pricingApi.clearCache();
+  settingsApi.clearCache();
+  slotsApi.clearCache();
+  usersApi.clearCache();
+};
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -71,8 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const setAuthData = (userData: AuthUser, token: string) => {
-    plansApi.clearCache();
-    slotsApi.clearCache();
+    clearSessionCaches();
     setUser(userData);
     setAccessToken(token);
     window.__accessToken = token;
@@ -89,8 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       businessId: userData.businessId,
       previousLoginAt: userData.previousLoginAt ?? null,
     };
-    plansApi.clearCache();
-    slotsApi.clearCache();
+    clearSessionCaches();
     setUser(authUser);
     setAccessToken(token);
     window.__accessToken = token;
@@ -100,8 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await api.post("/auth/logout");
     } finally {
-      plansApi.clearCache();
-      slotsApi.clearCache();
+      clearSessionCaches();
       setUser(null);
       setAccessToken(null);
       window.__accessToken = undefined;

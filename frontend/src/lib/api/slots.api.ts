@@ -1,4 +1,5 @@
 import api from "./axios.instance";
+import { dashboardApi } from "./dashboard.api";
 import { Slot, SlotFormData } from "@/types/slot.types";
 
 type SlotsResponse = { success: boolean; data: Slot[] };
@@ -13,6 +14,7 @@ const invalidateSlotsCache = () => {
   cachedActiveSlots = null;
   allSlotsPromise = null;
   activeSlotsPromise = null;
+  dashboardApi.clearCache();
 };
 
 export const slotsApi = {
