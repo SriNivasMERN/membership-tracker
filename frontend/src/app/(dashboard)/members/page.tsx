@@ -193,16 +193,18 @@ export default function MembersPage() {
   const areAllVisibleSelected = members.length > 0 && members.every((member) => selectedMemberIds.includes(member._id));
   const areSomeVisibleSelected = members.some((member) => selectedMemberIds.includes(member._id));
   const columns = [
-    { key: "select", label: "", width: "4.5%", align: "center" as const },
-    { key: "member", label: "Member", width: "19%" },
-    { key: "mobile", label: "Mobile", width: "12%", align: "left" as const },
-    { key: "plan", label: "Plan", width: "12%" },
-    { key: "slot", label: "Slot", width: "15%" },
-    { key: "renewal", label: "Renewal Date", width: "12.5%" },
-    { key: "payment", label: "Payment Due", width: "10%" },
-    { key: "status", label: "Status", width: "9%" },
-    { key: "actions", label: "Actions", width: "6%", align: "center" as const },
+    { key: "select", label: "", width: "46px", align: "center" as const },
+    { key: "member", label: "Member", width: "15%", align: "left" as const },
+    { key: "mobile", label: "Mobile", width: "9%", align: "left" as const },
+    { key: "plan", label: "Plan", width: "10%", align: "center" as const },
+    { key: "slot", label: "Slot", width: "12%", align: "center" as const },
+    { key: "renewal", label: "Renewal Date", width: "12%", align: "center" as const },
+    { key: "payment", label: "Payment Due", width: "9%", align: "center" as const },
+    { key: "status", label: "Status", width: "8%", align: "center" as const },
+    { key: "actions", label: "Actions", width: "108px", align: "center" as const },
   ];
+  const alignedColumnStartPx = 0.44;
+  const alignedColumnRightPx = 0.26;
 
   const formatDate = (date: string) =>
     new Date(date).toLocaleDateString("en-IN", {
@@ -672,9 +674,9 @@ export default function MembersPage() {
           <TableContainer sx={{ ...MODULE_TABLE_CONTAINER_SX, display: isMobileTable ? "none" : "block" }}>
             <Table
               sx={{
-                tableLayout: { xs: "auto", lg: "fixed" },
+                tableLayout: { xs: "auto", md: "fixed" },
                 width: "100%",
-                minWidth: { xs: 860, sm: 940, md: 1020, lg: 0 },
+                minWidth: { xs: 860, sm: 940, md: 0 },
               }}
             >
               <colgroup>
@@ -694,9 +696,38 @@ export default function MembersPage() {
                       key={column.key}
                       sx={{
                         ...MODULE_TABLE_HEAD_CELL_SX,
-                        px: column.key === "select" ? 0.7 : 1,
-                        textAlign: column.align || "left",
+                        pl:
+                          column.key === "select"
+                            ? 0.32
+                            : column.key === "member" ||
+                                column.key === "mobile" ||
+                                column.key === "renewal" ||
+                                column.key === "status" ||
+                                column.key === "actions"
+                              ? alignedColumnStartPx
+                              : 0.42,
+                        pr:
+                          column.key === "select"
+                            ? 0.32
+                            : column.key === "member" ||
+                                column.key === "mobile" ||
+                                column.key === "renewal" ||
+                                column.key === "status" ||
+                                column.key === "actions"
+                              ? alignedColumnRightPx
+                              : 0.42,
+                        textAlign:
+                          column.key === "mobile"
+                            ? "center"
+                            : column.key === "member"
+                              ? "left"
+                              : column.align || "left",
                         whiteSpace: "nowrap",
+                        ...(column.key === "status"
+                          ? {
+                              transform: "translateX(8px)",
+                            }
+                          : {}),
                       }}
                     >
                       {column.key === "select" ? (
@@ -758,7 +789,7 @@ export default function MembersPage() {
                       }}
                     >
                       <TableCell
-                        sx={{ py: 1.45, px: 0.7, verticalAlign: "top", textAlign: "center" }}
+                        sx={{ py: 1.45, px: 0.32, verticalAlign: "top", textAlign: "center" }}
                         onClick={(e) => e.stopPropagation()}
                       >
                         <Checkbox
@@ -774,7 +805,7 @@ export default function MembersPage() {
                           }}
                         />
                       </TableCell>
-                      <TableCell sx={{ py: 1.45, px: 1, verticalAlign: "top" }}>
+                      <TableCell sx={{ py: 1.45, pl: alignedColumnStartPx, pr: alignedColumnRightPx, verticalAlign: "top" }}>
                         <Box>
                           <Typography sx={{ fontWeight: 800, fontSize: "0.88rem", color: "#0F172A" }}>{member.name}</Typography>
                           <Typography sx={{ mt: 0.3, fontSize: "0.74rem", color: C.muted, fontWeight: 600 }}>
@@ -782,15 +813,16 @@ export default function MembersPage() {
                           </Typography>
                         </Box>
                       </TableCell>
-                      <TableCell sx={{ py: 1.45, px: 1, verticalAlign: "top", textAlign: "left" }}>
+                      <TableCell sx={{ py: 1.45, px: 0.2, verticalAlign: "top", textAlign: "center" }}>
                         <Box
                           sx={{
                             mt: -0.02,
                             display: "inline-flex",
                             alignItems: "center",
-                            justifyContent: "flex-start",
+                            justifyContent: "center",
                             minHeight: 30,
-                            px: 0.9,
+                            pl: 0.24,
+                            pr: 0.34,
                             borderRadius: "999px",
                             border: `1px solid rgba(221, 205, 183, 0.92)`,
                             background:
@@ -813,35 +845,69 @@ export default function MembersPage() {
                           </Typography>
                         </Box>
                       </TableCell>
-                      <TableCell sx={{ py: 1.45, px: 1, verticalAlign: "top" }}>
-                        <Typography sx={{ mt: 0.08, fontSize: "0.85rem", color: C.slate, fontWeight: 700 }}>{member.planSnapshot.name}</Typography>
+                      <TableCell sx={{ py: 1.45, px: 0.42, verticalAlign: "top", textAlign: "center" }}>
+                        <Typography sx={{ mt: 0.08, fontSize: "0.85rem", color: C.slate, fontWeight: 700, textAlign: "center" }}>{member.planSnapshot.name}</Typography>
                       </TableCell>
-                      <TableCell sx={{ py: 1.45, px: 1, verticalAlign: "top" }}>
-                        <Typography sx={{ mt: 0.08, fontSize: "0.85rem", color: C.slate, fontWeight: 700 }}>{member.slotSnapshot.label}</Typography>
-                        <Typography sx={{ mt: 0.25, fontSize: "0.72rem", color: C.muted, fontWeight: 600 }}>
-                          {member.slotSnapshot.startTime} - {member.slotSnapshot.endTime}
-                        </Typography>
-                      </TableCell>
-                      <TableCell sx={{ py: 1.45, px: 1, verticalAlign: "top" }}>
+                      <TableCell sx={{ py: 1.45, px: 0.42, verticalAlign: "top", textAlign: "center" }}>
                         <Typography
                           sx={{
                             mt: 0.08,
-                            fontSize: "0.85rem",
-                            color: member.status === "ended" ? "#64748B" : C.slate,
-                            fontWeight: member.status === "ended" ? 800 : 700,
-                            letterSpacing: member.status === "ended" ? 0.08 : 0,
-                            lineHeight: 1.2,
+                            fontSize: "0.82rem",
+                            color: C.slate,
+                            fontWeight: 700,
+                            textAlign: "center",
+                            whiteSpace: "nowrap",
+                            wordBreak: "keep-all",
                           }}
                         >
-                          {member.status === "ended" ? "Not Applicable" : formatDate(member.endDate)}
+                          {member.slotSnapshot.label}
+                        </Typography>
+                        <Typography sx={{ mt: 0.25, fontSize: "0.72rem", color: C.muted, fontWeight: 600, textAlign: "center" }}>
+                          {member.slotSnapshot.startTime} - {member.slotSnapshot.endTime}
                         </Typography>
                       </TableCell>
-                      <TableCell sx={{ py: 1.45, px: 1, verticalAlign: "top" }}>
-                        <Typography sx={{ mt: 0.08, fontSize: "0.88rem", fontWeight: 800, color: member.pendingAmount > 0 ? C.red : C.green }}>
+                      <TableCell sx={{ py: 1.45, px: 0.42, verticalAlign: "top", textAlign: "center" }}>
+                        <Box sx={{ display: "flex", justifyContent: "center", width: "100%" }}>
+                          <Box
+                            sx={{
+                              mt: -0.02,
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              minHeight: 30,
+                              minWidth: 108,
+                              pl: 0.24,
+                              pr: 0.34,
+                              borderRadius: "999px",
+                              border: `1px solid rgba(221, 205, 183, 0.92)`,
+                              background:
+                                "linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(251,246,239,0.95) 100%)",
+                              boxShadow: "0 1px 2px rgba(15, 23, 42, 0.03)",
+                            }}
+                          >
+                            <Typography
+                              sx={{
+                                fontSize: "0.84rem",
+                                color: member.status === "ended" ? "#64748B" : C.navy,
+                                fontWeight: member.status === "ended" ? 800 : 700,
+                                fontVariantNumeric: "tabular-nums",
+                                letterSpacing: member.status === "ended" ? 0.04 : 0.015,
+                                lineHeight: 1,
+                                textAlign: "center",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {member.status === "ended" ? "Not Applicable" : formatDate(member.endDate)}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </TableCell>
+                      <TableCell sx={{ py: 1.45, px: 0.42, verticalAlign: "top", textAlign: "center" }}>
+                        <Typography sx={{ mt: 0.08, fontSize: "0.88rem", fontWeight: 800, color: member.pendingAmount > 0 ? C.red : C.green, textAlign: "center" }}>
                           {member.pendingAmount > 0 ? formatCurrency(member.pendingAmount) : "Paid"}
                         </Typography>
                       </TableCell>
-                      <TableCell sx={{ py: 1.45, px: 1, verticalAlign: "top" }}>
+                      <TableCell sx={{ py: 1.45, pl: alignedColumnStartPx, pr: alignedColumnRightPx, verticalAlign: "top", textAlign: "center", transform: "translateX(8px)" }}>
                         <Typography
                           sx={{
                             mt: 0.08,
@@ -850,25 +916,26 @@ export default function MembersPage() {
                             color: getStatusTextStyle(member.status).color,
                             lineHeight: 1.2,
                             whiteSpace: "nowrap",
+                            textAlign: "center",
                           }}
                         >
                           {getStatusTextStyle(member.status).label}
                         </Typography>
                       </TableCell>
-                      <TableCell sx={{ py: 1.45, px: 0.6, verticalAlign: "top", textAlign: "center" }} onClick={(e) => e.stopPropagation()}>
-                        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 0.2, minWidth: 96, mt: -0.02, mx: "auto" }}>
+                      <TableCell sx={{ py: 1.45, pl: 0.42, pr: 0.3, verticalAlign: "top", textAlign: "center" }} onClick={(e) => e.stopPropagation()}>
+                        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 0.55, mt: -0.02 }}>
                           <Tooltip title="View">
-                            <IconButton size="small" onClick={() => navigateTo(`/members/${member._id}`)} sx={{ p: 0.38, ...getActionIconSx("primary") }}>
+                            <IconButton size="small" onClick={() => navigateTo(`/members/${member._id}`)} sx={{ p: 0.22, ...getActionIconSx("primary") }}>
                               <VisibilityOutlined sx={{ fontSize: 16 }} />
                             </IconButton>
                           </Tooltip>
                           <Tooltip title="Edit">
-                            <IconButton size="small" onClick={() => navigateTo(`/members/${member._id}?action=edit`)} sx={{ p: 0.38, ...getActionIconSx("primary") }}>
+                            <IconButton size="small" onClick={() => navigateTo(`/members/${member._id}?action=edit`)} sx={{ p: 0.22, ...getActionIconSx("primary") }}>
                               <EditOutlined sx={{ fontSize: 16 }} />
                             </IconButton>
                           </Tooltip>
                           <Tooltip title="Delete">
-                            <IconButton size="small" onClick={() => { setDeletingMember(member); setDeleteOpen(true); }} sx={{ p: 0.38, ...getActionIconSx("danger") }}>
+                            <IconButton size="small" onClick={() => { setDeletingMember(member); setDeleteOpen(true); }} sx={{ p: 0.22, ...getActionIconSx("danger") }}>
                               <DeleteOutlined sx={{ fontSize: 16 }} />
                             </IconButton>
                           </Tooltip>
