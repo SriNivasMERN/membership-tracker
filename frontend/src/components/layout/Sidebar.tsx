@@ -215,7 +215,7 @@ export default function Sidebar({
             gap: 0.3,
             flex: 1,
             minHeight: 0,
-            overflowY: "auto",
+            overflowY: { xs: "auto", md: "visible" },
             overscrollBehaviorY: "contain",
             "&::-webkit-scrollbar": {
               width: 0,

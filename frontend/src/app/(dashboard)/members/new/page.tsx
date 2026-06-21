@@ -212,7 +212,7 @@ export default function AddMemberPage() {
             <Skeleton variant="text" width={120} height={22} />
             <Grid container spacing={1.4}>
               {[1, 2, 3, 4, 5, 6, 7].map((item) => (
-                <Grid item xs={12} sm={item === 7 ? 12 : 6} key={item}>
+                <Grid item xs={12} md={item === 7 ? 12 : 6} key={item}>
                   <Skeleton variant="rounded" height={56} sx={{ borderRadius: "14px" }} />
                 </Grid>
               ))}
@@ -220,7 +220,7 @@ export default function AddMemberPage() {
             <Skeleton variant="text" width={150} height={22} />
             <Grid container spacing={1.4}>
               {[1, 2, 3, 4, 5].map((item) => (
-                <Grid item xs={12} sm={6} key={`membership-${item}`}>
+                <Grid item xs={12} md={6} key={`membership-${item}`}>
                   <Skeleton variant="rounded" height={56} sx={{ borderRadius: "14px" }} />
                 </Grid>
               ))}
@@ -282,7 +282,7 @@ export default function AddMemberPage() {
           </Typography>
 
           <Grid container spacing={1.4} sx={{ mb: 1.7 }}>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} md={6}>
               <TextField
                 {...register("name")}
                 label="Full Name"
@@ -294,7 +294,7 @@ export default function AddMemberPage() {
                 sx={MODULE_FIELD_SX}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} md={6}>
               <TextField
                 {...register("mobile")}
                 label="Mobile Number"
@@ -305,7 +305,7 @@ export default function AddMemberPage() {
                 sx={MODULE_FIELD_SX}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} md={6}>
               <TextField
                 {...register("email")}
                 label="Email (optional)"
@@ -327,7 +327,7 @@ export default function AddMemberPage() {
           </Typography>
 
           <Grid container spacing={1.4} sx={{ mb: 1.6 }}>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} md={6}>
               <Controller
                 name="planId"
                 control={control}
@@ -361,7 +361,7 @@ export default function AddMemberPage() {
               />
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} md={6}>
               <Controller
                 name="slotId"
                 control={control}
@@ -396,7 +396,7 @@ export default function AddMemberPage() {
             </Grid>
 
             {/* Start date - defaults to today */}
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} md={6}>
               <TextField
                 {...register("startDate")}
                 label="Start Date"
@@ -409,7 +409,7 @@ export default function AddMemberPage() {
               />
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} md={6}>
               <Controller
                 name="finalPrice"
                 control={control}

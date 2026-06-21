@@ -377,7 +377,7 @@ export default function SettingsPage() {
             sx={{ height: "100%" }}
           >
             <Grid container spacing={1.5}>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} md={6}>
                 <TextField
                   label="Business Name"
                   value={form.businessName}
@@ -389,7 +389,7 @@ export default function SettingsPage() {
                   sx={FIELD_SX}
                 />
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} md={6}>
                 <TextField
                   select
                   label="Business Type"
@@ -405,7 +405,7 @@ export default function SettingsPage() {
                   ))}
                 </TextField>
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} md={6}>
                 <TextField
                   label="Email (optional)"
                   type="email"
@@ -415,7 +415,7 @@ export default function SettingsPage() {
                   sx={FIELD_SX}
                 />
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} md={6}>
                 <TextField
                   label="Phone (optional)"
                   value={form.phone}
@@ -512,7 +512,7 @@ export default function SettingsPage() {
               </Typography>
             </Box>
             <Grid container spacing={1.5}>
-              <Grid item xs={12} sm={4}>
+              <Grid item xs={12} md={4}>
                 <TextField
                   label="Plan Label"
                   value={form.terminology.planLabel}
@@ -523,7 +523,7 @@ export default function SettingsPage() {
                   sx={FIELD_SX}
                 />
               </Grid>
-              <Grid item xs={12} sm={4}>
+              <Grid item xs={12} md={4}>
                 <TextField
                   label="Slot Label"
                   value={form.terminology.slotLabel}
@@ -534,7 +534,7 @@ export default function SettingsPage() {
                   sx={FIELD_SX}
                 />
               </Grid>
-              <Grid item xs={12} sm={4}>
+              <Grid item xs={12} md={4}>
                 <TextField
                   label="Member Label"
                   value={form.terminology.memberLabel}

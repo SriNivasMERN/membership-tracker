@@ -109,7 +109,7 @@ function PlanFormDialog({
   const isEdit = !!plan;
   const dialogContentRef = useRef<HTMLDivElement | null>(null);
   const theme = useTheme();
-  const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
+  const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
 
   const [form, setForm] = useState<PlanFormData>(EMPTY_FORM);
   const [errors, setErrors] = useState<Partial<Record<keyof PlanFormData, string>>>({});
@@ -280,6 +280,8 @@ function PlanFormDialog({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function PlansPage() {
+  const theme = useTheme();
+  const isMobileTable = useMediaQuery(theme.breakpoints.down("md"));
   const { showToast } = useToast();
 
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -488,12 +490,14 @@ export default function PlansPage() {
           overflow: "hidden",
         }}
       >
-        <TableContainer sx={MODULE_TABLE_CONTAINER_SX}>
+        <TableContainer
+          sx={{ ...MODULE_TABLE_CONTAINER_SX, display: isMobileTable ? "none" : "block" }}
+        >
           <Table
             sx={{
               width: "100%",
-              tableLayout: { xs: "fixed", lg: "auto" },
-              minWidth: { xs: 720, sm: 760, md: "100%" },
+              tableLayout: { xs: "auto", md: "fixed", lg: "auto" },
+              minWidth: { xs: 620, sm: 680, md: 760, lg: "100%" },
             }}
           >
             <TableHead>
@@ -699,6 +703,119 @@ export default function PlansPage() {
             </TableBody>
           </Table>
         </TableContainer>
+
+        {isMobileTable ? (
+          <Box sx={{ display: "grid", gap: 1.25, p: 1.25 }}>
+            {isLoading ? (
+              [...Array(4)].map((_, index) => (
+                <Paper
+                  key={index}
+                  elevation={0}
+                  sx={{
+                    borderRadius: "18px",
+                    border: `1px solid ${C.border}`,
+                    p: 1.4,
+                    background:
+                      "linear-gradient(180deg, rgba(255,255,255,0.995) 0%, rgba(253,250,246,0.988) 100%)",
+                  }}
+                >
+                  <Skeleton height={28} sx={{ mb: 1 }} />
+                  <Skeleton height={20} sx={{ mb: 0.7 }} />
+                  <Skeleton height={20} sx={{ mb: 0.7 }} />
+                  <Skeleton height={20} />
+                </Paper>
+              ))
+            ) : plans.length === 0 ? (
+              <EmptyState
+                title="No plans created yet"
+                subtitle="Add your first plan to start assigning memberships."
+                actionLabel="Add Plan"
+                onAction={handleAdd}
+              />
+            ) : (
+              plans.map((plan) => (
+                <Paper
+                  key={plan._id}
+                  elevation={0}
+                  sx={{
+                    ...MODULE_CARD_SX,
+                    p: 1.4,
+                    opacity: plan.isActive ? 1 : 0.72,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "flex-start",
+                      justifyContent: "space-between",
+                      gap: 1,
+                    }}
+                  >
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography sx={{ fontWeight: 800, fontSize: "0.94rem", color: "#111827" }}>
+                        {plan.name}
+                      </Typography>
+                      {plan.description ? (
+                        <Typography sx={{ mt: 0.35, fontSize: "0.76rem", color: C.muted, fontWeight: 600 }}>
+                          {plan.description}
+                        </Typography>
+                      ) : null}
+                    </Box>
+                    <Chip
+                      label={plan.isActive ? "Active" : "Inactive"}
+                      size="small"
+                      sx={plan.isActive ? MODULE_SUCCESS_CHIP_SX : MODULE_NEUTRAL_CHIP_SX}
+                    />
+                  </Box>
+
+                  <Box
+                    sx={{
+                      mt: 1.1,
+                      display: "grid",
+                      gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                      gap: 1,
+                    }}
+                  >
+                    <Box>
+                      <Typography sx={{ fontSize: "0.7rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.35 }}>
+                        Duration
+                      </Typography>
+                      <Typography sx={{ mt: 0.28, fontSize: "0.9rem", fontWeight: 800, color: C.navy }}>
+                        {plan.durationDays} days
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Typography sx={{ fontSize: "0.7rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.35 }}>
+                        Base Price
+                      </Typography>
+                      <Typography sx={{ mt: 0.28, fontSize: "0.9rem", fontWeight: 800, color: C.navy }}>
+                        {formatCurrency(plan.basePrice)}
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  <Box sx={{ mt: 1.2, display: "flex", justifyContent: "flex-end", gap: 0.4 }}>
+                    <Tooltip title="Edit plan">
+                      <IconButton size="small" onClick={() => handleEdit(plan)} sx={{ ...getActionIconSx("primary"), p: 0.6 }}>
+                        <EditOutlined sx={{ fontSize: 17 }} />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title={plan.isActive ? "Deactivate" : "Activate"}>
+                      <IconButton size="small" onClick={() => handleToggleConfirm(plan)} sx={{ ...getActionIconSx("toggle"), p: 0.6 }}>
+                        {plan.isActive ? <BlockOutlined sx={{ fontSize: 17 }} /> : <TaskAltOutlined sx={{ fontSize: 17 }} />}
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Delete plan">
+                      <IconButton size="small" onClick={() => handleDeleteConfirm(plan)} sx={{ ...getActionIconSx("danger"), p: 0.6 }}>
+                        <DeleteOutlined sx={{ fontSize: 17 }} />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                </Paper>
+              ))
+            )}
+          </Box>
+        ) : null}
       </Paper>
 
       {/* Plan Form Dialog */}

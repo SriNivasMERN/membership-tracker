@@ -23,7 +23,9 @@ import {
   TextField,
   Tooltip,
   Typography,
+  useMediaQuery,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import {
   CheckCircleOutlined,
   AddOutlined,
@@ -70,6 +72,8 @@ const C = {
 };
 
 export default function MembersPage() {
+  const theme = useTheme();
+  const isMobileTable = useMediaQuery(theme.breakpoints.down("md"));
   const router = useRouter();
   const { showToast } = useToast();
   const { startNavigation } = useNavigationLoading();
@@ -664,12 +668,13 @@ export default function MembersPage() {
         {error ? (
           <ErrorState message={error} onRetry={fetchMembers} />
         ) : (
-          <TableContainer sx={MODULE_TABLE_CONTAINER_SX}>
+          <>
+          <TableContainer sx={{ ...MODULE_TABLE_CONTAINER_SX, display: isMobileTable ? "none" : "block" }}>
             <Table
               sx={{
                 tableLayout: { xs: "auto", lg: "fixed" },
                 width: "100%",
-                minWidth: { xs: 1020, md: 1080, lg: 0 },
+                minWidth: { xs: 860, sm: 940, md: 1020, lg: 0 },
               }}
             >
               <colgroup>
@@ -875,6 +880,173 @@ export default function MembersPage() {
               </TableBody>
             </Table>
           </TableContainer>
+          {isMobileTable ? (
+            <Box sx={{ display: "grid", gap: 1.25, p: 1.25 }}>
+              {isLoading ? (
+                [...Array(4)].map((_, index) => (
+                  <Paper
+                    key={index}
+                    elevation={0}
+                    sx={{
+                      borderRadius: "18px",
+                      border: `1px solid ${C.border}`,
+                      p: 1.4,
+                      background: "linear-gradient(180deg, rgba(255,255,255,0.995) 0%, rgba(253,250,246,0.988) 100%)",
+                    }}
+                  >
+                    <Skeleton height={28} sx={{ mb: 1 }} />
+                    <Skeleton height={20} sx={{ mb: 0.7 }} />
+                    <Skeleton height={20} sx={{ mb: 0.7 }} />
+                    <Skeleton height={20} sx={{ mb: 0.7 }} />
+                    <Skeleton height={20} />
+                  </Paper>
+                ))
+              ) : members.length === 0 ? (
+                <EmptyState
+                  title={hasActiveFilters ? "No members match these filters" : "No members yet"}
+                  subtitle={
+                    hasActiveFilters
+                      ? "Try clearing one or more filters to widen the results."
+                      : "Add your first member to begin tracking plans, payments, and renewals."
+                  }
+                  actionLabel={hasActiveFilters ? "Clear Filters" : "Add Member"}
+                  onAction={hasActiveFilters ? clearFilters : () => navigateTo("/members/new")}
+                />
+              ) : (
+                members.map((member) => (
+                  <Paper
+                    key={member._id}
+                    elevation={0}
+                    onClick={() => navigateTo(`/members/${member._id}`)}
+                    sx={{
+                      ...MODULE_CARD_SX,
+                      p: 1.4,
+                      cursor: "pointer",
+                    }}
+                  >
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 1 }}>
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography sx={{ fontWeight: 800, fontSize: "0.94rem", color: "#0F172A" }}>
+                          {member.name}
+                        </Typography>
+                        <Typography sx={{ mt: 0.35, fontSize: "0.76rem", color: C.muted, fontWeight: 600 }}>
+                          Joined {formatDate(member.createdAt)}
+                        </Typography>
+                      </Box>
+                      <Box onClick={(e) => e.stopPropagation()}>
+                        <Checkbox
+                          checked={selectedMemberIds.includes(member._id)}
+                          onChange={() => toggleMemberSelection(member._id)}
+                          inputProps={{ "aria-label": `Select ${member.name}` }}
+                          sx={{ p: 0.2 }}
+                        />
+                      </Box>
+                    </Box>
+
+                    <Box
+                      sx={{
+                        mt: 1.1,
+                        display: "grid",
+                        gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                        gap: 1,
+                      }}
+                    >
+                      <Box>
+                        <Typography sx={{ fontSize: "0.7rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.35 }}>
+                          Mobile
+                        </Typography>
+                        <Typography sx={{ mt: 0.3, fontSize: "0.84rem", fontWeight: 800, color: C.navy }}>
+                          {member.mobile}
+                        </Typography>
+                      </Box>
+                      <Box>
+                        <Typography sx={{ fontSize: "0.7rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.35 }}>
+                          Plan
+                        </Typography>
+                        <Typography sx={{ mt: 0.3, fontSize: "0.84rem", fontWeight: 700, color: C.slate }}>
+                          {member.planSnapshot.name}
+                        </Typography>
+                      </Box>
+                      <Box>
+                        <Typography sx={{ fontSize: "0.7rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.35 }}>
+                          Slot
+                        </Typography>
+                        <Typography sx={{ mt: 0.3, fontSize: "0.84rem", fontWeight: 700, color: C.slate }}>
+                          {member.slotSnapshot.label}
+                        </Typography>
+                        <Typography sx={{ mt: 0.2, fontSize: "0.72rem", color: C.muted, fontWeight: 600 }}>
+                          {member.slotSnapshot.startTime} - {member.slotSnapshot.endTime}
+                        </Typography>
+                      </Box>
+                      <Box>
+                        <Typography sx={{ fontSize: "0.7rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.35 }}>
+                          Renewal
+                        </Typography>
+                        <Typography
+                          sx={{
+                            mt: 0.3,
+                            fontSize: "0.84rem",
+                            color: member.status === "ended" ? "#64748B" : C.slate,
+                            fontWeight: member.status === "ended" ? 800 : 700,
+                          }}
+                        >
+                          {member.status === "ended" ? "Not Applicable" : formatDate(member.endDate)}
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    <Box sx={{ mt: 1.15, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+                      <Box>
+                        <Typography sx={{ fontSize: "0.7rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.35 }}>
+                          Payment Due
+                        </Typography>
+                        <Typography sx={{ mt: 0.25, fontSize: "0.88rem", fontWeight: 800, color: member.pendingAmount > 0 ? C.red : C.green }}>
+                          {member.pendingAmount > 0 ? formatCurrency(member.pendingAmount) : "Paid"}
+                        </Typography>
+                      </Box>
+                      <Box>
+                        <Typography sx={{ fontSize: "0.7rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.35 }}>
+                          Status
+                        </Typography>
+                        <Typography
+                          sx={{
+                            mt: 0.25,
+                            fontSize: "0.84rem",
+                            fontWeight: 800,
+                            color: getStatusTextStyle(member.status).color,
+                          }}
+                        >
+                          {getStatusTextStyle(member.status).label}
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    <Box
+                      sx={{ mt: 1.2, pt: 1, borderTop: `1px solid ${C.border}`, display: "flex", justifyContent: "flex-end", gap: 0.35 }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Tooltip title="View">
+                        <IconButton size="small" onClick={() => navigateTo(`/members/${member._id}`)} sx={{ p: 0.45, minWidth: 44, minHeight: 44, ...getActionIconSx("primary") }}>
+                          <VisibilityOutlined sx={{ fontSize: 18 }} />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Edit">
+                        <IconButton size="small" onClick={() => navigateTo(`/members/${member._id}?action=edit`)} sx={{ p: 0.45, minWidth: 44, minHeight: 44, ...getActionIconSx("primary") }}>
+                          <EditOutlined sx={{ fontSize: 18 }} />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete">
+                        <IconButton size="small" onClick={() => { setDeletingMember(member); setDeleteOpen(true); }} sx={{ p: 0.45, minWidth: 44, minHeight: 44, ...getActionIconSx("danger") }}>
+                          <DeleteOutlined sx={{ fontSize: 18 }} />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  </Paper>
+                ))
+              )}
+            </Box>
+          ) : null}
+          </>
         )}
 
         {!isLoading && !error && totalPages > 1 ? (

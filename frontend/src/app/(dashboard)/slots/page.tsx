@@ -124,7 +124,7 @@ function SlotFormDialog({
   const isEdit = !!slot;
   const dialogContentRef = useRef<HTMLDivElement | null>(null);
   const theme = useTheme();
-  const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
+  const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
 
   const [form, setForm] = useState<SlotFormData>(EMPTY_FORM);
   const [errors, setErrors] = useState<Partial<Record<keyof SlotFormData, string>>>({});
@@ -253,6 +253,8 @@ function SlotFormDialog({
 }
 
 export default function SlotsPage() {
+  const theme = useTheme();
+  const isMobileTable = useMediaQuery(theme.breakpoints.down("md"));
   const { showToast } = useToast();
   const [slots, setSlots] = useState<Slot[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -426,8 +428,10 @@ export default function SlotsPage() {
           overflow: "hidden",
         }}
       >
-        <TableContainer sx={MODULE_TABLE_CONTAINER_SX}>
-          <Table sx={{ minWidth: { xs: 680, sm: 720, md: 0 } }}>
+        <TableContainer
+          sx={{ ...MODULE_TABLE_CONTAINER_SX, display: isMobileTable ? "none" : "block" }}
+        >
+          <Table sx={{ minWidth: { xs: 600, sm: 660, md: 720, lg: "100%" } }}>
             <TableHead>
               <TableRow
                 sx={{
@@ -623,6 +627,156 @@ export default function SlotsPage() {
             </TableBody>
           </Table>
         </TableContainer>
+
+        {isMobileTable ? (
+          <Box sx={{ display: "grid", gap: 1.25, p: 1.25 }}>
+            {isLoading ? (
+              [...Array(4)].map((_, index) => (
+                <Paper
+                  key={index}
+                  elevation={0}
+                  sx={{
+                    borderRadius: "18px",
+                    border: `1px solid ${C.border}`,
+                    p: 1.4,
+                    background:
+                      "linear-gradient(180deg, rgba(255,255,255,0.995) 0%, rgba(253,250,246,0.988) 100%)",
+                  }}
+                >
+                  <Skeleton height={28} sx={{ mb: 1 }} />
+                  <Skeleton height={20} sx={{ mb: 0.7 }} />
+                  <Skeleton height={20} sx={{ mb: 0.7 }} />
+                  <Skeleton height={20} />
+                </Paper>
+              ))
+            ) : slots.length === 0 ? (
+              <EmptyState
+                title="No slots created yet"
+                subtitle="Add your first time slot to start assigning members by batch or session."
+                actionLabel="Add Slot"
+                onAction={() => {
+                  setEditingSlot(null);
+                  setFormOpen(true);
+                }}
+              />
+            ) : (
+              slots.map((slot) => {
+                const session = slot.startTime < "12:00" ? "Morning" : slot.startTime < "17:00" ? "Afternoon" : "Evening";
+                const sessionTone = getSessionTone(session);
+                return (
+                  <Paper key={slot._id} elevation={0} sx={{ ...MODULE_CARD_SX, p: 1.4, opacity: slot.isActive ? 1 : 0.72 }}>
+                    <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 1 }}>
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography sx={{ fontWeight: 800, fontSize: "0.94rem", color: "#111827" }}>
+                          {slot.label}
+                        </Typography>
+                        <Typography sx={{ mt: 0.35, fontSize: "0.78rem", color: C.slate, fontWeight: 700 }}>
+                          {slot.startTime} - {slot.endTime}
+                        </Typography>
+                      </Box>
+                      <Chip
+                        label={slot.isActive ? "Active" : "Inactive"}
+                        size="small"
+                        sx={slot.isActive ? MODULE_SUCCESS_CHIP_SX : MODULE_NEUTRAL_CHIP_SX}
+                      />
+                    </Box>
+
+                    <Box
+                      sx={{
+                        mt: 1.1,
+                        display: "grid",
+                        gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                        gap: 1,
+                      }}
+                    >
+                      <Box>
+                        <Typography sx={{ fontSize: "0.7rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.35 }}>
+                          Start Time
+                        </Typography>
+                        <Typography sx={{ mt: 0.28, fontSize: "0.9rem", color: sessionTone.color, fontWeight: 800 }}>
+                          {slot.startTime}
+                        </Typography>
+                      </Box>
+                      <Box>
+                        <Typography sx={{ fontSize: "0.7rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.35 }}>
+                          End Time
+                        </Typography>
+                        <Typography sx={{ mt: 0.28, fontSize: "0.9rem", color: sessionTone.color, fontWeight: 800 }}>
+                          {slot.endTime}
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    <Box sx={{ mt: 1 }}>
+                      <Typography sx={{ fontSize: "0.7rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.35 }}>
+                        Session
+                      </Typography>
+                      <Typography
+                        sx={{
+                          mt: 0.28,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          px: 0.85,
+                          py: 0.25,
+                          borderRadius: "999px",
+                          border: `1px solid ${sessionTone.border}`,
+                          background: sessionTone.background,
+                          fontSize: "0.76rem",
+                          color: sessionTone.color,
+                          fontWeight: 700,
+                          lineHeight: 1.1,
+                        }}
+                      >
+                        {session}
+                      </Typography>
+                    </Box>
+
+                    <Box sx={{ mt: 1.15, display: "flex", justifyContent: "flex-end", gap: 0.45 }}>
+                      <Tooltip title="Edit slot">
+                        <IconButton
+                          size="small"
+                          onClick={() => {
+                            setEditingSlot(slot);
+                            setFormOpen(true);
+                          }}
+                          sx={getActionIconSx("primary")}
+                        >
+                          <EditOutlined sx={{ fontSize: 17 }} />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title={slot.isActive ? "Deactivate" : "Activate"}>
+                        <IconButton
+                          size="small"
+                          onClick={() => {
+                            setSelectedSlot(slot);
+                            setConfirmAction("toggle");
+                            setConfirmOpen(true);
+                          }}
+                          sx={getActionIconSx("toggle")}
+                        >
+                          {slot.isActive ? <BlockOutlined sx={{ fontSize: 17 }} /> : <TaskAltOutlined sx={{ fontSize: 17 }} />}
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete slot">
+                        <IconButton
+                          size="small"
+                          onClick={() => {
+                            setSelectedSlot(slot);
+                            setConfirmAction("delete");
+                            setConfirmOpen(true);
+                          }}
+                          sx={getActionIconSx("danger")}
+                        >
+                          <DeleteOutlined sx={{ fontSize: 17 }} />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  </Paper>
+                );
+              })
+            )}
+          </Box>
+        ) : null}
       </Paper>
 
       <SlotFormDialog open={formOpen} slot={editingSlot} onClose={() => setFormOpen(false)} onSaved={fetchSlots} />

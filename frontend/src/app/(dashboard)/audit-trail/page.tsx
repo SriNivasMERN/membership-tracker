@@ -17,7 +17,9 @@ import {
   TableRow,
   TextField,
   Typography,
+  useMediaQuery,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import {
   AdminPanelSettingsOutlined,
   HistoryOutlined,
@@ -120,6 +122,8 @@ function getActionColor(action: AuditAction) {
 }
 
 export default function AuditTrailPage() {
+  const theme = useTheme();
+  const isMobileTable = useMediaQuery(theme.breakpoints.down("md"));
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const hasFetchedOnceRef = useRef(false);
   const [entries, setEntries] = useState<AuditTrailEntry[]>([]);
@@ -455,7 +459,9 @@ export default function AuditTrailPage() {
           <Box sx={{ p: 2 }}>{emptyState}</Box>
         ) : (
           <>
-            <TableContainer sx={MODULE_TABLE_CONTAINER_SX}>
+            <TableContainer
+              sx={{ ...MODULE_TABLE_CONTAINER_SX, display: isMobileTable ? "none" : "block" }}
+            >
               <Table>
                 <TableHead>
                   <TableRow>
@@ -582,6 +588,114 @@ export default function AuditTrailPage() {
                 </TableBody>
               </Table>
             </TableContainer>
+
+            {isMobileTable ? (
+              <Box sx={{ display: "grid", gap: 1.25, px: 1.25, pt: 1.25 }}>
+                {entries.map((entry) => {
+                  const dateTime = formatDateTime(entry.createdAt);
+                  const actionColor = getActionColor(entry.action);
+                  return (
+                    <Paper
+                      key={entry._id}
+                      elevation={0}
+                      sx={{
+                        ...MODULE_CARD_SX,
+                        p: 1.35,
+                      }}
+                    >
+                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 1 }}>
+                        <Box>
+                          <Typography sx={{ fontWeight: 800, color: C.ink, fontSize: "0.94rem" }}>
+                            {dateTime.date}
+                          </Typography>
+                          <Typography sx={{ mt: 0.3, fontWeight: 600, color: C.slate, fontSize: "0.78rem" }}>
+                            {dateTime.time}
+                          </Typography>
+                        </Box>
+                        <Box
+                          sx={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            px: 1.2,
+                            minHeight: 30,
+                            borderRadius: "999px",
+                            border: `1px solid ${actionColor}33`,
+                            backgroundColor: `${actionColor}10`,
+                          }}
+                        >
+                          <Typography sx={{ fontWeight: 800, color: actionColor, fontSize: "0.82rem" }}>
+                            {formatAction(entry.action)}
+                          </Typography>
+                        </Box>
+                      </Box>
+
+                      <Box sx={{ mt: 1.05, display: "grid", gap: 0.9 }}>
+                        <Box>
+                          <Typography sx={{ fontSize: "0.7rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.35 }}>
+                            Module
+                          </Typography>
+                          <Typography sx={{ mt: 0.3, fontWeight: 800, color: C.ink, fontSize: "0.86rem" }}>
+                            {formatModule(entry.module)}
+                          </Typography>
+                          <Typography sx={{ mt: 0.25, fontWeight: 600, color: C.slate, fontSize: "0.78rem", lineHeight: 1.42 }}>
+                            {entry.entityLabel || "Record update"}
+                          </Typography>
+                        </Box>
+
+                        <Box>
+                          <Typography sx={{ fontSize: "0.7rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.35 }}>
+                            Description
+                          </Typography>
+                          <Typography sx={{ mt: 0.3, fontWeight: 800, color: C.ink, fontSize: "0.86rem", lineHeight: 1.48 }}>
+                            {entry.description || "Action completed"}
+                          </Typography>
+                          {entry.entityId ? (
+                            <Typography sx={{ mt: 0.28, fontWeight: 600, color: C.muted, fontSize: "0.76rem" }}>
+                              Ref: {entry.entityId.slice(-8).toUpperCase()}
+                            </Typography>
+                          ) : null}
+                        </Box>
+
+                        <Box>
+                          <Typography sx={{ fontSize: "0.7rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.35 }}>
+                            Done By
+                          </Typography>
+                          <Typography sx={{ mt: 0.3, fontWeight: 800, color: C.ink, fontSize: "0.86rem" }}>
+                            {entry.performedBy.name}
+                          </Typography>
+                          <Box
+                            sx={{
+                              mt: 0.4,
+                              display: "inline-flex",
+                              alignItems: "center",
+                              px: 1.05,
+                              minHeight: 26,
+                              borderRadius: "999px",
+                              border: `1px solid ${entry.performedBy.role === "owner" ? `${C.amber}33` : `${C.accent}33`}`,
+                              backgroundColor:
+                                entry.performedBy.role === "owner"
+                                  ? "rgba(252,244,233,0.92)"
+                                  : "rgba(244,247,251,0.92)",
+                            }}
+                          >
+                            <Typography
+                              sx={{
+                                fontWeight: 800,
+                                color: entry.performedBy.role === "owner" ? C.amber : C.accent,
+                                fontSize: "0.74rem",
+                                textTransform: "capitalize",
+                              }}
+                            >
+                              {entry.performedBy.role}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </Box>
+                    </Paper>
+                  );
+                })}
+              </Box>
+            ) : null}
 
             <Box
               sx={{

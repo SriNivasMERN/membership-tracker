@@ -156,7 +156,7 @@ function PricingFormDialog({
   const isEdit = !!rule;
   const dialogContentRef = useRef<HTMLDivElement | null>(null);
   const theme = useTheme();
-  const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
+  const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
 
   const [planId, setPlanId] = useState("");
   const [slotId, setSlotId] = useState("");
@@ -366,6 +366,8 @@ function PricingFormDialog({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function PricingPage() {
+  const theme = useTheme();
+  const isMobileTable = useMediaQuery(theme.breakpoints.down("md"));
   const { showToast } = useToast();
   const [rules, setRules] = useState<PricingRule[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -669,12 +671,14 @@ export default function PricingPage() {
           overflow: "hidden",
         }}
       >
-        <TableContainer sx={MODULE_TABLE_CONTAINER_SX}>
+        <TableContainer
+          sx={{ ...MODULE_TABLE_CONTAINER_SX, display: isMobileTable ? "none" : "block" }}
+        >
           <Table
             sx={{
               width: "100%",
-              tableLayout: "fixed",
-              minWidth: { xs: 860, sm: 920, md: "100%" },
+              tableLayout: { xs: "auto", lg: "fixed" },
+              minWidth: { xs: 760, sm: 820, md: 900, lg: "100%" },
             }}
           >
             <TableHead>
@@ -975,6 +979,149 @@ export default function PricingPage() {
             </TableBody>
           </Table>
         </TableContainer>
+
+        {isMobileTable ? (
+          <Box sx={{ display: "grid", gap: 1.25, p: 1.25 }}>
+            {isLoading ? (
+              [...Array(4)].map((_, index) => (
+                <Paper
+                  key={index}
+                  elevation={0}
+                  sx={{
+                    borderRadius: "18px",
+                    border: `1px solid ${C.border}`,
+                    p: 1.4,
+                    background:
+                      "linear-gradient(180deg, rgba(255,255,255,0.995) 0%, rgba(253,250,246,0.988) 100%)",
+                  }}
+                >
+                  <Skeleton height={28} sx={{ mb: 1 }} />
+                  <Skeleton height={20} sx={{ mb: 0.7 }} />
+                  <Skeleton height={20} sx={{ mb: 0.7 }} />
+                  <Skeleton height={20} />
+                </Paper>
+              ))
+            ) : rules.length === 0 ? (
+              <EmptyState
+                title="No pricing rules created yet"
+                subtitle="Add a rule to apply custom pricing for plan and slot combinations."
+                actionLabel="Add Rule"
+                onAction={() => {
+                  setEditingRule(null);
+                  setFormOpen(true);
+                }}
+              />
+            ) : (
+              rules.map((rule) => {
+                const finalPrice = Math.round(rule.planId.basePrice * rule.multiplier);
+                return (
+                  <Paper key={rule._id} elevation={0} sx={{ ...MODULE_CARD_SX, p: 1.4, opacity: rule.isActive ? 1 : 0.72 }}>
+                    <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 1 }}>
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography sx={{ fontWeight: 800, fontSize: "0.94rem", color: "#111827" }}>
+                          {rule.planId.name}
+                        </Typography>
+                        <Typography sx={{ mt: 0.35, fontSize: "0.78rem", color: C.slate, fontWeight: 700 }}>
+                          {rule.slotId.label}
+                        </Typography>
+                        <Typography sx={{ mt: 0.24, fontSize: "0.74rem", color: C.muted, fontWeight: 600 }}>
+                          {rule.slotId.startTime} - {rule.slotId.endTime}
+                        </Typography>
+                      </Box>
+                      <Box sx={getPricingStatusPillSx(rule.isActive)}>
+                        <Typography
+                          sx={{
+                            fontSize: "0.88rem",
+                            fontWeight: 700,
+                            lineHeight: 1,
+                            color: rule.isActive ? C.green : C.slate,
+                          }}
+                        >
+                          {rule.isActive ? "Active" : "Inactive"}
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    <Box
+                      sx={{
+                        mt: 1.1,
+                        display: "grid",
+                        gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                        gap: 1,
+                      }}
+                    >
+                      <Box>
+                        <Typography sx={{ fontSize: "0.7rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.35 }}>
+                          Base Price
+                        </Typography>
+                        <Typography sx={{ mt: 0.28, fontSize: "0.9rem", fontWeight: 800, color: C.navy }}>
+                          {formatCurrency(rule.planId.basePrice)}
+                        </Typography>
+                      </Box>
+                      <Box>
+                        <Typography sx={{ fontSize: "0.7rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.35 }}>
+                          Multiplier
+                        </Typography>
+                        <Typography sx={{ mt: 0.28, fontSize: "0.9rem", fontWeight: 800, color: C.navy }}>
+                          {rule.multiplier}x
+                        </Typography>
+                      </Box>
+                      <Box sx={{ gridColumn: "1 / -1" }}>
+                        <Typography sx={{ fontSize: "0.7rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.35 }}>
+                          Final Price
+                        </Typography>
+                        <Typography sx={{ mt: 0.28, fontSize: "0.92rem", fontWeight: 800, color: C.green }}>
+                          {formatCurrency(finalPrice)}
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    <Box sx={{ mt: 1.15, display: "flex", justifyContent: "flex-end", gap: 0.45 }}>
+                      <Tooltip title="Edit rule">
+                        <IconButton
+                          size="small"
+                          onClick={() => {
+                            setEditingRule(rule);
+                            setFormOpen(true);
+                          }}
+                          sx={{ ...getActionIconSx("primary"), p: 0.55 }}
+                        >
+                          <EditOutlined sx={{ fontSize: 16 }} />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title={rule.isActive ? "Deactivate" : "Activate"}>
+                        <IconButton
+                          size="small"
+                          onClick={() => {
+                            setSelectedRule(rule);
+                            setConfirmAction("toggle");
+                            setConfirmOpen(true);
+                          }}
+                          sx={{ ...getActionIconSx("toggle"), p: 0.55 }}
+                        >
+                          {rule.isActive ? <BlockOutlined sx={{ fontSize: 16 }} /> : <TaskAltOutlined sx={{ fontSize: 16 }} />}
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete rule">
+                        <IconButton
+                          size="small"
+                          onClick={() => {
+                            setSelectedRule(rule);
+                            setConfirmAction("delete");
+                            setConfirmOpen(true);
+                          }}
+                          sx={{ ...getActionIconSx("danger"), p: 0.55 }}
+                        >
+                          <DeleteOutlined sx={{ fontSize: 16 }} />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  </Paper>
+                );
+              })
+            )}
+          </Box>
+        ) : null}
       </Paper>
 
       <PricingFormDialog

@@ -133,7 +133,8 @@ export default function MemberDetailPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const theme = useTheme();
-  const fullScreenDialog = useMediaQuery(theme.breakpoints.down("sm"));
+  const fullScreenDialog = useMediaQuery(theme.breakpoints.down("md"));
+  const isCompactPaymentHistory = useMediaQuery(theme.breakpoints.down("sm"));
   const memberId = params.id as string;
   const { showToast } = useToast();
   const { startNavigation } = useNavigationLoading();
@@ -634,7 +635,7 @@ export default function MemberDetailPage() {
           <Grid container spacing={2}>
 
             {/* Personal + Membership side by side */}
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} md={6}>
               <Paper elevation={0} sx={{ ...MODULE_CARD_SX, p: 2.1, borderRadius: "12px", height: "100%" }}>
                 <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -649,7 +650,7 @@ export default function MemberDetailPage() {
               </Paper>
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} md={6}>
               <Paper elevation={0} sx={{ ...MODULE_CARD_SX, p: 2.1, borderRadius: "12px", height: "100%" }}>
                 <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -678,6 +679,38 @@ export default function MemberDetailPage() {
                 {member.payments.length === 0 ? (
                   <Box sx={{ py: 3, textAlign: "center" }}>
                     <Typography sx={{ fontSize: "0.85rem", color: C.muted, fontWeight: 600 }}>No payments recorded yet</Typography>
+                  </Box>
+                ) : isCompactPaymentHistory ? (
+                  <Box sx={{ p: 1.4, display: "flex", flexDirection: "column", gap: 1.1 }}>
+                    {member.payments.map((payment) => (
+                      <Box
+                        key={payment._id}
+                        sx={{
+                          ...MODULE_CARD_SX,
+                          p: 1.3,
+                          borderRadius: "12px",
+                          boxShadow: "none",
+                          background: "linear-gradient(180deg, rgba(255,255,255,0.995) 0%, rgba(252,248,243,0.98) 100%)",
+                        }}
+                      >
+                        <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 1.1 }}>
+                          <Box sx={{ minWidth: 0 }}>
+                            <Typography sx={{ fontSize: "0.86rem", color: C.slate, fontWeight: 700 }}>
+                              {fmtDate(payment.paidOn)}
+                            </Typography>
+                            <Typography sx={{ mt: 0.35, fontSize: "0.72rem", color: C.muted, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.45 }}>
+                              {fmtPaymentMethod(payment.paymentMethod)}
+                            </Typography>
+                          </Box>
+                          <Typography sx={{ fontSize: "0.92rem", fontWeight: 900, color: C.green, flexShrink: 0 }}>
+                            {fmt(payment.amount)}
+                          </Typography>
+                        </Box>
+                        <Typography sx={{ mt: 0.8, fontSize: "0.8rem", color: C.muted, fontWeight: 600, lineHeight: 1.45 }}>
+                          {payment.note || "-"}
+                        </Typography>
+                      </Box>
+                    ))}
                   </Box>
                 ) : (
                   <TableContainer sx={MODULE_TABLE_CONTAINER_SX}>
@@ -918,10 +951,10 @@ export default function MemberDetailPage() {
               {slots.map((slot) => <MenuItem key={slot._id} value={slot._id}>{slot.label} ({slot.startTime} - {slot.endTime})</MenuItem>)}
             </TextField>
             <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} md={6}>
                 <TextField label="Start Date" type="date" value={renewStartDate} onChange={(e) => { setRenewStartDate(e.target.value); const p = plans.find(pl => pl._id === renewPlanId); if (p) setRenewEndDate(addDays(e.target.value, p.durationDays)); }} fullWidth sx={MODULE_FIELD_SX} InputLabelProps={{ shrink: true }} disabled={isUpgrade} helperText={isUpgrade ? "Plan changes start from today" : undefined} />
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} md={6}>
                 <TextField label="End Date" type="date" value={renewEndDate} fullWidth sx={MODULE_FIELD_SX} InputLabelProps={{ shrink: true }} disabled helperText="Auto-calculated" />
               </Grid>
             </Grid>

@@ -21,11 +21,20 @@ export const MODULE_COLORS = {
 };
 
 export const MODULE_HOVER_MOTION_SX: SystemStyleObject<Theme> = {
-  transition: "transform 1s ease, box-shadow 1s ease, background-color 1s ease",
+  transition: "transform 220ms ease, box-shadow 220ms ease, background-color 220ms ease",
   transformOrigin: "center",
   willChange: "transform",
-  "&:hover": {
-    transform: "translateY(-4px) scale(1.01)",
+  "@media (hover: hover) and (pointer: fine)": {
+    "&:hover": {
+      transform: "translateY(-3px) scale(1.008)",
+    },
+  },
+  "@media (prefers-reduced-motion: reduce)": {
+    transition: "none",
+    transform: "none",
+    "&:hover": {
+      transform: "none",
+    },
   },
 };
 
@@ -77,11 +86,11 @@ export const MODULE_DIALOG_PAPER_SX: SxProps<Theme> = {
   border: `1px solid ${MODULE_COLORS.border}`,
   boxShadow: "0 24px 44px rgba(36,58,87,0.14)",
   background: "linear-gradient(180deg, rgba(255,255,255,0.996) 0%, rgba(253,250,246,0.988) 100%)",
-  width: { xs: "100vw", sm: "min(680px, calc(100vw - 32px))" },
-  maxWidth: { xs: "100vw", sm: "min(680px, calc(100vw - 32px))" },
+  width: { xs: "100vw", sm: "min(720px, calc(100vw - 24px))" },
+  maxWidth: { xs: "100vw", sm: "min(720px, calc(100vw - 24px))" },
   minHeight: { xs: "100dvh", sm: "auto" },
-  maxHeight: { xs: "100dvh", sm: "calc(100dvh - 32px)" },
-  m: { xs: 0, sm: 2 },
+  maxHeight: { xs: "100dvh", sm: "calc(100dvh - 24px)" },
+  m: { xs: 0, sm: 1.5 },
   overflow: "hidden",
 };
 
@@ -96,17 +105,17 @@ export const MODULE_DIALOG_TITLE_SX: SxProps<Theme> = {
 };
 
 export const MODULE_DIALOG_CONTENT_SX: SxProps<Theme> = {
-  px: { xs: 2, sm: 3 },
-  pt: { xs: 1.25, sm: 1.5 },
-  pb: { xs: 1.25, sm: 1.5 },
+  px: { xs: 1.75, sm: 3 },
+  pt: { xs: 1.1, sm: 1.5 },
+  pb: { xs: 1.1, sm: 1.5 },
   overflowY: "auto",
   WebkitOverflowScrolling: "touch",
 };
 
 export const MODULE_DIALOG_ACTIONS_SX: SxProps<Theme> = {
-  px: { xs: 2, sm: 3 },
-  pb: { xs: 2, sm: 3 },
-  pt: { xs: 1.5, sm: 2 },
+  px: { xs: 1.75, sm: 3 },
+  pb: { xs: 1.75, sm: 3 },
+  pt: { xs: 1.25, sm: 2 },
   gap: 1,
   borderTop: `1px solid ${MODULE_COLORS.border}`,
   flexWrap: "wrap",
@@ -139,12 +148,21 @@ export const MODULE_TABLE_HEAD_CELL_SX: SxProps<Theme> = {
 };
 
 export const MODULE_TABLE_ROW_SX: SxProps<Theme> = {
-  transition: "transform 1s ease, background-color 1s ease, box-shadow 1s ease",
+  transition: "transform 180ms ease, background-color 180ms ease, box-shadow 180ms ease",
   transformOrigin: "center",
-  "&:hover": {
-    backgroundColor: "rgba(255,250,245,0.9)",
-    transform: "translateY(-2px) scale(1.006)",
-    boxShadow: "0 10px 24px rgba(36,58,87,0.06)",
+  "@media (hover: hover) and (pointer: fine)": {
+    "&:hover": {
+      backgroundColor: "rgba(255,250,245,0.9)",
+      transform: "translateY(-1px)",
+      boxShadow: "0 8px 18px rgba(36,58,87,0.05)",
+    },
+  },
+  "@media (prefers-reduced-motion: reduce)": {
+    transition: "none",
+    "&:hover": {
+      transform: "none",
+      boxShadow: "none",
+    },
   },
 };
 
@@ -168,12 +186,12 @@ export const MODULE_TABLE_CONTAINER_SX: SxProps<Theme> = {
   overscrollBehaviorX: "contain",
   maxWidth: "100%",
   "& .MuiTable-root": {
-    minWidth: { xs: 720, sm: 820, md: "100%" },
+    minWidth: { xs: 620, sm: 700, md: "100%" },
     tableLayout: { xs: "auto", md: "fixed" },
   },
   "& .MuiTableBody-root .MuiTableCell-root": {
-    px: { xs: 1.35, sm: 1.7, md: 2 },
-    py: { xs: 1.2, sm: 1.45, md: 1.6 },
+    px: { xs: 1, sm: 1.35, md: 1.8 },
+    py: { xs: 1.1, sm: 1.35, md: 1.6 },
     verticalAlign: "top",
   },
   "&::-webkit-scrollbar": {

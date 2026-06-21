@@ -123,7 +123,7 @@ function AddUserDialog({
   const { showToast } = useToast();
   const dialogContentRef = useRef<HTMLDivElement | null>(null);
   const theme = useTheme();
-  const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
+  const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -285,7 +285,7 @@ function EditUserDialog({
   const { showToast } = useToast();
   const dialogContentRef = useRef<HTMLDivElement | null>(null);
   const theme = useTheme();
-  const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
+  const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -464,6 +464,8 @@ function EditUserDialog({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function UsersPage() {
+  const theme = useTheme();
+  const isMobileTable = useMediaQuery(theme.breakpoints.down("md"));
   const { showToast } = useToast();
   const { user: currentUser } = useAuth();
 
@@ -638,8 +640,10 @@ export default function UsersPage() {
           overflow: "hidden",
         }}
       >
-        <TableContainer sx={MODULE_TABLE_CONTAINER_SX}>
-          <Table sx={{ minWidth: { xs: 720, sm: 760, md: 0 } }}>
+        <TableContainer
+          sx={{ ...MODULE_TABLE_CONTAINER_SX, display: isMobileTable ? "none" : "block" }}
+        >
+          <Table sx={{ minWidth: { xs: 620, sm: 680, md: 760, lg: "100%" } }}>
             <TableHead>
               <TableRow
                 sx={{
@@ -865,6 +869,159 @@ export default function UsersPage() {
             </TableBody>
           </Table>
         </TableContainer>
+
+        {isMobileTable ? (
+          <Box sx={{ display: "grid", gap: 1.25, p: 1.25 }}>
+            {isLoading ? (
+              [...Array(3)].map((_, index) => (
+                <Paper
+                  key={index}
+                  elevation={0}
+                  sx={{
+                    borderRadius: "18px",
+                    border: `1px solid ${C.border}`,
+                    p: 1.4,
+                    background:
+                      "linear-gradient(180deg, rgba(255,255,255,0.995) 0%, rgba(253,250,246,0.988) 100%)",
+                  }}
+                >
+                  <Skeleton height={28} sx={{ mb: 1 }} />
+                  <Skeleton height={20} sx={{ mb: 0.7 }} />
+                  <Skeleton height={20} sx={{ mb: 0.7 }} />
+                  <Skeleton height={20} />
+                </Paper>
+              ))
+            ) : users.length === 0 ? (
+              <EmptyState
+                title="No users found"
+                subtitle="Add a staff account to let your team manage day-to-day operations."
+                actionLabel="Add Staff"
+                onAction={() => setAddOpen(true)}
+              />
+            ) : (
+              users.map((u) => {
+                const isCurrentUser = u._id === currentUser?.userId;
+                const isOwner = u.role === "owner";
+                return (
+                  <Paper key={u._id} elevation={0} sx={{ ...MODULE_CARD_SX, p: 1.4, opacity: u.isActive ? 1 : 0.72 }}>
+                    <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 1 }}>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1.2, minWidth: 0 }}>
+                        <Avatar
+                          sx={{
+                            width: 36,
+                            height: 36,
+                            fontSize: "0.8rem",
+                            fontWeight: 800,
+                            color: "#FFFFFF",
+                            background: isOwner
+                              ? "linear-gradient(180deg, #243A57 0%, #314B70 100%)"
+                              : "linear-gradient(180deg, #355072 0%, #45648C 100%)",
+                            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.16)",
+                          }}
+                        >
+                          {getInitials(u.name)}
+                        </Avatar>
+                        <Box sx={{ minWidth: 0 }}>
+                          <Typography sx={{ fontWeight: 800, fontSize: "0.94rem", color: "#111827" }}>
+                            {u.name}
+                            {isCurrentUser ? (
+                              <Typography component="span" sx={{ fontSize: "0.72rem", color: C.muted, ml: 0.7, fontWeight: 600 }}>
+                                (you)
+                              </Typography>
+                            ) : null}
+                          </Typography>
+                          <Typography sx={{ mt: 0.32, fontSize: "0.78rem", color: C.slate, fontWeight: 700, wordBreak: "break-word" }}>
+                            {u.email}
+                          </Typography>
+                        </Box>
+                      </Box>
+                      <Chip
+                        label={u.isActive ? "Active" : "Inactive"}
+                        size="small"
+                        sx={u.isActive ? MODULE_SUCCESS_CHIP_SX : MODULE_NEUTRAL_CHIP_SX}
+                      />
+                    </Box>
+
+                    <Box
+                      sx={{
+                        mt: 1.1,
+                        display: "grid",
+                        gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                        gap: 1,
+                      }}
+                    >
+                      <Box>
+                        <Typography sx={{ fontSize: "0.7rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.35 }}>
+                          Role
+                        </Typography>
+                        <Box sx={{ mt: 0.3 }}>
+                          <Chip
+                            label={isOwner ? "Owner" : "Staff"}
+                            size="small"
+                            sx={
+                              isOwner
+                                ? {
+                                    ...MODULE_NEUTRAL_CHIP_SX,
+                                    background:
+                                      "linear-gradient(180deg, rgba(255,255,255,0.998) 0%, rgba(249,244,237,0.992) 100%)",
+                                    border: "1px solid #D8CCBC",
+                                    color: C.navy,
+                                  }
+                                : {
+                                    ...MODULE_NEUTRAL_CHIP_SX,
+                                    background:
+                                      "linear-gradient(180deg, rgba(255,255,255,0.998) 0%, rgba(243,247,252,0.992) 100%)",
+                                    border: "1px solid #CAD8E6",
+                                    color: "#355072",
+                                  }
+                            }
+                          />
+                        </Box>
+                      </Box>
+                      <Box>
+                        <Typography sx={{ fontSize: "0.7rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.35 }}>
+                          Joined
+                        </Typography>
+                        <Typography sx={{ mt: 0.32, fontSize: "0.84rem", color: C.slate, fontWeight: 700 }}>
+                          {formatDate(u.createdAt)}
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    <Box sx={{ mt: 1.15, display: "flex", justifyContent: "flex-end", gap: 0.45 }}>
+                      <Tooltip title="Edit user">
+                        <IconButton
+                          size="small"
+                          onClick={() => {
+                            setEditingUser(u);
+                            setEditOpen(true);
+                          }}
+                          sx={getActionIconSx("primary")}
+                        >
+                          <EditOutlined sx={{ fontSize: 17 }} />
+                        </IconButton>
+                      </Tooltip>
+                      {!isOwner && !isCurrentUser ? (
+                        <Tooltip title={u.isActive ? "Deactivate" : "Activate"}>
+                          <IconButton
+                            size="small"
+                            onClick={() => {
+                              setSelectedUser(u);
+                              setConfirmOpen(true);
+                            }}
+                            sx={getActionIconSx("toggle")}
+                          >
+                            {u.isActive ? <BlockOutlined sx={{ fontSize: 17 }} /> : <TaskAltOutlined sx={{ fontSize: 17 }} />}
+                          </IconButton>
+                        </Tooltip>
+                      ) : null}
+                    </Box>
+                  </Paper>
+                );
+              })
+            )}
+          </Box>
+        ) : null}
       </Paper>
 
       <AddUserDialog
