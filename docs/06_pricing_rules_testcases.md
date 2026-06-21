@@ -23,6 +23,7 @@ This document validates:
 - Price preview behavior
 - Activate / deactivate flow
 - Delete Pricing Rule flow
+- Table alignment and default visibility of pricing columns
 - Dialog validation, focus, and scroll-to-message behavior
 - Inline button loading behavior
 - Responsive behavior on key viewports
@@ -61,10 +62,13 @@ This document validates:
 | PRC-028 | Cancel pricing-rule deletion | Owner/Admin | Delete confirmation dialog is open | 1. Open delete confirmation 2. Cancel action | Dialog closes and rule remains unchanged. | Medium |
 | PRC-029 | Show inline loading state during pricing-rule deletion | Owner/Admin | Delete confirmation dialog is open | 1. Confirm deletion 2. Observe confirmation button | Confirmation button shows inline loading state and blocks repeated submission until request completes. | High |
 | PRC-030 | Keep pricing table values readable after create, edit, toggle, and delete actions | Owner/Admin | Pricing rule data exists | 1. Perform create, edit, toggle, and delete flows 2. Observe table and cards after each action | Table and summary cards remain synchronized with the latest saved pricing-rule state. | High |
-| PRC-031 | Pricing Rules page is usable on mobile viewport | Owner/Admin | Browser width is between 360px and 480px | 1. Open `/pricing` on mobile viewport 2. Observe cards, pricing logic section, table, dialogs, and action buttons | Page remains usable without horizontal page break. Dialog opens in a mobile-friendly full-screen style. | Critical |
-| PRC-032 | Pricing Rules page is usable on tablet viewport | Owner/Admin | Browser width is between 768px and 1024px | 1. Open `/pricing` on tablet viewport 2. Observe layout | Layout remains balanced. Cards, formula section, and table remain readable and fully visible. | High |
-| PRC-033 | Pricing Rules page is usable on laptop viewport | Owner/Admin | Browser width is between 1280px and 1440px | 1. Open `/pricing` on laptop viewport 2. Observe layout | Layout remains visually balanced and action controls remain fully usable. | Medium |
-| PRC-034 | Pricing Rules page is usable on large desktop viewport | Owner/Admin | Browser width is 1920px or above | 1. Open `/pricing` on large desktop viewport 2. Observe spacing and alignment | Layout remains stable without odd stretching, clipping, or overlap. | Medium |
+| PRC-031 | Keep pricing rules column spacing visually balanced | Owner/Admin | Pricing rule data exists | 1. Open `/pricing` on normal desktop viewport 2. Observe `Plan`, `Slot`, `Base Price`, `Multiplier`, `Final Price`, `Status`, and `Actions` columns | Column spacing looks balanced across the full table. No important column feels squeezed, detached, or disproportionately wide. | High |
+| PRC-032 | Keep pricing headers aligned with their table data | Owner/Admin | Pricing rule data exists | 1. Open `/pricing` 2. Compare each header position with its row values | Each header aligns consistently with its column data. Left-aligned columns share the same readable starting margin and centered columns feel centered to their values. | High |
+| PRC-033 | Keep all important pricing columns visible in default desktop view | Owner/Admin | Pricing rule data exists | 1. Open `/pricing` on normal desktop viewport 2. Observe the full table | `Plan`, `Slot`, `Base Price`, `Multiplier`, `Final Price`, `Status`, and `Actions` remain visible clearly without unnecessary horizontal scrolling. | High |
+| PRC-034 | Pricing Rules page is usable on mobile viewport | Owner/Admin | Browser width is between 360px and 480px | 1. Open `/pricing` on mobile viewport 2. Observe cards, pricing logic section, table, dialogs, and action buttons | Page remains usable without horizontal page break. Dialog opens in a mobile-friendly full-screen style. | Critical |
+| PRC-035 | Pricing Rules page is usable on tablet viewport | Owner/Admin | Browser width is between 768px and 1024px | 1. Open `/pricing` on tablet viewport 2. Observe layout | Layout remains balanced. Cards, formula section, and table remain readable and fully visible. | High |
+| PRC-036 | Pricing Rules page is usable on laptop viewport | Owner/Admin | Browser width is between 1280px and 1440px | 1. Open `/pricing` on laptop viewport 2. Observe layout | Layout remains visually balanced and action controls remain fully usable. | Medium |
+| PRC-037 | Pricing Rules page is usable on large desktop viewport | Owner/Admin | Browser width is 1920px or above | 1. Open `/pricing` on large desktop viewport 2. Observe spacing and alignment | Layout remains stable without odd stretching, clipping, or overlap. | Medium |
 
 ## Execution Notes
 

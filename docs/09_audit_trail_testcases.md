@@ -20,6 +20,7 @@ This document validates:
 - Clear-filter behavior
 - Empty state behavior
 - Activity table rendering
+- Table alignment and readable audit column spacing
 - Pagination behavior
 - Role-based visibility
 - Responsive behavior on key viewports
@@ -52,10 +53,12 @@ This document validates:
 | AUD-022 | Prevent invalid previous-page navigation | Owner/Admin | User is on page 1 | 1. Open `/audit-trail` on first page 2. Observe `Previous` button | Previous button is disabled on the first page. | Medium |
 | AUD-023 | Prevent invalid next-page navigation | Owner/Admin | User is on the last available page | 1. Navigate to last page 2. Observe `Next` button | Next button is disabled on the last page. | Medium |
 | AUD-024 | Keep owner-only access enforced for audit trail | Staff | Staff account is logged in | 1. Login as staff 2. Check sidebar and direct route access for `/audit-trail` | Staff user does not get normal access to Audit Trail if module is owner-only. | Critical |
-| AUD-025 | Audit Trail page is usable on mobile viewport | Owner/Admin | Browser width is between 360px and 480px | 1. Open `/audit-trail` on mobile viewport 2. Observe cards, filters, and table area | Page remains usable without breaking the overall layout. Filters stack cleanly and table stays contained. | Critical |
-| AUD-026 | Audit Trail page is usable on tablet viewport | Owner/Admin | Browser width is between 768px and 1024px | 1. Open `/audit-trail` on tablet viewport 2. Observe layout | Layout remains balanced. Cards, filters, and table remain readable and fully usable. | High |
-| AUD-027 | Audit Trail page is usable on laptop viewport | Owner/Admin | Browser width is between 1280px and 1440px | 1. Open `/audit-trail` on laptop viewport 2. Observe layout | Layout remains visually balanced and all filters and table columns remain easy to scan. | Medium |
-| AUD-028 | Audit Trail page is usable on large desktop viewport | Owner/Admin | Browser width is 1920px or above | 1. Open `/audit-trail` on large desktop viewport 2. Observe spacing and alignment | Layout remains stable without odd stretching, clipping, or overlap. | Medium |
+| AUD-025 | Keep audit table headers aligned with row content | Owner/Admin | Audit trail contains records | 1. Open `/audit-trail` 2. Compare headers and row values for `Date & Time`, `Module`, `Action`, `Description`, and `Done By` | Each header aligns consistently with its data column, including columns that use pills plus supporting text. | High |
+| AUD-026 | Keep audit table spacing balanced and scannable on desktop | Owner/Admin | Audit trail contains records | 1. Open `/audit-trail` on normal desktop viewport 2. Observe table spacing across visible columns | Column spacing remains balanced and readable. No important audit field feels detached, cramped, or visually hidden. | High |
+| AUD-027 | Audit Trail page is usable on mobile viewport | Owner/Admin | Browser width is between 360px and 480px | 1. Open `/audit-trail` on mobile viewport 2. Observe cards, filters, and table area | Page remains usable without breaking the overall layout. Filters stack cleanly and table stays contained. | Critical |
+| AUD-028 | Audit Trail page is usable on tablet viewport | Owner/Admin | Browser width is between 768px and 1024px | 1. Open `/audit-trail` on tablet viewport 2. Observe layout | Layout remains balanced. Cards, filters, and table remain readable and fully usable. | High |
+| AUD-029 | Audit Trail page is usable on laptop viewport | Owner/Admin | Browser width is between 1280px and 1440px | 1. Open `/audit-trail` on laptop viewport 2. Observe layout | Layout remains visually balanced and all filters and table columns remain easy to scan. | Medium |
+| AUD-030 | Audit Trail page is usable on large desktop viewport | Owner/Admin | Browser width is 1920px or above | 1. Open `/audit-trail` on large desktop viewport 2. Observe spacing and alignment | Layout remains stable without odd stretching, clipping, or overlap. | Medium |
 
 ## Execution Notes
 

@@ -21,6 +21,7 @@ This document validates:
 - Edit Plan flow
 - Activate / deactivate flow
 - Delete Plan flow
+- Table header-to-data alignment and readable column spacing
 - Dialog validation, focus, and scroll-to-message behavior
 - Inline button loading behavior
 - Responsive behavior on key viewports
@@ -57,10 +58,13 @@ This document validates:
 | PLN-026 | Cancel plan deletion | Owner/Admin | Delete confirmation dialog is open | 1. Open delete confirmation 2. Cancel action | Dialog closes and plan remains unchanged. | Medium |
 | PLN-027 | Show inline loading state during plan deletion | Owner/Admin | Delete confirmation dialog is open | 1. Confirm deletion 2. Observe confirmation button | Confirmation button shows inline loading state and blocks repeated submission until request completes. | High |
 | PLN-028 | Keep table values readable after create, edit, toggle, and delete actions | Owner/Admin | Plans data exists | 1. Perform create, edit, toggle, and delete flows 2. Observe list and cards after each action | Table and summary cards remain synchronized with the latest saved plan state. | High |
-| PLN-029 | Plans page is usable on mobile viewport | Owner/Admin | Browser width is between 360px and 480px | 1. Open `/plans` on mobile viewport 2. Observe cards, table, dialogs, and action buttons | Page remains usable without horizontal page break. Dialog opens in a mobile-friendly full-screen style. | Critical |
-| PLN-030 | Plans page is usable on tablet viewport | Owner/Admin | Browser width is between 768px and 1024px | 1. Open `/plans` on tablet viewport 2. Observe layout | Layout remains balanced. Cards and table remain readable and fully visible. | High |
-| PLN-031 | Plans page is usable on laptop viewport | Owner/Admin | Browser width is between 1280px and 1440px | 1. Open `/plans` on laptop viewport 2. Observe layout | Layout remains visually balanced and action controls remain fully usable. | Medium |
-| PLN-032 | Plans page is usable on large desktop viewport | Owner/Admin | Browser width is 1920px or above | 1. Open `/plans` on large desktop viewport 2. Observe spacing and alignment | Layout remains stable without odd stretching, clipping, or overlap. | Medium |
+| PLN-029 | Keep plan table columns visually balanced on desktop | Owner/Admin | Plans data exists | 1. Open `/plans` on normal desktop viewport 2. Observe `Plan`, `Duration`, `Base Price`, `Status`, and `Actions` columns | Column spacing looks balanced from left to right. No column feels excessively wide, cramped, or detached from its data. | High |
+| PLN-030 | Keep plans table header alignment consistent with data alignment | Owner/Admin | Plans data exists | 1. Open `/plans` 2. Compare each table header with its row values | Each header visually aligns with its column content. Centered columns look centered to their data, and left-aligned columns start at the same readable margin as their values. | High |
+| PLN-031 | Keep important plan values clearly visible in default desktop view | Owner/Admin | Plans data exists | 1. Open `/plans` on normal desktop viewport 2. Observe `Base Price`, `Status`, and `Actions` columns | Important values and actions are visible clearly without needing unnecessary horizontal scrolling. | High |
+| PLN-032 | Plans page is usable on mobile viewport | Owner/Admin | Browser width is between 360px and 480px | 1. Open `/plans` on mobile viewport 2. Observe cards, table, dialogs, and action buttons | Page remains usable without horizontal page break. Dialog opens in a mobile-friendly full-screen style. | Critical |
+| PLN-033 | Plans page is usable on tablet viewport | Owner/Admin | Browser width is between 768px and 1024px | 1. Open `/plans` on tablet viewport 2. Observe layout | Layout remains balanced. Cards and table remain readable and fully visible. | High |
+| PLN-034 | Plans page is usable on laptop viewport | Owner/Admin | Browser width is between 1280px and 1440px | 1. Open `/plans` on laptop viewport 2. Observe layout | Layout remains visually balanced and action controls remain fully usable. | Medium |
+| PLN-035 | Plans page is usable on large desktop viewport | Owner/Admin | Browser width is 1920px or above | 1. Open `/plans` on large desktop viewport 2. Observe spacing and alignment | Layout remains stable without odd stretching, clipping, or overlap. | Medium |
 
 ## Execution Notes
 

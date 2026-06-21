@@ -22,6 +22,7 @@ This document validates:
 - Session derivation and visual differentiation
 - Activate / deactivate flow
 - Delete Slot flow
+- Table alignment and readability for slot, time, session, status, and actions
 - Dialog validation, focus, and scroll-to-message behavior
 - Inline button loading behavior
 - Responsive behavior on key viewports
@@ -61,10 +62,13 @@ This document validates:
 | SLT-029 | Cancel slot deletion | Owner/Admin | Delete confirmation dialog is open | 1. Open delete confirmation 2. Cancel action | Dialog closes and slot remains unchanged. | Medium |
 | SLT-030 | Show inline loading state during slot deletion | Owner/Admin | Delete confirmation dialog is open | 1. Confirm deletion 2. Observe confirmation button | Confirmation button shows inline loading state and blocks repeated submission until request completes. | High |
 | SLT-031 | Keep table values readable after create, edit, toggle, and delete actions | Owner/Admin | Slot data exists | 1. Perform create, edit, toggle, and delete flows 2. Observe list and cards after each action | Table and summary cards remain synchronized with the latest saved slot state. | High |
-| SLT-032 | Slots page is usable on mobile viewport | Owner/Admin | Browser width is between 360px and 480px | 1. Open `/slots` on mobile viewport 2. Observe cards, table, dialogs, and action buttons | Page remains usable without horizontal page break. Dialog opens in a mobile-friendly full-screen style. | Critical |
-| SLT-033 | Slots page is usable on tablet viewport | Owner/Admin | Browser width is between 768px and 1024px | 1. Open `/slots` on tablet viewport 2. Observe layout | Layout remains balanced. Cards and table remain readable and fully visible. | High |
-| SLT-034 | Slots page is usable on laptop viewport | Owner/Admin | Browser width is between 1280px and 1440px | 1. Open `/slots` on laptop viewport 2. Observe layout | Layout remains visually balanced and action controls remain fully usable. | Medium |
-| SLT-035 | Slots page is usable on large desktop viewport | Owner/Admin | Browser width is 1920px or above | 1. Open `/slots` on large desktop viewport 2. Observe spacing and alignment | Layout remains stable without odd stretching, clipping, or overlap. | Medium |
+| SLT-032 | Keep slots table column alignment consistent | Owner/Admin | Slots data exists | 1. Open `/slots` 2. Compare headers and row values for `Slot`, `Start Time`, `End Time`, `Session`, `Status`, and `Actions` | Headers align cleanly with their data columns. Time values, session values, status chips, and action icons remain easy to scan. | High |
+| SLT-033 | Keep slot time values readable and visually differentiated | Owner/Admin | Slots data exists | 1. Open `/slots` 2. Observe start and end time values across multiple rows | Time values remain clearly visible, consistent, and easy to compare without reducing table clarity. | Medium |
+| SLT-034 | Keep important slot columns visible in default desktop view | Owner/Admin | Slots data exists | 1. Open `/slots` on normal desktop viewport 2. Observe the full table width | Slot details, times, session, status, and actions remain visible clearly without unnecessary horizontal scrolling. | High |
+| SLT-035 | Slots page is usable on mobile viewport | Owner/Admin | Browser width is between 360px and 480px | 1. Open `/slots` on mobile viewport 2. Observe cards, table, dialogs, and action buttons | Page remains usable without horizontal page break. Dialog opens in a mobile-friendly full-screen style. | Critical |
+| SLT-036 | Slots page is usable on tablet viewport | Owner/Admin | Browser width is between 768px and 1024px | 1. Open `/slots` on tablet viewport 2. Observe layout | Layout remains balanced. Cards and table remain readable and fully visible. | High |
+| SLT-037 | Slots page is usable on laptop viewport | Owner/Admin | Browser width is between 1280px and 1440px | 1. Open `/slots` on laptop viewport 2. Observe layout | Layout remains visually balanced and action controls remain fully usable. | Medium |
+| SLT-038 | Slots page is usable on large desktop viewport | Owner/Admin | Browser width is 1920px or above | 1. Open `/slots` on large desktop viewport 2. Observe spacing and alignment | Layout remains stable without odd stretching, clipping, or overlap. | Medium |
 
 ## Execution Notes
 

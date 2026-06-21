@@ -21,6 +21,7 @@ This document validates:
 - Edit User flow
 - Owner-account edit restrictions
 - Activate / deactivate staff flow
+- Table header and row alignment for user records and actions
 - Inline button loading behavior
 - Dialog validation, focus, and scroll-to-message behavior
 - Responsive behavior on key viewports
@@ -63,10 +64,12 @@ This document validates:
 | USR-032 | Cancel staff activate or deactivate action | Owner/Admin | Toggle confirmation dialog is open | 1. Open toggle confirmation 2. Cancel action | Dialog closes and user status remains unchanged. | Medium |
 | USR-033 | Show inline loading state during staff activate or deactivate | Owner/Admin | Toggle confirmation dialog is open | 1. Confirm activate or deactivate action 2. Observe button state | Confirmation button shows inline loading state and prevents repeated submission until request completes. | High |
 | USR-034 | Keep table values readable after add, edit, and toggle actions | Owner/Admin | User data exists | 1. Perform add, edit, and toggle flows 2. Observe table and cards after each action | Table and summary cards remain synchronized with the latest saved user state. | High |
-| USR-035 | Users page is usable on mobile viewport | Owner/Admin | Browser width is between 360px and 480px | 1. Open `/users` on mobile viewport 2. Observe cards, table, dialogs, and action buttons | Page remains usable without horizontal page break. Dialog opens in a mobile-friendly full-screen style. | Critical |
-| USR-036 | Users page is usable on tablet viewport | Owner/Admin | Browser width is between 768px and 1024px | 1. Open `/users` on tablet viewport 2. Observe layout | Layout remains balanced. Cards and table remain readable and fully visible. | High |
-| USR-037 | Users page is usable on laptop viewport | Owner/Admin | Browser width is between 1280px and 1440px | 1. Open `/users` on laptop viewport 2. Observe layout | Layout remains visually balanced and action controls remain fully usable. | Medium |
-| USR-038 | Users page is usable on large desktop viewport | Owner/Admin | Browser width is 1920px or above | 1. Open `/users` on large desktop viewport 2. Observe spacing and alignment | Layout remains stable without odd stretching, clipping, or overlap. | Medium |
+| USR-035 | Keep users table headers aligned with their data treatment | Owner/Admin | User data exists | 1. Open `/users` 2. Compare header alignment and row alignment for `User`, `Email`, `Role`, `Status`, `Joined`, and `Actions` | Centered columns look centered to their data, and left-margin-based columns keep the same visual starting point between header and row content. | High |
+| USR-036 | Keep user action icons aligned consistently across rows | Owner/Admin | User table contains staff rows and owner row | 1. Open `/users` 2. Compare action-column icon placement across all visible rows | Edit and deactivate positions remain visually consistent even when some rows have fewer actions. | High |
+| USR-037 | Users page is usable on mobile viewport | Owner/Admin | Browser width is between 360px and 480px | 1. Open `/users` on mobile viewport 2. Observe cards, table, dialogs, and action buttons | Page remains usable without horizontal page break. Dialog opens in a mobile-friendly full-screen style. | Critical |
+| USR-038 | Users page is usable on tablet viewport | Owner/Admin | Browser width is between 768px and 1024px | 1. Open `/users` on tablet viewport 2. Observe layout | Layout remains balanced. Cards and table remain readable and fully visible. | High |
+| USR-039 | Users page is usable on laptop viewport | Owner/Admin | Browser width is between 1280px and 1440px | 1. Open `/users` on laptop viewport 2. Observe layout | Layout remains visually balanced and action controls remain fully usable. | Medium |
+| USR-040 | Users page is usable on large desktop viewport | Owner/Admin | Browser width is 1920px or above | 1. Open `/users` on large desktop viewport 2. Observe spacing and alignment | Layout remains stable without odd stretching, clipping, or overlap. | Medium |
 
 ## Execution Notes
 
