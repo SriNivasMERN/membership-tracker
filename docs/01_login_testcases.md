@@ -49,6 +49,8 @@ This document validates:
 | LGN-021 | Login page is usable on mobile viewport | Unauthorized User | Browser width is between 360px and 480px | 1. Open `/login` on mobile viewport 2. Observe card, fields, button, and icon sizes | Form fits screen without horizontal scroll. Fields are readable. Tap targets remain usable. | High |
 | LGN-022 | Login page is usable on tablet viewport | Unauthorized User | Browser width is between 768px and 1024px | 1. Open `/login` on tablet viewport 2. Observe layout | Layout remains centered, balanced, and fully usable without broken alignment. | Medium |
 | LGN-023 | Loading screen appears on first authenticated app entry | Owner/Admin | User is not logged in | 1. Login with valid credentials 2. Observe first post-login transition | User sees the app loading experience while the workspace initializes, without broken or blank intermediate state. | High |
+| LGN-024 | First module navigation after login shows immediate loading feedback | Owner/Admin | User has just logged in successfully | 1. Login 2. Immediately open another module from the authenticated area 3. Observe transition | The next module begins showing loading feedback promptly, without a dead pause that makes the app feel stuck. | High |
+| LGN-025 | First module visit after browser refresh still restores session smoothly | Owner/Admin | Valid authenticated session already exists | 1. Refresh browser on any protected page 2. Open another module after session restoration 3. Observe transition | Session restores efficiently and the first module opened after refresh still shows timely loading feedback. | High |
 
 ## Execution Notes
 

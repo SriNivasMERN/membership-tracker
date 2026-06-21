@@ -44,6 +44,7 @@ This document validates:
 | LAY-014 | Prevent access to authenticated modules after logout | Owner/Admin | User has just logged out | 1. Logout 2. Try opening protected module URL directly | User is redirected to login or blocked from protected pages until authenticated again. | Critical |
 | LAY-015 | Restore session without showing broken layout | Owner/Admin | Valid session cookie exists | 1. Refresh browser on any authenticated module 2. Observe app shell | Session restores cleanly. Sidebar and header appear properly once auth state is ready. | High |
 | LAY-016 | Show first-visit module loading smoothly after login | Owner/Admin | User has just logged in | 1. Login 2. Open first module after session starts 3. Observe navigation feel | First visit does not appear broken or blank. Loading treatment appears promptly while content is being prepared. | Critical |
+| LAY-016A | Keep repeat module visits faster within the same session | Owner/Admin | User has already opened at least one module in the current session | 1. Login 2. Open any major module for the first time 3. Navigate to another module 4. Return to the first module | Repeat visit in the same session feels faster than the first visit, and loading feedback still appears promptly if needed. | High |
 | LAY-017 | Keep sidebar brand section readable | Owner/Admin | User is logged in | 1. Observe brand name and logo area in sidebar | Brand text and logo remain centered, readable, and visually balanced. | Medium |
 | LAY-018 | Keep sidebar user section readable | Owner/Admin | User is logged in | 1. Observe bottom sidebar user section | User name, role, and last-login details remain readable with clear spacing and contrast. | Medium |
 | LAY-019 | Show previous login time correctly for current user | Owner/Admin | Current user has a previous login timestamp | 1. Login 2. Observe `Last Login` value in sidebar | Previous login timestamp is shown in expected readable date-time format. | Medium |
@@ -71,6 +72,7 @@ This document validates:
   - `1920px`
 - Validate both maximized and normal desktop window states for sidebar visibility.
 - For navigation-loading checks, validate first visit after login and normal repeat navigation.
+- For session-speed checks, compare first visit versus immediate repeat visit in the same session for major modules.
 - For logout checks, validate that user cannot keep accessing protected modules after session ends.
 
 ## Entry Criteria

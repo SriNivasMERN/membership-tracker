@@ -35,6 +35,7 @@ This document validates:
 | --- | --- | --- | --- | --- | --- | --- |
 | MEM-001 | Open members list successfully after login | Owner/Admin | User is logged in with a valid active session | 1. Open `/members` 2. Observe page load | Members page loads without crash. Summary cards, filters, table, and actions are visible. | Critical |
 | MEM-002 | Show members loading state on first visit | Owner/Admin | User is logged in and members data is not yet loaded | 1. Open `/members` from another module or immediately after login 2. Observe first render | Workspace loading experience appears immediately instead of a blank or broken page. | High |
+| MEM-002A | Keep members repeat visit faster within the same session | Owner/Admin | User has already opened members once in the current session | 1. Open `/members` for the first time 2. Navigate to another module 3. Return to `/members` | Repeat members visit feels faster than the first visit and loading feedback still appears promptly if needed. | High |
 | MEM-003 | Show list error state when members load fails | Owner/Admin | Backend/API is unavailable or members request fails | 1. Open `/members` 2. Simulate API failure | Error state appears with retry option. Page does not stay stuck in endless loading. | High |
 | MEM-004 | Validate members summary cards render with correct labels | Owner/Admin | Member data exists | 1. Open `/members` 2. Observe top stat cards | Cards display `Overall Members`, `Active`, `Renewal Due`, and `Payment Due` with count, icon, and helper text. | High |
 | MEM-005 | Validate summary cards use full matching dataset, not current page only | Owner/Admin | Member list contains multiple pages of records | 1. Open `/members` 2. Note summary values on page 1 3. Move to page 2 4. Compare summary values with the total matching dataset | Summary cards continue to represent the full matching member set and do not change only because pagination page changed. | Critical |
@@ -116,6 +117,7 @@ This document validates:
 
 - Validate both populated and low-data conditions where possible.
 - For filter validation, include records distributed across more than one pagination page.
+- Compare first members visit versus immediate repeat visit in the same authenticated session.
 - For add-member duplicate checks, use an already existing mobile number in the test environment.
 - For financial actions, validate both paid and pending member states where applicable.
 - For ended-membership checks, validate at least one case with refund due and one case with pending amount due.

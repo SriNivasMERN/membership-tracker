@@ -34,6 +34,7 @@ This document validates:
 | --- | --- | --- | --- | --- | --- | --- |
 | PRC-001 | Open pricing rules page successfully after login | Owner/Admin | User is logged in with a valid active session | 1. Open `/pricing` 2. Observe page load | Pricing Rules page loads without crash. Summary cards, pricing logic section, add button, and rules table are visible. | Critical |
 | PRC-002 | Show pricing-rules loading state on first visit | Owner/Admin | User is logged in and pricing rules data is not yet loaded | 1. Open `/pricing` from another module or immediately after login 2. Observe first render | Workspace loading experience appears immediately instead of a blank or broken page. | High |
+| PRC-002A | Keep pricing-rules repeat visit faster within the same session | Owner/Admin | User has already opened pricing rules once in the current session | 1. Open `/pricing` for the first time 2. Navigate to another module 3. Return to `/pricing` | Repeat pricing-rules visit feels faster than the first visit and still shows timely loading feedback if required. | High |
 | PRC-003 | Show pricing-rules error state when page load fails | Owner/Admin | Backend/API is unavailable or pricing requests fail | 1. Open `/pricing` 2. Simulate API failure | Error state appears with retry option. Page does not stay stuck in endless loading. | High |
 | PRC-004 | Validate summary cards render with correct labels | Owner/Admin | Pricing rule data exists | 1. Open `/pricing` 2. Observe top stat cards | Cards display `Overall Rules`, `Active`, `Inactive`, and `Boosted Prices` with count, icon, and helper text. | High |
 | PRC-005 | Validate pricing logic section is visible and readable | Owner/Admin | Pricing Rules page is loaded | 1. Open `/pricing` 2. Observe pricing logic section | Formula presentation clearly communicates `Base Price x Multiplier = Final Price`. | High |
@@ -76,6 +77,7 @@ This document validates:
 - Use at least one active rule and one inactive rule for toggle checks.
 - Use one rule with multiplier above `1` to validate boosted-rule counts.
 - Validate both create and edit flows because create supports plan and slot selection, while edit keeps them locked.
+- Compare first pricing-rules visit versus immediate repeat visit in the same authenticated session.
 - For responsive checks, validate at minimum:
   - `360px`
   - `768px`

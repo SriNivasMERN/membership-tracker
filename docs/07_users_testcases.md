@@ -32,6 +32,7 @@ This document validates:
 | --- | --- | --- | --- | --- | --- | --- |
 | USR-001 | Open users page successfully after login | Owner/Admin | User is logged in with a valid active session | 1. Open `/users` 2. Observe page load | Users page loads without crash. Summary cards, add button, and users table are visible. | Critical |
 | USR-002 | Show users loading state on first visit | Owner/Admin | User is logged in and users data is not yet loaded | 1. Open `/users` from another module or immediately after login 2. Observe first render | Workspace loading experience appears immediately instead of a blank or broken page. | High |
+| USR-002A | Keep users repeat visit faster within the same session | Owner/Admin | User has already opened users once in the current session | 1. Open `/users` for the first time 2. Navigate to another module 3. Return to `/users` | Repeat users visit feels faster than the first visit and still shows timely loading feedback if required. | High |
 | USR-003 | Show users error state when page load fails | Owner/Admin | Backend/API is unavailable or users request fails | 1. Open `/users` 2. Simulate API failure | Error state appears with retry option. Page does not stay stuck in endless loading. | High |
 | USR-004 | Validate summary cards render with correct labels | Owner/Admin | User data exists | 1. Open `/users` 2. Observe top stat cards | Cards display `Overall Users`, `Active`, `Staff`, and `Owners` with count, icon, and helper text. | High |
 | USR-005 | Show empty state when no staff accounts exist | Owner/Admin | No user records exist beyond required baseline or list is empty in test condition | 1. Open `/users` | Empty state appears clearly and provides the `Add Staff` action. | Medium |
@@ -76,6 +77,7 @@ This document validates:
 - Validate owner and staff rows separately because their available actions differ.
 - Use at least one active staff account and one inactive staff account for toggle checks.
 - Validate edit coverage for both staff and owner because owner edit restrictions are different.
+- Compare first users visit versus immediate repeat visit in the same authenticated session.
 - For responsive checks, validate at minimum:
   - `360px`
   - `768px`

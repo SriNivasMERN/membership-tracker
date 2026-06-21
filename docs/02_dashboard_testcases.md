@@ -32,6 +32,7 @@ This document validates:
 | --- | --- | --- | --- | --- | --- | --- |
 | DSH-001 | Open dashboard successfully after login | Owner/Admin | User is logged in with a valid active session | 1. Open `/dashboard` 2. Observe page load | Dashboard loads without crash. Summary cards, main sections, and top navigation are visible. | Critical |
 | DSH-002 | Show dashboard loading state on first visit | Owner/Admin | User is logged in and dashboard data is not yet loaded | 1. Open `/dashboard` from another module or immediately after login 2. Observe first render | Dashboard shows the workspace loading experience immediately, without a blank broken state. | High |
+| DSH-002A | Keep dashboard repeat visit faster within the same session | Owner/Admin | User has already opened dashboard once in the current session | 1. Open `/dashboard` for the first time 2. Navigate to another module 3. Return to `/dashboard` | Repeat dashboard visit in the same session feels faster than the first visit and does not show a long dead pause. | High |
 | DSH-003 | Show dashboard error state when summary load fails | Owner/Admin | Backend/API is unavailable or dashboard request fails | 1. Open `/dashboard` 2. Simulate dashboard API failure | Error state appears with retry option. Page does not stay stuck in an endless loading state. | High |
 | DSH-004 | Validate summary cards render with correct labels | Owner/Admin | Dashboard data exists | 1. Open `/dashboard` 2. Observe top cards | Cards display `Total Members`, `Active`, `Renewal Due`, and `Expired` with count, icon, and helper text. | High |
 | DSH-005 | Open Total Members drilldown from stat card | Owner/Admin | Dashboard has member records | 1. Click `Total Members` card | Drilldown dialog opens and lists all available members for that segment. | High |
@@ -69,6 +70,7 @@ This document validates:
 - Validate dashboard with both populated data and low-data/empty-data conditions where possible.
 - For drilldown checks, verify that the dialog content matches the selected summary card type.
 - For chart validation, use at least one dataset with growth and one dataset with decline.
+- Compare first dashboard visit versus immediate repeat visit in the same authenticated session.
 - For responsive checks, validate at minimum:
   - `360px`
   - `768px`

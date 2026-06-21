@@ -33,6 +33,7 @@ This document validates:
 | --- | --- | --- | --- | --- | --- | --- |
 | SLT-001 | Open slots page successfully after login | Owner/Admin | User is logged in with a valid active session | 1. Open `/slots` 2. Observe page load | Slots page loads without crash. Summary cards, add button, and slots table are visible. | Critical |
 | SLT-002 | Show slots loading state on first visit | Owner/Admin | User is logged in and slots data is not yet loaded | 1. Open `/slots` from another module or immediately after login 2. Observe first render | Workspace loading experience appears immediately instead of a blank or broken page. | High |
+| SLT-002A | Keep slots repeat visit faster within the same session | Owner/Admin | User has already opened slots once in the current session | 1. Open `/slots` for the first time 2. Navigate to another module 3. Return to `/slots` | Repeat slots visit feels faster than the first visit and still shows timely loading feedback if required. | High |
 | SLT-003 | Show slots error state when page load fails | Owner/Admin | Backend/API is unavailable or slots request fails | 1. Open `/slots` 2. Simulate API failure | Error state appears with retry option. Page does not stay stuck in endless loading. | High |
 | SLT-004 | Validate summary cards render with correct labels | Owner/Admin | Slot data exists | 1. Open `/slots` 2. Observe top stat cards | Cards display `Overall Slots`, `Active`, `Inactive`, and `Morning Slots` with count, icon, and helper text. | High |
 | SLT-005 | Show empty state when no slots exist | Owner/Admin | No slot records exist in the system | 1. Open `/slots` | Empty state appears clearly and provides the `Add Slot` action. | High |
@@ -74,6 +75,7 @@ This document validates:
 
 - Validate both populated and empty-data conditions where possible.
 - Use morning, afternoon, and evening examples when verifying session derivation.
+- Compare first slots visit versus immediate repeat visit in the same authenticated session.
 - Use at least one active slot and one inactive slot for toggle checks.
 - Validate dialog behavior for create and edit flows on both desktop and mobile-sized viewports.
 - For responsive checks, validate at minimum:

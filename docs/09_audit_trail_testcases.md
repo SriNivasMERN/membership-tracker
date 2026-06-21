@@ -31,6 +31,7 @@ This document validates:
 | --- | --- | --- | --- | --- | --- | --- |
 | AUD-001 | Open audit trail page successfully after login | Owner/Admin | User is logged in with a valid active session | 1. Open `/audit-trail` 2. Observe page load | Audit Trail page loads without crash. Summary cards, filters, and activity table are visible. | Critical |
 | AUD-002 | Show audit-trail loading state on first visit | Owner/Admin | User is logged in and audit data is not yet loaded | 1. Open `/audit-trail` from another module or immediately after login 2. Observe first render | Workspace loading experience appears immediately instead of a blank or broken page. | High |
+| AUD-002A | Keep audit-trail repeat visit faster within the same session | Owner/Admin | User has already opened audit trail once in the current session | 1. Open `/audit-trail` for the first time 2. Navigate to another module 3. Return to `/audit-trail` | Repeat audit-trail visit feels faster than the first visit and still shows timely loading feedback if required. | High |
 | AUD-003 | Show audit-trail error state when page load fails | Owner/Admin | Backend/API is unavailable or audit request fails | 1. Open `/audit-trail` 2. Simulate API failure | Error state appears clearly with retry support. Page does not stay stuck in endless loading. | High |
 | AUD-004 | Validate summary cards render with correct labels | Owner/Admin | Audit trail data exists | 1. Open `/audit-trail` 2. Observe top stat cards | Cards display `Total Activities`, `Today`, `Owner Actions`, and `Staff Actions` with count, icon, and helper text. | High |
 | AUD-005 | Focus search field on page load | Owner/Admin | Audit Trail page loads successfully | 1. Open `/audit-trail` 2. Observe cursor position | Cursor is placed in the search field automatically after data load completes. | Medium |
@@ -65,6 +66,7 @@ This document validates:
 - Validate both owner-generated and staff-generated activity where available.
 - Prefer testing with records from members, payments, renewals, settings saves, and user actions so action diversity is covered.
 - Confirm filtering remains correct when moving between pages.
+- Compare first audit-trail visit versus immediate repeat visit in the same authenticated session.
 
 ## Entry Criteria
 

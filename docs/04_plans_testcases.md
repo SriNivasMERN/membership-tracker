@@ -32,6 +32,7 @@ This document validates:
 | --- | --- | --- | --- | --- | --- | --- |
 | PLN-001 | Open plans page successfully after login | Owner/Admin | User is logged in with a valid active session | 1. Open `/plans` 2. Observe page load | Plans page loads without crash. Summary cards, add button, and plans table are visible. | Critical |
 | PLN-002 | Show plans loading state on first visit | Owner/Admin | User is logged in and plans data is not yet loaded | 1. Open `/plans` from another module or immediately after login 2. Observe first render | Workspace loading experience appears immediately instead of a blank or broken page. | High |
+| PLN-002A | Keep plans repeat visit faster within the same session | Owner/Admin | User has already opened plans once in the current session | 1. Open `/plans` for the first time 2. Navigate to another module 3. Return to `/plans` | Repeat plans visit feels faster than the first visit and still shows timely loading feedback if required. | High |
 | PLN-003 | Show plans error state when page load fails | Owner/Admin | Backend/API is unavailable or plans request fails | 1. Open `/plans` 2. Simulate API failure | Error state appears with retry option. Page does not stay stuck in endless loading. | High |
 | PLN-004 | Validate summary cards render with correct labels | Owner/Admin | Plan data exists | 1. Open `/plans` 2. Observe top stat cards | Cards display `Overall Plans`, `Active`, `Inactive`, and `Priced Plans` with count, icon, and helper text. | High |
 | PLN-005 | Show empty state when no plans exist | Owner/Admin | No plan records exist in the system | 1. Open `/plans` | Empty state appears clearly and provides the `Add Plan` action. | High |
@@ -71,6 +72,7 @@ This document validates:
 - Validate both populated and empty-data conditions where possible.
 - Use at least one active plan and one inactive plan for toggle checks.
 - Use one priced plan and one zero-price plan when validating summary-card counts.
+- Compare first plans visit versus immediate repeat visit in the same authenticated session.
 - Validate dialog behavior for create and edit flows on both desktop and mobile-sized viewports.
 - For responsive checks, validate at minimum:
   - `360px`

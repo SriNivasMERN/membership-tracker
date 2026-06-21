@@ -31,6 +31,7 @@ This document validates:
 | --- | --- | --- | --- | --- | --- | --- |
 | SET-001 | Open settings page successfully after login | Owner/Admin | User is logged in with a valid active session | 1. Open `/settings` 2. Observe page load | Settings page loads without crash. Summary cards, profile form, expiry-alert form, terminology form, and save area are visible. | Critical |
 | SET-002 | Show settings loading state on first visit | Owner/Admin | User is logged in and settings data is not yet loaded | 1. Open `/settings` from another module or immediately after login 2. Observe first render | Loading skeletons appear immediately instead of a blank or broken page. | High |
+| SET-002A | Keep settings repeat visit faster within the same session | Owner/Admin | User has already opened settings once in the current session | 1. Open `/settings` for the first time 2. Navigate to another module 3. Return to `/settings` | Repeat settings visit feels faster than the first visit and still shows timely loading feedback if required. | High |
 | SET-003 | Show settings error state when page load fails | Owner/Admin | Backend/API is unavailable or settings request fails | 1. Open `/settings` 2. Simulate API failure | Error state appears clearly. Page does not stay stuck in endless loading. | High |
 | SET-004 | Validate summary cards render with correct labels | Owner/Admin | Settings data exists | 1. Open `/settings` 2. Observe top stat cards | Cards display `Business Type`, `Expiry Alert`, `Custom Labels`, and `Configured` with value, icon, and helper text. | High |
 | SET-005 | Focus Business Name field on first settings load | Owner/Admin | Settings page loads successfully | 1. Open `/settings` 2. Observe cursor position | Cursor is placed in `Business Name` automatically. | Medium |
@@ -64,6 +65,7 @@ This document validates:
 - Validate both configured and first-time setup conditions where possible.
 - Save Settings is a shared action for multiple sections, so test cross-section updates in one pass.
 - Validate that the last-saved area updates only after successful save.
+- Compare first settings visit versus immediate repeat visit in the same authenticated session.
 - For responsive checks, validate at minimum:
   - `360px`
   - `768px`
