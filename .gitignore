@@ -29,6 +29,8 @@ desktop.ini
 *.ntvs*
 *.njsproj
 *.sln
+.local/
+backend/.local/
 
 # Logs
 logs/

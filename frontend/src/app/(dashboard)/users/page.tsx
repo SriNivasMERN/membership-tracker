@@ -37,7 +37,7 @@ import {
 } from "@mui/icons-material";
 import { useToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
-import api from "@/lib/api/axios.instance";
+import { usersApi } from "@/lib/api/users.api";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
@@ -84,30 +84,6 @@ const C = {
 const ROLE_STATUS_LEFT_OFFSET = 1.05;
 
 // ─── API ──────────────────────────────────────────────────────────────────────
-
-const usersApi = {
-  getAll: () => api.get("/users").then((r) => r.data),
-
-  create: (data: {
-    name: string;
-    email: string;
-    password: string;
-    role: "staff";
-  }) => api.post("/users", data).then((r) => r.data),
-
-  update: (id: string, data: { name: string }) =>
-    api.put(`/users/${id}`, data).then((r) => r.data),
-
-  updateCredentials: (
-    id: string,
-    data: { email?: string; newPassword?: string }
-  ) => api.patch(`/users/${id}/credentials`, data).then((r) => r.data),
-
-  toggle: (id: string, currentIsActive: boolean) =>
-    api
-      .patch(`/users/${id}/toggle`, { isActive: !currentIsActive })
-      .then((r) => r.data),
-};
 
 // ─── Add User Dialog ──────────────────────────────────────────────────────────
 
