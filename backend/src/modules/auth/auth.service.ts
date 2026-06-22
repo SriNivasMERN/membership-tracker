@@ -31,6 +31,18 @@ interface RefreshResult {
   user: IUserDocument;
 }
 
+const getRefreshCookieOptions = () => {
+  const secure = process.env.NODE_ENV === "production";
+
+  return {
+    httpOnly: true,
+    secure,
+    sameSite: secure ? ("none" as const) : ("lax" as const),
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    path: "/",
+  };
+};
+
 export const authService = {
   async isOwnerRegistered(): Promise<boolean> {
     const owner = await User.findOne({ role: "owner" });
@@ -113,23 +125,14 @@ export const authService = {
     );
 
     // Set refresh token as httpOnly cookie
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: false, // set to true in production (HTTPS only)
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
-    });
+    res.cookie("refreshToken", refreshToken, getRefreshCookieOptions());
 
     return { accessToken, user: updatedUser ?? user };
   },
 
   async logout(res: Response): Promise<void> {
     // Clear the cookie
-    res.clearCookie("refreshToken", {
-      httpOnly: true,
-      secure: false,
-      sameSite: "strict",
-    });
+    res.clearCookie("refreshToken", getRefreshCookieOptions());
   },
 
   async refreshAccessToken(

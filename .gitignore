@@ -54,6 +54,7 @@ coverage/
 *.gz
 *.tgz
 *.bz2
+mongodb-backup/
 
 # Audio
 *.mp3

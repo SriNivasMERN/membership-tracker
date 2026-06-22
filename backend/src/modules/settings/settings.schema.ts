@@ -21,7 +21,7 @@ export const createSettingsSchema = z.object({
     "sports_facility",
     "clinic",
     "other",
-  ], { errorMap: () => ({ message: "Invalid business type" }) }),
+  ], "Invalid business type"),
 
   email: z.string().email("Invalid email format").optional(),
   phone: z.string().min(10, "Invalid phone number").optional(),

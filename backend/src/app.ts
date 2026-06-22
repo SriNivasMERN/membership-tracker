@@ -16,10 +16,18 @@ import auditTrailRoutes from "./modules/auditTrail/auditTrail.routes";
 
 const app: Application = express();
 
+app.set("trust proxy", 1);
 app.use(helmet());
 app.use(
   cors({
-    origin: config.frontendUrl,
+    origin: (origin, callback) => {
+      if (!origin || config.allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error("CORS origin not allowed"));
+    },
     credentials: true,
   })
 );

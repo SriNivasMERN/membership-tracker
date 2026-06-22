@@ -13,6 +13,17 @@ requiredEnvVars.forEach((key) => {
   }
 });
 
+const parseAllowedOrigins = (value?: string): string[] => {
+  if (!value) {
+    return ["http://localhost:3000"];
+  }
+
+  return value
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+};
+
 export const config = {
   port: process.env.PORT || 5000,
   nodeEnv: process.env.NODE_ENV || "development",
@@ -20,4 +31,6 @@ export const config = {
   jwtAccessSecret: process.env.JWT_ACCESS_SECRET as string,
   jwtRefreshSecret: process.env.JWT_REFRESH_SECRET as string,
   frontendUrl: process.env.FRONTEND_URL || "http://localhost:3000",
+  allowedOrigins: parseAllowedOrigins(process.env.FRONTEND_URL),
+  isProduction: process.env.NODE_ENV === "production",
 };

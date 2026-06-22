@@ -1122,10 +1122,22 @@ export default function MembersPage() {
               Page {page} of {totalPages}
             </Typography>
             <Box sx={{ display: "flex", gap: 1 }}>
-              <Button size="small" variant="outlined" disabled={page === 1} onClick={() => setPage((current) => current - 1)}>
+              <Button
+                size="small"
+                variant="outlined"
+                color="inherit"
+                disabled={page === 1}
+                onClick={() => setPage((current) => current - 1)}
+              >
                 Previous
               </Button>
-              <Button size="small" variant="outlined" disabled={page === totalPages} onClick={() => setPage((current) => current + 1)}>
+              <Button
+                size="small"
+                variant="outlined"
+                color="inherit"
+                disabled={page === totalPages}
+                onClick={() => setPage((current) => current + 1)}
+              >
                 Next
               </Button>
             </Box>
