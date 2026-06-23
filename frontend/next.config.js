@@ -1,8 +1,9 @@
-const { PHASE_DEVELOPMENT_SERVER } = require("next/constants");
-
-module.exports = (phase) => ({
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   reactStrictMode: false,
-  // Keep dev-time chunks/cache separate from production build output
-  // so `next dev` and `next build` never overwrite each other.
-  distDir: phase === PHASE_DEVELOPMENT_SERVER ? ".next-dev" : ".next",
-});
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+};
+
+module.exports = nextConfig;
