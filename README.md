@@ -8,6 +8,13 @@ It is designed for two practical needs:
 - fast day-to-day front desk execution
 - clear owner visibility into dues, renewals, collections, and staff activity
 
+## Live Demo
+
+- **Live App** : https://membership-tracker-steel.vercel.app
+- **PRD**      : [PRD_Membership_Tracker.md](./PRD_Membership_Tracker.md)
+
+[![Watch Demo](https://img.youtube.com/vi/Z3xCeAU7zas/0.jpg)](https://youtu.be/Z3xCeAU7zas)
+
 ## Product Highlights
 
 - Dashboard with live business indicators for members, collections, dues, expiries, and renewals
@@ -111,7 +118,3 @@ Set-Location frontend
 npm install
 npm run dev
 ```
-
-## Product Documentation
-
-- Root PRD: [PRD_Membership_Tracker.md](./PRD_Membership_Tracker.md)
