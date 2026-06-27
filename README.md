@@ -103,11 +103,14 @@ frontend/   Next.js + React application
 
 ## Local Setup
 
+Requires Node.js and a running MongoDB instance (local or Atlas).
+
 ### Backend
 
 ```powershell
 Set-Location backend
 npm install
+copy .env.example .env   # then fill in MONGODB_URI, JWT secrets, etc.
 npm run dev
 ```
 
@@ -116,5 +119,6 @@ npm run dev
 ```powershell
 Set-Location frontend
 npm install
+copy .env.example .env.local   # then set NEXT_PUBLIC_API_URL
 npm run dev
 ```

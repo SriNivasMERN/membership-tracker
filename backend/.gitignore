@@ -2,6 +2,5 @@ node_modules/
 dist/
 .env
 .env.local
-.env.example
 .env.production
 *.log

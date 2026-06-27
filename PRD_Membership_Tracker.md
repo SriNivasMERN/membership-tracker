@@ -106,6 +106,7 @@ The Members module must support:
 - Edit personal details
 - Search by name or mobile
 - Filter by status, plan, and payment state
+- Sort by name, status, or renewal date
 - Record follow-up payments
 - Renew membership
 - Change plan
