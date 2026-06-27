@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Box,
@@ -91,6 +91,7 @@ export default function MembersPage() {
   const [statusFilter, setStatusFilter] = useState("");
   const [planFilter, setPlanFilter] = useState("");
   const [paymentFilter, setPaymentFilter] = useState("");
+  const [sortOption, setSortOption] = useState("");
 
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -168,8 +169,37 @@ export default function MembersPage() {
     setSelectedMemberIds([]);
   }, [search, statusFilter, planFilter, paymentFilter]);
 
+  const STATUS_SORT_ORDER: Record<Member["status"], number> = {
+    active: 0,
+    expiring_soon: 1,
+    expired: 2,
+    ended: 3,
+  };
+
+  const sortedMembers = useMemo(() => {
+    if (!sortOption) return allMatchingMembers;
+    const sorted = [...allMatchingMembers];
+    switch (sortOption) {
+      case "name_asc":
+        sorted.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case "name_desc":
+        sorted.sort((a, b) => b.name.localeCompare(a.name));
+        break;
+      case "status":
+        sorted.sort((a, b) => STATUS_SORT_ORDER[a.status] - STATUS_SORT_ORDER[b.status]);
+        break;
+      case "expiry_asc":
+        sorted.sort((a, b) => new Date(a.endDate).getTime() - new Date(b.endDate).getTime());
+        break;
+      default:
+        break;
+    }
+    return sorted;
+  }, [allMatchingMembers, sortOption]);
+
   useEffect(() => {
-    const nextTotalPages = Math.max(1, Math.ceil(allMatchingMembers.length / PAGE_SIZE));
+    const nextTotalPages = Math.max(1, Math.ceil(sortedMembers.length / PAGE_SIZE));
 
     if (page > nextTotalPages) {
       setPage(nextTotalPages);
@@ -177,18 +207,19 @@ export default function MembersPage() {
     }
 
     const startIndex = (page - 1) * PAGE_SIZE;
-    setMembers(allMatchingMembers.slice(startIndex, startIndex + PAGE_SIZE));
-  }, [allMatchingMembers, page]);
+    setMembers(sortedMembers.slice(startIndex, startIndex + PAGE_SIZE));
+  }, [sortedMembers, page]);
 
   const clearFilters = () => {
     setSearch("");
     setStatusFilter("");
     setPlanFilter("");
     setPaymentFilter("");
+    setSortOption("");
     setPage(1);
   };
 
-  const hasActiveFilters = Boolean(search || statusFilter || planFilter || paymentFilter);
+  const hasActiveFilters = Boolean(search || statusFilter || planFilter || paymentFilter || sortOption);
   const selectedMembers = allMatchingMembers.filter((member) => selectedMemberIds.includes(member._id));
   const areAllVisibleSelected = members.length > 0 && members.every((member) => selectedMemberIds.includes(member._id));
   const areSomeVisibleSelected = members.some((member) => selectedMemberIds.includes(member._id));
@@ -497,7 +528,7 @@ export default function MembersPage() {
           ) : null}
 
           <Grid container spacing={1.5}>
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12} md={3}>
               <TextField
                 placeholder="Search by member name or mobile"
                 value={search}
@@ -535,7 +566,7 @@ export default function MembersPage() {
                 }}
               />
             </Grid>
-            <Grid item xs={12} sm={4} md={2.5}>
+            <Grid item xs={12} sm={4} md={2}>
               <TextField
                 select
                 label="Status"
@@ -555,7 +586,7 @@ export default function MembersPage() {
                       case "active":
                         return "Active";
                       case "expiring_soon":
-                        return "Renewal Due Soon";
+                        return "Expiring Soon";
                       case "expired":
                         return "Expired";
                       case "ended":
@@ -569,12 +600,12 @@ export default function MembersPage() {
               >
                 <MenuItem value="">All Status</MenuItem>
                 <MenuItem value="active">Active</MenuItem>
-                <MenuItem value="expiring_soon">Renewal Due Soon</MenuItem>
+                <MenuItem value="expiring_soon">Expiring Soon</MenuItem>
                 <MenuItem value="expired">Expired</MenuItem>
                 <MenuItem value="ended">Ended</MenuItem>
               </TextField>
             </Grid>
-            <Grid item xs={12} sm={4} md={2.5}>
+            <Grid item xs={12} sm={4} md={2}>
               <TextField
                 select
                 label="Plan"
@@ -630,6 +661,45 @@ export default function MembersPage() {
                 <MenuItem value="paid">Fully Paid</MenuItem>
               </TextField>
             </Grid>
+            <Grid item xs={12} sm={4} md={2}>
+              <TextField
+                select
+                label="Sort By"
+                value={sortOption}
+                onChange={(e) => {
+                  setSortOption(e.target.value);
+                  setPage(1);
+                }}
+                size="small"
+                fullWidth
+                InputLabelProps={{ shrink: true }}
+                SelectProps={{
+                  displayEmpty: true,
+                  renderValue: (value) => {
+                    if (!value) return "Default";
+                    switch (value) {
+                      case "name_asc":
+                        return "Name (A-Z)";
+                      case "name_desc":
+                        return "Name (Z-A)";
+                      case "status":
+                        return "Status";
+                      case "expiry_asc":
+                        return "Expiry (Soonest)";
+                      default:
+                        return String(value);
+                    }
+                  },
+                }}
+                sx={MODULE_FIELD_SX}
+              >
+                <MenuItem value="">Default</MenuItem>
+                <MenuItem value="name_asc">Name (A-Z)</MenuItem>
+                <MenuItem value="name_desc">Name (Z-A)</MenuItem>
+                <MenuItem value="status">Status</MenuItem>
+                <MenuItem value="expiry_asc">Expiry (Soonest)</MenuItem>
+              </TextField>
+            </Grid>
             <Grid item xs={12} md={1}>
               <Button
                 variant={hasActiveFilters ? "outlined" : "contained"}
@@ -661,6 +731,22 @@ export default function MembersPage() {
                 <Chip label={paymentFilter === "pending" ? "Payment Due" : "Fully Paid"} size="small" onDelete={() => setPaymentFilter("")} sx={MODULE_NEUTRAL_CHIP_SX} />
               ) : null}
               {search ? <Chip label={`Search: ${search}`} size="small" onDelete={() => setSearch("")} sx={MODULE_NEUTRAL_CHIP_SX} /> : null}
+              {sortOption ? (
+                <Chip
+                  label={`Sort: ${
+                    sortOption === "name_asc"
+                      ? "Name (A-Z)"
+                      : sortOption === "name_desc"
+                      ? "Name (Z-A)"
+                      : sortOption === "status"
+                      ? "Status"
+                      : "Expiry (Soonest)"
+                  }`}
+                  size="small"
+                  onDelete={() => setSortOption("")}
+                  sx={MODULE_NEUTRAL_CHIP_SX}
+                />
+              ) : null}
             </Box>
           ) : null}
         </Box>
